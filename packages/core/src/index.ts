@@ -1,4 +1,5 @@
 export * from './result';
+export * from './domain';
 
 /**
  * Simple utility function to add two numbers.
