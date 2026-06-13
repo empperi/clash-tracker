@@ -14,7 +14,7 @@ Goal: all three workspaces install, type-check, lint, and test.
 - [x] c9adadf Task: Add root `tsconfig.base.json` (strict, `moduleResolution: bundler`, `target
   ES2022`). Add a trivial typed util in `packages/core/src/index.ts` and a Vitest test for
   it; confirm `npm test --workspace @clash-tracker/core` is red→green.
-- [ ] Task: Configure Vitest in `packages/core` (config file + `vitest` devDep). Verify the
+- [x] cd2fb6f Task: Configure Vitest in `packages/core` (config file + `vitest` devDep). Verify the
   sample test passes and coverage reporting works.
 - [ ] Task: Add ESLint (typescript-eslint) + Prettier at root with a shared config; wire
   `lint` scripts. Lint passes on the scaffold. (No tests; this is a chore task — still
