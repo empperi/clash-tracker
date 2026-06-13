@@ -32,7 +32,7 @@ Goal: `@clash-tracker/core` is a real, importable, pure package.
 - [x] a48a5a1 Task: Add shared domain **types** consumed later (e.g. `ClanRole`, `PlayerStats`,
   `War`, `WarType`, `SyncState`) as `readonly` interfaces/types. Add a type-level/sample
   test ensuring they compile and a small pure helper (e.g. `clanRoleRank`) with tests.
-- [ ] Verification: import `@clash-tracker/core` from a throwaway test in `web` and
+- [x] 7b8f614 Verification: import `@clash-tracker/core` from a throwaway test in `web` and
   `functions` to prove resolution works. [checkpoint]
 
 ## Phase 3: Vue app shell
