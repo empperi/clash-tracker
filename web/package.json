@@ -12,5 +12,8 @@
     "test:watch": "vitest",
     "lint": "eslint . --no-error-on-unmatched-pattern",
     "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@clash-tracker/core": "*"
   }
 }

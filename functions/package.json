@@ -16,5 +16,8 @@
     "deploy": "firebase deploy --only functions",
     "lint": "eslint . --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clash-tracker/core": "*"
   }
 }
