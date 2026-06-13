@@ -4,7 +4,12 @@
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["vite/client"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts"]
 }

@@ -1,0 +1,11 @@
+/* Clash Tracker styles */
+:root {
+  --color-bg: #121212;
+  --color-text: #e0e0e0;
+}
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: sans-serif;
+}
