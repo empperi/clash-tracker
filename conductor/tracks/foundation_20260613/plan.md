@@ -39,7 +39,7 @@ Goal: `@clash-tracker/core` is a real, importable, pure package.
 
 Goal: a running themed app with routed placeholder views and nav.
 
-- [ ] Task: Scaffold the Vue 3 + Vite + TS app in `web/` (Composition API, `<script
+- [x] 5df7f38 Task: Scaffold the Vue 3 + Vite + TS app in `web/` (Composition API, `<script
   setup>`). Add `main.ts` wiring Pinia, Vue Router, and `@tanstack/vue-query`. Smoke test:
   mounting `App.vue` renders the header (Vue Test Utils).
 - [ ] Task: Create placeholder views `PlayerListView`, `WarPlanView`, `AdminView`,
