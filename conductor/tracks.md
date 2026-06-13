@@ -31,3 +31,7 @@ Clash-themed design system, and emulator wiring. Placeholder views only.
 ### [ ] Track 2: Clash API integration & secure config [clash_api_integration_20260613]
 AES-256-GCM token encryption at rest, clan-tag config, secrets repository (emulator-tested),
 and a pluggable `CocApiGateway` fetching clan + current war with typed error handling.
+
+### [ ] Track 3: War tracking & ingestion [war_ingestion_20260613]
+The core. Scheduled polling of the current (classic) war; idempotent, lossless persistence
+of wars, members, attacks, defenses; stable identity, diff, and sync-status logic.

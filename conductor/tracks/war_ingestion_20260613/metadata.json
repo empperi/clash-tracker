@@ -1,0 +1,9 @@
+{
+  "id": "war_ingestion_20260613",
+  "description": "War tracking & ingestion: scheduled polling of current war, durable persistence of wars, attacks, defenses, and members with dedup and sync status",
+  "type": "feature",
+  "created_at": "2026-06-13T00:00:00Z",
+  "status": "pending",
+  "order": 3,
+  "depends_on": ["clash_api_integration_20260613"]
+}
