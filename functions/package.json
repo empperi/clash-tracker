@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "serve": "npm run build && firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions"
+    "deploy": "firebase deploy --only functions",
+    "lint": "eslint . --no-error-on-unmatched-pattern"
   }
 }

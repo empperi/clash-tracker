@@ -9,7 +9,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint . --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.8",
