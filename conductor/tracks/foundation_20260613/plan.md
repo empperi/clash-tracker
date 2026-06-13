@@ -23,7 +23,7 @@ Goal: all three workspaces install, type-check, lint, and test.
   --workspaces --if-present` succeeds on the scaffold.
 - [x] 6770ce5 Verification: `npm install && npm test && npm run lint` all green from root. [checkpoint]
 
-## Phase 2: Core domain package
+## Phase 2: Core domain package [checkpoint: bba00df]
 
 Goal: `@clash-tracker/core` is a real, importable, pure package.
 
