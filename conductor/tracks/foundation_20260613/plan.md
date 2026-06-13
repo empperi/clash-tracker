@@ -19,7 +19,7 @@ Goal: all three workspaces install, type-check, lint, and test.
 - [x] b6d21f5 Task: Add ESLint (typescript-eslint) + Prettier at root with a shared config; wire
   `lint` scripts. Lint passes on the scaffold. (No tests; this is a chore task — still
   commit separately.)
-- [ ] Task: Add `vue-tsc`/`tsc` typecheck scripts per workspace; ensure `npm run build
+- [x] 7e55080 Task: Add `vue-tsc`/`tsc` typecheck scripts per workspace; ensure `npm run build
   --workspaces --if-present` succeeds on the scaffold.
 - [ ] Verification: `npm install && npm test && npm run lint` all green from root. [checkpoint]
 
