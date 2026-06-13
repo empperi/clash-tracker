@@ -1,0 +1,9 @@
+{
+  "id": "foundation_20260613",
+  "description": "Foundation: monorepo, Vue 3 app shell, navigation with swipe, PWA, design system",
+  "type": "feature",
+  "created_at": "2026-06-13T00:00:00Z",
+  "status": "pending",
+  "order": 1,
+  "depends_on": []
+}
