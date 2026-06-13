@@ -50,3 +50,8 @@ section. Reads precomputed aggregates; reuses Track 4's pure functions.
 Passwordless magic-link login, secure HTTP-only session cookie, Owner/Admin custom claims,
 a reusable server-side `requireRole` guard, capability mapping for the UI, and prompt
 session revocation. Public site stays read-only browsable.
+
+### [ ] Track 7: Admin view [admin_view_20260613]
+Instant-save threshold sliders (acceptance %, min war participation), admin invitations with
+a pending list and revocation, and the registration view with a server-enforced 30-minute
+expiry. All writes guarded by `requireRole('admin')`.
