@@ -100,7 +100,38 @@ Goal: installable PWA that talks to emulators locally.
 - [ ] Verification: build, `firebase emulators:start`, install the PWA, confirm standalone
   launch and offline shell. [checkpoint]
 
+## Phase 7: CI/CD (GitHub Actions)
+
+Goal: tests on every push; tag-gated production deploy. **No PRs** — this is a single-dev
+repo pushing straight to `main`/`master`.
+
+- [ ] Task: Add `.github/workflows/ci.yml` — a **test** job triggered `on: push` (all
+  branches). Steps: checkout, setup Node 20 (+ npm cache), `npm ci`, type-check, `npm run
+  lint`, then `npm test` with the **Firebase Emulator Suite** available (run the suite via
+  `firebase emulators:exec "npm test"` so emulator-backed repository tests work). The job
+  fails if any test fails. Keep the job reusable (so deploy can depend on it).
+- [ ] Task: Add a **deploy** job to the workflow that triggers only on tags matching
+  `release-*` (e.g. `on: push: tags: ['release-*']`). It must `needs:` the test job so it
+  **only runs when tests pass**. Steps: checkout, Node 20, `npm ci`, `npm run build`, then
+  `firebase deploy --only hosting,functions,firestore:rules,storage` authenticating with the
+  `FIREBASE_SERVICE_ACCOUNT`/`FIREBASE_TOKEN` GitHub secret. Use the project from
+  `.firebaserc`.
+  > Note: a single workflow can gate jobs with `needs:`; if splitting into two workflow
+  > files instead, the deploy workflow must re-run (or require) the tests itself — never
+  > deploy without green tests.
+- [ ] Task: Document required GitHub **secrets** (`FIREBASE_SERVICE_ACCOUNT` or
+  `FIREBASE_TOKEN`, `CLASH_TOKEN_ENC_KEY`, any runtime config) in the workflow file header
+  and `README.md`. No secrets committed.
+- [ ] Task: Update `README.md` with the CI/CD section (push → tests; `release-*` tag →
+  gated deploy) — see the "Deployment & CI/CD" heading. Confirm the documented tag format
+  matches the workflow trigger.
+- [ ] Verification: push a trivial commit → CI runs tests and goes green/red correctly; push
+  a `release-*` tag on a green commit → deploy runs; confirm a failing test blocks deploy.
+  [checkpoint]
+
 ## Done when
 - `npm install && npm test && npm run lint && npm run build` all green.
 - App runs, swipes between 4 placeholder views with correct physics, installs as a PWA, and
   connects to emulators. `@clash-tracker/core` is importable and pure.
+- GitHub Actions runs the full test suite on every push and performs a Firebase deploy only
+  on a `release-*` tag with passing tests; the behavior is documented in `README.md`.

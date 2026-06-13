@@ -145,8 +145,16 @@ written to `players/*`, so the public Player List is a cheap read.
   (browse Player List, magic-link login).
 - **Coverage target: 80%** (see `workflow.md`). `core` should be near 100%.
 
-## CI/CD (intended)
+## CI/CD (GitHub Actions)
 
-- GitHub Actions: install → typecheck (`vue-tsc`, `tsc`) → lint → `npm test` (with emulator
-  for repository tests) → build.
-- Deploy via `firebase deploy` (hosting + functions + rules) once tests are green.
+Single developer, **no pull requests** — pushes go straight to `main`/`master`. Set up in
+Track 1 (Foundation). See `README.md` → "Deployment & CI/CD" for the developer-facing summary.
+
+- **CI on every push (any branch):** install → typecheck (`vue-tsc`, `tsc`) → lint →
+  `npm test` (run under the **Firebase Emulator Suite** so repository tests work, e.g.
+  `firebase emulators:exec "npm test"`). A failing test fails the workflow.
+- **Deploy on `release-*` tags** (e.g. `release-2026-06-13-22-24`): build → `firebase deploy`
+  (hosting + functions + rules). The deploy job **`needs:` the test job** — it only runs when
+  tests pass; a plain push never deploys.
+- Auth via `FIREBASE_SERVICE_ACCOUNT`/`FIREBASE_TOKEN` GitHub secret; `CLASH_TOKEN_ENC_KEY`
+  and runtime config are GitHub secrets, never committed.

@@ -81,6 +81,22 @@ accessibility). The basic Firebase config (`firebase.json`, rules, indexes) and 
   config read from env; no secrets in client code.
 - **Priority:** Medium
 
+### FR-8 — CI/CD via GitHub Actions
+- **Description:** Continuous integration on every push and a tag-gated production deploy.
+  This is a **single-developer, no-PR** project — work flows straight to `main`/`master`.
+- **Acceptance criteria:**
+  - **CI (on every push to any branch):** install, type-check, lint, and run the **full test
+    suite** (unit + emulator-backed). Tests run against the Firebase Emulator Suite in CI.
+    A failing test fails the workflow.
+  - **Deploy (on git tags matching `release-*`,** e.g. `release-2026-06-13-22-24`**):** build
+    and `firebase deploy` (hosting + functions + rules). The deploy job **depends on the
+    test job passing** — if tests fail, no deploy happens.
+  - Firebase auth in CI uses a service-account / token stored as a GitHub **secret**
+    (`FIREBASE_SERVICE_ACCOUNT` or `FIREBASE_TOKEN`); the CoC token encryption key and any
+    runtime secrets are GitHub secrets, never committed.
+  - The CI/CD behavior is documented in `README.md`.
+- **Priority:** High
+
 ## Non-Functional Requirements
 - **NFR-1 (Perf):** Initial mobile load is lean; route views code-split.
 - **NFR-2 (Quality):** ≥80% coverage on new logic; `core` near 100%. Strict TS, no `any`.
@@ -97,6 +113,9 @@ accessibility). The basic Firebase config (`firebase.json`, rules, indexes) and 
   duration) from the **DOM/gesture wiring** so the rule is unit-testable.
 - Keep placeholder views thin; real content comes in later tracks (Player List → Track 5,
   War Plan → Track 9, Admin → 7, Owner → 8).
+- CI/CD: single developer, **no pull requests** — pushes go directly to `main`/`master`.
+  CI runs on push; deploys are gated on a `release-*` tag *and* green tests. Emulator-backed
+  tests need the Firebase Emulator Suite available in the CI job.
 
 ## Out of Scope
 - Real player/war data, auth, settings persistence, any CoC API calls.
