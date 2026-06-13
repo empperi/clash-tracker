@@ -7,7 +7,7 @@ Each task = one Red→Green→Refactor cycle. Keep domain decisions pure and in
 > Implementer note: prefer official scaffolds (`npm create vite@latest`) then adapt. Do not
 > hand-write config you can generate. Use exact package names from `tech-stack.md`.
 
-## Phase 1: Monorepo & tooling
+## Phase 1: Monorepo & tooling [checkpoint: 6770ce5]
 
 Goal: all three workspaces install, type-check, lint, and test.
 
@@ -21,7 +21,7 @@ Goal: all three workspaces install, type-check, lint, and test.
   commit separately.)
 - [x] 7e55080 Task: Add `vue-tsc`/`tsc` typecheck scripts per workspace; ensure `npm run build
   --workspaces --if-present` succeeds on the scaffold.
-- [ ] Verification: `npm install && npm test && npm run lint` all green from root. [checkpoint]
+- [x] 6770ce5 Verification: `npm install && npm test && npm run lint` all green from root. [checkpoint]
 
 ## Phase 2: Core domain package
 
