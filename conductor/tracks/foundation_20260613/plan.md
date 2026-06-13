@@ -29,7 +29,7 @@ Goal: `@clash-tracker/core` is a real, importable, pure package.
 
 - [x] 02dbbf0 Task: Define the package's public barrel and a `Result<T,E>` type + helper
   (`ok`/`err`) with tests. No I/O.
-- [ ] Task: Add shared domain **types** consumed later (e.g. `ClanRole`, `PlayerStats`,
+- [x] a48a5a1 Task: Add shared domain **types** consumed later (e.g. `ClanRole`, `PlayerStats`,
   `War`, `WarType`, `SyncState`) as `readonly` interfaces/types. Add a type-level/sample
   test ensuring they compile and a small pure helper (e.g. `clanRoleRank`) with tests.
 - [ ] Verification: import `@clash-tracker/core` from a throwaway test in `web` and
