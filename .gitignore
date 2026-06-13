@@ -46,6 +46,9 @@ serviceAccount*.json
 .DS_Store
 Thumbs.db
 
+# Conductor session log (tool-generated)
+conductor/.conductor_session_log
+
 # Logs
 logs/
 *.log
