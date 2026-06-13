@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Clan logo is publicly readable (shown in the header everywhere). Uploads happen
+// server-side through a Cloud Function (Owner-only), so all client writes are denied.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /clan/logo.png {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

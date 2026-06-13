@@ -1,0 +1,23 @@
+{
+  "indexes": [
+    {
+      "//": "Past-players admin list: left players ordered by most-recent war participation.",
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "inClan", "order": "ASCENDING" },
+        { "fieldPath": "lastWarParticipatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Wars ordered by end time for ingestion dedup and history views.",
+      "collectionGroup": "wars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "endTime", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

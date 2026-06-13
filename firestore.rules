@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Clash Tracker Firestore security model
+// ---------------------------------------
+// Architecture rule of thumb:
+//   * Clients (browser) ONLY READ Firestore directly.
+//   * ALL WRITES go through Cloud Functions using the Admin SDK, which BYPASSES these
+//     rules. Role checks (Owner/Admin) are therefore enforced inside the functions,
+//     not here. This keeps the trust boundary on the server.
+//
+// Consequently the default stance is: public read on browsable data, deny all client
+// writes. Track 6 (Authentication & roles) refines any documents that must NOT be
+// world-readable (e.g. pending-admin invites, account records).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Publicly browsable, read-only data (the whole point of the public site).
+    match /players/{playerId}        { allow read: if true;  allow write: if false; }
+    match /wars/{warId}              { allow read: if true;  allow write: if false; }
+    match /wars/{warId}/{sub=**}     { allow read: if true;  allow write: if false; }
+
+    // Public-safe slice of clan settings (clan name, logo URL, thresholds).
+    // The CoC API token is NOT stored here and is never client-readable.
+    match /publicSettings/{docId}    { allow read: if true;  allow write: if false; }
+
+    // Server-only collections: not readable by clients. Touched only via Admin SDK.
+    //   secrets/*        -> encrypted CoC token, clanTag
+    //   accounts/*       -> admin/owner users
+    //   pendingAccounts/* -> invitations awaiting registration
+    match /secrets/{docId}           { allow read, write: if false; }
+    match /accounts/{docId}          { allow read, write: if false; }
+    match /pendingAccounts/{docId}   { allow read, write: if false; }
+
+    // Default deny.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "clash-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile-first PWA for tracking Clash of Clans war participation and planning CWL.",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "functions",
+    "web"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "dev": "npm run dev --workspace web",
+    "emulators": "firebase emulators:start",
+    "emulators:seed": "firebase emulators:start --import=./.seed --export-on-exit=./.seed"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
