@@ -1,3 +1,5 @@
+export * from './result';
+
 /**
  * Simple utility function to add two numbers.
  * @param a First number
