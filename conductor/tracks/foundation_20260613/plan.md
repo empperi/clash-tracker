@@ -45,7 +45,7 @@ Goal: a running themed app with routed placeholder views and nav.
 - [x] a3cb0e5 Task: Create placeholder views `PlayerListView`, `WarPlanView`, `AdminView`,
   `OwnerView` and register routes (Player List default). Test that each route renders its
   placeholder.
-- [ ] Task: Build `AppHeader` showing clan-name + logo **placeholders** (props/slots; real
+- [x] 3826406 Task: Build `AppHeader` showing clan-name + logo **placeholders** (props/slots; real
   values come from settings later). Test render at mobile width.
 - [ ] Task: Build a nav component (tap to switch view) reflecting the active route. Test
   active-state logic.
