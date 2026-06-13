@@ -1,0 +1,11 @@
+# Ignore conductor specs and documentation to avoid styling diff noise
+conductor/
+README.md
+firebase.json
+firestore.indexes.json
+firestore.rules
+storage.rules
+.firebase/
+**/dist/
+**/lib/
+**/node_modules/
