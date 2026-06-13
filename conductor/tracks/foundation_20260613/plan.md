@@ -11,7 +11,7 @@ Each task = one Red→Green→Refactor cycle. Keep domain decisions pure and in
 
 Goal: all three workspaces install, type-check, lint, and test.
 
-- [ ] Task: Add root `tsconfig.base.json` (strict, `moduleResolution: bundler`, `target
+- [x] c9adadf Task: Add root `tsconfig.base.json` (strict, `moduleResolution: bundler`, `target
   ES2022`). Add a trivial typed util in `packages/core/src/index.ts` and a Vitest test for
   it; confirm `npm test --workspace @clash-tracker/core` is red→green.
 - [ ] Task: Configure Vitest in `packages/core` (config file + `vitest` devDep). Verify the
