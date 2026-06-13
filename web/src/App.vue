@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
+import AppHeader from './components/AppHeader.vue';
 </script>
 
 <template>
   <div class="app-container">
-    <header class="app-header">
-      <h1>Clash Tracker</h1>
-    </header>
+    <AppHeader />
     <main class="app-content">
       <RouterView />
     </main>
