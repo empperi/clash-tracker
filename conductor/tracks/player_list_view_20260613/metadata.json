@@ -1,0 +1,9 @@
+{
+  "id": "player_list_view_20260613",
+  "description": "Player List view: two ranked lists of current members with the qualification line, full stats, and the admin past-players toggle with lazy infinite scroll",
+  "type": "feature",
+  "created_at": "2026-06-13T00:00:00Z",
+  "status": "pending",
+  "order": 5,
+  "depends_on": ["player_stats_ranking_20260613"]
+}
