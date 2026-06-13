@@ -27,3 +27,7 @@ Each track lives in `conductor/tracks/<id>/` with `spec.md`, `plan.md`, and `met
 ### [ ] Track 1: Foundation, app shell, navigation, PWA, design system [foundation_20260613]
 Monorepo + `@clash-tracker/core` + Vue 3 PWA shell with swipe navigation (250ms rule),
 Clash-themed design system, and emulator wiring. Placeholder views only.
+
+### [ ] Track 2: Clash API integration & secure config [clash_api_integration_20260613]
+AES-256-GCM token encryption at rest, clan-tag config, secrets repository (emulator-tested),
+and a pluggable `CocApiGateway` fetching clan + current war with typed error handling.
