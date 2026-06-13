@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+web/dist/
+functions/lib/
+packages/*/dist/
+
+# Test / coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+pubsub-debug.log*
+storage-debug.log*
+*-debug.log
+
+# Emulator data dumps (opt-in exports go in a tracked seed dir instead)
+.emulator-data/
+
+# Secrets & local env — NEVER commit
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+serviceAccount*.json
+.runtimeconfig.json
+.secret.local
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
