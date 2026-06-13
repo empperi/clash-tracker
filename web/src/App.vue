@@ -20,11 +20,6 @@ import AppNav from './components/AppNav.vue';
   flex-direction: column;
   min-height: 100vh;
 }
-.app-header {
-  padding: 1rem;
-  background-color: var(--color-bg-panel, #242526);
-  border-bottom: 1px solid var(--color-border, #3e3f40);
-}
 .app-content {
   flex: 1;
 }
