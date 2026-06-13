@@ -1,0 +1,9 @@
+{
+  "id": "war_plan_cwl_20260613",
+  "description": "War Plan (CWL): league group fetch, 7-war head-to-head visualization, sync status, manual player swaps, unplaced eligible players, and automatic re-planning algorithm",
+  "type": "feature",
+  "created_at": "2026-06-13T00:00:00Z",
+  "status": "pending",
+  "order": 9,
+  "depends_on": ["player_list_view_20260613", "admin_view_20260613"]
+}

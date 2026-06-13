@@ -60,3 +60,8 @@ expiry. All writes guarded by `requireRole('admin')`.
 Owner-only config: clan name, clan logo (PNG ≤600×600), write-only encrypted CoC API token,
 clan tag, and admin/owner account management (delete anyone but yourself, with immediate
 session revocation). Guarded by `requireRole('owner')`.
+
+### [ ] Track 9: War Plan (CWL) — last [war_plan_cwl_20260613]
+CWL-only view: league group + 7-war fetch, in-game-style head-to-head per war, sync status,
+unplaced eligible players, admin manual swaps (map re-orders by TH), and a pure auto-planning
+algorithm (equal-or-stronger, every eligible player in ≥2 wars, TH-strength override).
