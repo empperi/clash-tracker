@@ -47,7 +47,7 @@ Goal: a running themed app with routed placeholder views and nav.
   placeholder.
 - [x] 3826406 Task: Build `AppHeader` showing clan-name + logo **placeholders** (props/slots; real
   values come from settings later). Test render at mobile width.
-- [ ] Task: Build a nav component (tap to switch view) reflecting the active route. Test
+- [x] e33bf4e Task: Build a nav component (tap to switch view) reflecting the active route. Test
   active-state logic.
 - [ ] Verification: `npm run dev --workspace web` shows the shell; can tap between views. [checkpoint]
 
