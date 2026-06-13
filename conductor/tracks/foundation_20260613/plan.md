@@ -27,7 +27,7 @@ Goal: all three workspaces install, type-check, lint, and test.
 
 Goal: `@clash-tracker/core` is a real, importable, pure package.
 
-- [ ] Task: Define the package's public barrel and a `Result<T,E>` type + helper
+- [x] 02dbbf0 Task: Define the package's public barrel and a `Result<T,E>` type + helper
   (`ok`/`err`) with tests. No I/O.
 - [ ] Task: Add shared domain **types** consumed later (e.g. `ClanRole`, `PlayerStats`,
   `War`, `WarType`, `SyncState`) as `readonly` interfaces/types. Add a type-level/sample
