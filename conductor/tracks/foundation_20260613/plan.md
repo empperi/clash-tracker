@@ -35,7 +35,7 @@ Goal: `@clash-tracker/core` is a real, importable, pure package.
 - [x] 7b8f614 Verification: import `@clash-tracker/core` from a throwaway test in `web` and
   `functions` to prove resolution works. [checkpoint]
 
-## Phase 3: Vue app shell
+## Phase 3: Vue app shell [checkpoint: 900f044]
 
 Goal: a running themed app with routed placeholder views and nav.
 
@@ -49,7 +49,7 @@ Goal: a running themed app with routed placeholder views and nav.
   values come from settings later). Test render at mobile width.
 - [x] e33bf4e Task: Build a nav component (tap to switch view) reflecting the active route. Test
   active-state logic.
-- [ ] Verification: `npm run dev --workspace web` shows the shell; can tap between views. [checkpoint]
+- [x] 900f044 Verification: `npm run dev --workspace web` shows the shell; can tap between views. [checkpoint]
 
 ## Phase 4: Swipe navigation & motion
 
