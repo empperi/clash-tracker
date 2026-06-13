@@ -32,8 +32,9 @@ export function clanRoleRank(role: ClanRole): number {
       return 2;
     case 'member':
       return 1;
-    default:
+    default: {
       const exhaustiveCheck: never = role;
       return exhaustiveCheck;
+    }
   }
 }
