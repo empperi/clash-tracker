@@ -16,7 +16,7 @@ Goal: all three workspaces install, type-check, lint, and test.
   it; confirm `npm test --workspace @clash-tracker/core` is red→green.
 - [x] cd2fb6f Task: Configure Vitest in `packages/core` (config file + `vitest` devDep). Verify the
   sample test passes and coverage reporting works.
-- [ ] Task: Add ESLint (typescript-eslint) + Prettier at root with a shared config; wire
+- [x] b6d21f5 Task: Add ESLint (typescript-eslint) + Prettier at root with a shared config; wire
   `lint` scripts. Lint passes on the scaffold. (No tests; this is a chore task — still
   commit separately.)
 - [ ] Task: Add `vue-tsc`/`tsc` typecheck scripts per workspace; ensure `npm run build
