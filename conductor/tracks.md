@@ -55,3 +55,8 @@ session revocation. Public site stays read-only browsable.
 Instant-save threshold sliders (acceptance %, min war participation), admin invitations with
 a pending list and revocation, and the registration view with a server-enforced 30-minute
 expiry. All writes guarded by `requireRole('admin')`.
+
+### [ ] Track 8: Owner view [owner_view_20260613]
+Owner-only config: clan name, clan logo (PNG ≤600×600), write-only encrypted CoC API token,
+clan tag, and admin/owner account management (delete anyone but yourself, with immediate
+session revocation). Guarded by `requireRole('owner')`.

@@ -1,0 +1,79 @@
+# Implementation Plan: Owner View
+
+Track `owner_view_20260613`. TDD per `conductor/workflow.md`. Reuse Track 2
+(`SecretsRepository`, clan-tag rules) and Track 6 (`requireRole('owner')`,
+`revokeAccountSessions`). Pure validation → `core`; guarded writes → `functions`; UI → Vue.
+
+> Implementer note: the token is write-only — never return it to the client or log it. The
+> owner must never be able to delete themselves. Enforce logo/format limits server-side.
+
+## Phase 1: Clan identity (name + clan tag)
+
+Goal: owner-set, header-visible identity.
+
+- [ ] Task: Tests + implement pure validators: clan name (non-empty, max length); clan tag
+  (reuse Track 2 normalizer/validator).
+- [ ] Task: Emulator tests + implement guarded `setClanName` and `setClanTag` functions
+  (owner-only) writing to `publicSettings/config` / secrets-config. Assert non-owners
+  rejected.
+- [ ] Task: Tests + implement the name + clan-tag fields with **explicit Save** buttons and
+  validation feedback; ensure the header reflects the saved name/logo (reads
+  `publicSettings/config`).
+- [ ] Verification: changing name/clan tag updates the header everywhere after save. [checkpoint]
+
+## Phase 2: Clan logo upload
+
+Goal: PNG ≤600×600 logo in the header.
+
+- [ ] Task: Tests + implement a pure-ish PNG/dimension validator (reject non-PNG and
+  >600×600). 
+- [ ] Task: Emulator/Storage tests + implement a guarded `uploadClanLogo` function: validate
+  bytes server-side, store at `clan/logo.png` in Cloud Storage, save the public URL to
+  `publicSettings/config`. Assert non-owners rejected and invalid images rejected.
+- [ ] Task: Tests + implement the upload UI (file picker, PNG-only, preview, Save) with
+  error feedback; header updates after save.
+- [ ] Verification: upload a valid logo → header shows it; oversized/non-PNG rejected. [checkpoint]
+
+## Phase 3: CoC API token (write-only)
+
+Goal: securely set/replace the token.
+
+- [ ] Task: Emulator tests + implement a guarded `setApiToken(token)` function storing it
+  encrypted via `SecretsRepository`. Assert: stored value is ciphertext (≠ plaintext), the
+  function returns no token, and nothing logs the token.
+- [ ] Task: Tests + implement the token field + Save: write-only input, a "token is set"
+  indicator (boolean from a guarded status function — never the value), success feedback.
+- [ ] Verification: set a token; confirm encryption at rest and that the UI never receives
+  it; the gateway (Track 2) can then authenticate. [checkpoint]
+
+## Phase 4: Account management
+
+Goal: list and delete accounts safely.
+
+- [ ] Task: Emulator tests + implement a guarded `listAccounts()` returning active +
+  pending accounts (no secrets) for owners only.
+- [ ] Task: Tests + implement pure `canDeleteAccount(targetUid, currentOwnerUid)` →
+  false when target == self. 
+- [ ] Task: Emulator tests + implement guarded `deleteAccount(uid)`: refuse self-deletion,
+  delete the account, and call `revokeAccountSessions(uid)` so the user is logged out and
+  cannot re-login. Cover the self-delete rejection.
+- [ ] Task: Tests + implement the accounts list UI with delete buttons (own account's delete
+  disabled), reflecting active/pending status.
+- [ ] Verification: deleting an admin logs them out immediately; self-delete blocked in UI
+  and server. [checkpoint]
+
+## Phase 5: Owner view assembly
+
+Goal: compose behind the owner capability.
+
+- [ ] Task: Tests + implement `OwnerView.vue` composing identity, logo, token, clan tag, and
+  account management, visible only when `isOwner`. Non-owners (incl. plain admins) never see
+  it.
+- [ ] Verification: manual — full owner flow: brand the app, rotate the token, manage
+  accounts. [checkpoint]
+
+## Done when
+- The owner can set clan name/logo/clan tag (header reflects them), securely set a write-only
+  encrypted token that never reaches the client, and manage accounts (deleting anyone but
+  themselves, with immediate session revocation) — all owner-guarded and covered by unit +
+  emulator tests.
