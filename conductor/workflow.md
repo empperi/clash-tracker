@@ -101,10 +101,14 @@ test(core): Add attack-usage % aggregation tests
 feat(player-list): Render above/below qualification line
 ```
 
-End commit messages with the co-author trailer:
+End commit messages with a co-author trailer naming **the agent that actually did the
+work** — not a fixed value. Each agent uses its own identity:
 ```
-Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Co-Authored-By: <Agent Name> <noreply@example.com>
 ```
+Examples: `Co-Authored-By: Gemini <noreply@google.com>` when Gemini implements a task;
+`Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` when Claude authors specs/plans.
+Use the trailer that matches whoever is committing.
 
 ## Definition of Done
 

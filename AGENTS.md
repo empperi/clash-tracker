@@ -58,8 +58,9 @@ Use `CI=true` for watch-mode tools so they run once.
 ## Commits (Conventional Commits)
 
 `feat|fix|test|refactor|docs|chore(scope): description` — one task per commit. End messages
-with the co-author trailer used in this repo. See `conductor/workflow.md` for the full loop
-(git notes, plan SHA recording, phase checkpoints).
+with a `Co-Authored-By:` trailer naming **your own** agent identity (e.g.
+`Co-Authored-By: Gemini <noreply@google.com>`), not a fixed value. See
+`conductor/workflow.md` for the full loop (git notes, plan SHA recording, phase checkpoints).
 
 ## When unsure
 
