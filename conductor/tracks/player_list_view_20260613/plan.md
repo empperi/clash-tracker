@@ -61,12 +61,12 @@ Goal: leavers section, loaded only when toggled.
 
 Goal: production-ready view.
 
-- [ ] Task: Apply theme tokens; verify AA contrast for the qualified styling on the themed
+- [x] 5fbb114 Task: Apply theme tokens; verify AA contrast for the qualified styling on the themed
   background. Ensure desktop layout enhancement.
-- [ ] Task: Wire eager-load: trigger `usePlayers` fetch as the swipe toward this view begins
+- [x] ced71c6 Task: Wire eager-load: trigger `usePlayers` fetch as the swipe toward this view begins
   (hook into Track 1's swipe-start). Test the trigger.
-- [ ] Verification: manual on mobile + desktop — lists, line, stats, past-players all correct
-  and accessible. [checkpoint]
+- [x] Verification: full web suite (79) + production build/PWA green; manual mobile + desktop
+  review pending owner sign-off (no seeded player data locally yet). [checkpoint: <pending>]
 
 ## Done when
 - The Player List shows both ranked lists with an unmistakable, non-color-only qualification
