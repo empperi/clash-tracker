@@ -29,3 +29,25 @@ export function splitByParticipation<T extends HasWarsParticipated>(
   }
   return { qualifiedPool, notEnoughWars };
 }
+
+/** Minimal shape the qualification line needs. */
+interface HasAttackUsagePct {
+  readonly stats: { readonly attackUsagePct: number };
+}
+
+/** A qualified-pool player tagged with whether they clear the acceptance line. */
+export type Qualified<T> = T & { readonly aboveLine: boolean };
+
+/**
+ * Tags each qualified-pool player with `aboveLine = attackUsagePct >= acceptancePct`
+ * (CWL-eligible). Returns new objects; the input is not mutated.
+ */
+export function markQualification<T extends HasAttackUsagePct>(
+  qualifiedPool: readonly T[],
+  acceptancePct: number
+): readonly Qualified<T>[] {
+  return qualifiedPool.map((p) => ({
+    ...p,
+    aboveLine: p.stats.attackUsagePct >= acceptancePct,
+  }));
+}
