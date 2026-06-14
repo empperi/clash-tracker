@@ -18,7 +18,7 @@ Goal: trustworthy building blocks.
   documented divide-by-zero (available 0 → 0) and rounding rule.
 - [x] Verification: primitives green. [checkpoint: 056e945]
 
-## Phase 2: Per-player aggregation (pure)
+## Phase 2: Per-player aggregation (pure) [checkpoint: 8c66c65]
 
 Goal: full per-player stat object from per-war records.
 
@@ -29,7 +29,7 @@ Goal: full per-player stat object from per-war records.
   attacks done/available, attack-usage %, median destruction, median stars, median
   defenses-per-war, median own-destruction-per-war, and `lastWarParticipatedAt`. Cover: no
   wars, one war, multiple wars, missed attacks, never-attacked, never-defended.
-- [x] Verification: aggregation matches hand-computed fixtures. [checkpoint: <pending>]
+- [x] Verification: aggregation matches hand-computed fixtures. [checkpoint: 8c66c65]
 
 ## Phase 3: Eligibility split (pure)
 
