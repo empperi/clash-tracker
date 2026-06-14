@@ -29,20 +29,25 @@ function toggle(): void {
       @click="toggle"
     >
       <span v-if="qualified" class="qualified-badge" aria-hidden="true">★</span>
-      <span class="name">
-        {{ player.name }}
-        <span v-if="qualified" class="visually-hidden">(above the line)</span>
+      <span class="identity">
+        <span class="name">
+          {{ player.name }}
+          <span v-if="qualified" class="visually-hidden">(above the line)</span>
+        </span>
+        <span class="meta">
+          <span class="role">{{ roleLabel(player.role) }}</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span class="th" :aria-label="`Town Hall level ${player.thLevel}`"
+            >TH{{ player.thLevel }}</span
+          >
+        </span>
       </span>
-      <span class="role">{{ roleLabel(player.role) }}</span>
-      <span class="th" :aria-label="`Town Hall level ${player.thLevel}`"
-        >TH{{ player.thLevel }}</span
-      >
-      <span class="wars"
-        >{{ player.stats.warsParticipated }}<span class="unit">&nbsp;wars</span></span
-      >
-      <span class="usage" :aria-label="`${player.stats.attackUsagePct}% attacks used`"
-        >{{ player.stats.attackUsagePct }}%</span
-      >
+      <span class="metrics">
+        <span class="usage" :aria-label="`${player.stats.attackUsagePct}% attacks used`"
+          >{{ player.stats.attackUsagePct }}%</span
+        >
+        <span class="wars">{{ player.stats.warsParticipated }} wars</span>
+      </span>
       <span class="chevron" aria-hidden="true">{{ expanded ? '▲' : '▼' }}</span>
     </button>
 
@@ -108,51 +113,74 @@ function toggle(): void {
   flex: 0 0 auto;
 }
 
+/* Identity block: name on top, role · TH beneath — keeps the row scannable and
+   wrap-free at 360px. */
+.identity {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .name {
   font-family: var(--ct-font-display);
   font-weight: 600;
-  flex: 1 1 auto;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.role {
-  color: var(--ct-color-text-secondary);
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
-  flex: 0 0 auto;
-}
-
-.th {
-  color: var(--ct-color-gold-text);
-  font-size: 12px;
-  font-weight: 600;
-  flex: 0 0 auto;
-}
-
-.wars {
   color: var(--ct-color-text-secondary);
-  font-size: 13px;
-  flex: 0 0 auto;
 }
-.wars .unit {
+.meta .dot {
   color: var(--ct-color-text-muted);
+}
+.meta .th {
+  color: var(--ct-color-gold-text);
+  font-weight: 600;
+}
+
+/* Metrics block: headline usage % with wars beneath, right-aligned. */
+.metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: 0 0 auto;
 }
 
 .usage {
   font-family: var(--ct-font-display);
   font-weight: 700;
+  font-size: 16px;
   color: var(--ct-color-gold-text);
-  min-width: 44px;
-  text-align: right;
-  flex: 0 0 auto;
+  line-height: 1.1;
+}
+
+.wars {
+  font-size: 12px;
+  color: var(--ct-color-text-muted);
 }
 
 .chevron {
   color: var(--ct-color-text-muted);
   font-size: 10px;
   flex: 0 0 auto;
+}
+
+/* Desktop enhancement: roomier rows and a larger detail grid. */
+@media (min-width: 700px) {
+  .row-main {
+    padding: var(--ct-spacing-md);
+    font-size: 16px;
+  }
+  .row-detail {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .row-detail {
