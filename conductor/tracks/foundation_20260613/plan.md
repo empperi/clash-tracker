@@ -93,7 +93,7 @@ Goal: Clash-themed tokens and base primitives.
 
 Goal: installable PWA that talks to emulators locally.
 
-- [ ] Task: Add `vite-plugin-pwa` with manifest (name "Clash Tracker", theme color, icons)
+- [x] 4fbd056 Task: Add `vite-plugin-pwa` with manifest (name "Clash Tracker", theme color, icons)
   and autoUpdate service worker. Test that the manifest is generated in the build output.
 - [ ] Task: Add a Firebase client init module reading config from `import.meta.env`;
   connect to Auth/Firestore emulators when `VITE_USE_EMULATORS==='true'`. Test the
