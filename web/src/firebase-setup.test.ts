@@ -56,7 +56,9 @@ test('connects to emulators when VITE_USE_EMULATORS is true', () => {
   });
 
   expect(connectFirestoreEmulator).toHaveBeenCalledWith('mock-db', 'localhost', 8080);
-  expect(connectAuthEmulator).toHaveBeenCalledWith('mock-auth', 'http://localhost:9099');
+  expect(connectAuthEmulator).toHaveBeenCalledWith('mock-auth', 'http://localhost:9099', {
+    disableWarnings: true,
+  });
 });
 
 test('uses safe demo placeholders when running against emulators with no config', () => {
@@ -75,7 +77,9 @@ test('uses safe demo placeholders when running against emulators with no config'
   expect(initializeApp).toHaveBeenCalledWith(
     expect.objectContaining({ apiKey: 'demo-api-key', projectId: 'demo-clash-tracker' })
   );
-  expect(connectAuthEmulator).toHaveBeenCalledWith('mock-auth', 'http://localhost:9099');
+  expect(connectAuthEmulator).toHaveBeenCalledWith('mock-auth', 'http://localhost:9099', {
+    disableWarnings: true,
+  });
 });
 
 test('defaults to emulators in development mode', () => {

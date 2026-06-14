@@ -9,7 +9,7 @@ export function setupFirebase(
     getFirestore: (app: FirebaseApp) => Firestore;
     connectFirestoreEmulator: (db: Firestore, host: string, port: number) => void;
     getAuth: (app: FirebaseApp) => Auth;
-    connectAuthEmulator: (auth: Auth, url: string) => void;
+    connectAuthEmulator: (auth: Auth, url: string, options?: { disableWarnings: boolean }) => void;
   }
 ) {
   // Use the emulators when explicitly requested, or by default in dev mode. The Firebase
@@ -38,7 +38,6 @@ export function setupFirebase(
 
   if (useEmulators) {
     deps.connectFirestoreEmulator(db, 'localhost', 8080);
-    // @ts-expect-error
     deps.connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   }
 
