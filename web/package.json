@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@clash-tracker/core": "*",
+    "@fontsource/fredoka": "^5.2.10",
+    "@fontsource/signika-negative": "^5.2.8",
     "@tanstack/vue-query": "^5.101.0",
     "@vueuse/core": "^14.3.0",
     "pinia": "^3.0.4",
