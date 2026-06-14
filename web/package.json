@@ -19,6 +19,7 @@
     "@fontsource/signika-negative": "^5.2.8",
     "@tanstack/vue-query": "^5.101.0",
     "@vueuse/core": "^14.3.0",
+    "firebase": "^12.14.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.38",
     "vue-router": "^5.1.0"
