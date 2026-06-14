@@ -48,14 +48,14 @@ Goal: the two lists with the divider.
 
 Goal: leavers section, loaded only when toggled.
 
-- [ ] Task: Tests + implement a capability flag `canViewPastPlayers` (from session/auth state
+- [x] 755cb95 Task: Tests + implement a capability flag `canViewPastPlayers` (from session/auth state
   — inject it; real wiring arrives with Track 6). Toggle hidden when false.
-- [ ] Task: Tests + implement `usePastPlayers()` with paginated fetch (cursor over
+- [x] 2bcedc4 Task: Tests + implement `usePastPlayers()` with paginated fetch (cursor over
   `getPastPlayers`, ordered by `lastWarParticipatedAt` desc). Assert it does **not** fetch
   until enabled, and fetches the next page on demand.
-- [ ] Task: Tests + implement the past-players section with infinite scroll (IntersectionObserver
+- [x] e565d64 Task: Tests + implement the past-players section with infinite scroll (IntersectionObserver
   or sentinel; inject the observer for testability). Appends pages; same row component.
-- [ ] Verification: toggle reveals leavers, scrolling loads more, nothing loads before toggle. [checkpoint]
+- [x] Verification: toggle reveals leavers, scrolling loads more, nothing loads before toggle. [checkpoint: <pending>]
 
 ## Phase 5: Polish & integration
 
