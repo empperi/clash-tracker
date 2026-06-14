@@ -51,7 +51,7 @@ Goal: a running themed app with routed placeholder views and nav.
   active-state logic.
 - [x] 900f044 Verification: `npm run dev --workspace web` shows the shell; can tap between views. [checkpoint]
 
-## Phase 4: Swipe navigation & motion
+## Phase 4: Swipe navigation & motion [checkpoint: 33be846]
 
 Goal: natural swipe between adjacent views honoring the 250ms rule.
 
@@ -71,8 +71,10 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
   hook fires on drag start in a test.
 - [x] d3b2bd0 Task (web): Honor `prefers-reduced-motion` → skip slide, instant/cross-fade. Test the
   branch via a matchMedia stub passed in (inject the matcher, don't read global).
-- [ ] Verification: manual — slow-drag follows finger and snaps; quick flick completes
+- [x] Verification: manual — slow-drag follows finger and snaps; quick flick completes
   ≤250ms; reduced-motion disables slide. [checkpoint]
+  Carousel reworked from snap-back to slide-to-target with wraparound; user-confirmed
+  2026-06-14. Verified in a real browser (nav taps, left/right swipe, wraparound).
 
 ## Phase 5: Design system / theme
 
