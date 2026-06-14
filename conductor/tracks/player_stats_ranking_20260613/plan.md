@@ -53,7 +53,7 @@ Goal: the six-key sort for both lists.
 - [x] ed93599 Task: Provide `sortPlayers(list)` returning a new sorted array (no mutation).
 - [x] Verification: ordering exactly matches the spec, including deep tie-breaks. [checkpoint: 65c819e]
 
-## Phase 5: Recompute & persist (emulator-tested)
+## Phase 5: Recompute & persist (emulator-tested) [checkpoint: 8997fd3]
 
 Goal: write `players/*` aggregates after ingestion.
 
@@ -69,7 +69,7 @@ Goal: write `players/*` aggregates after ingestion.
   Chose **edge composition** in the ingestion handlers (runs once per ingest cycle, catches
   both header + attack writes; a war-doc trigger would miss attack subcollection writes).
 - [x] Verification: after ingesting fixture wars, `players/*` holds correct aggregates;
-  leavers retained and partitioned correctly. [checkpoint: <pending>]
+  leavers retained and partitioned correctly. [checkpoint: 8997fd3]
 
 ## Done when
 - Aggregates, medians, attack-usage %, the two-list split, the qualification line, and the
