@@ -62,6 +62,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/release-')
+    # The Firebase web-config Variables live in the "prod" Environment; a job only sees
+    # environment-scoped vars/secrets when it declares the environment.
+    environment:
+      name: prod
+      url: https://militia-clash-tracker.web.app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
