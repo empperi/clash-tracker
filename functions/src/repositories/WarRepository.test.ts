@@ -50,18 +50,22 @@ describe('WarRepository', () => {
 
     await repo.saveWarHeader(warId, header);
 
-    const storedWar = await repo.getWar(warId);
-    expect(storedWar).not.toBeNull();
-    if (storedWar) {
-      expect(storedWar.state).toBe('inWar');
-      expect(storedWar.teamSize).toBe(2);
-      expect(storedWar.opponentName).toBe('Opponent Clan');
-      expect(storedWar.opponentTag).toBe('#OPPONENT1');
-      expect(storedWar.startTime).toBe('2026-06-15T10:00:00.000Z');
-      expect(storedWar.endTime).toBe('2026-06-16T10:00:00.000Z');
-      expect(storedWar.preparationStartTime).toBe('2026-06-14T10:00:00.000Z');
-      expect(storedWar.clanMembers.length).toBe(0);
-      expect(storedWar.opponentMembers.length).toBe(0);
+    const result = await repo.getWar(warId);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const storedWar = result.value;
+      expect(storedWar).not.toBeNull();
+      if (storedWar) {
+        expect(storedWar.state).toBe('inWar');
+        expect(storedWar.teamSize).toBe(2);
+        expect(storedWar.opponentName).toBe('Opponent Clan');
+        expect(storedWar.opponentTag).toBe('#OPPONENT1');
+        expect(storedWar.startTime).toBe('2026-06-15T10:00:00.000Z');
+        expect(storedWar.endTime).toBe('2026-06-16T10:00:00.000Z');
+        expect(storedWar.preparationStartTime).toBe('2026-06-14T10:00:00.000Z');
+        expect(storedWar.clanMembers.length).toBe(0);
+        expect(storedWar.opponentMembers.length).toBe(0);
+      }
     }
   });
 
@@ -101,13 +105,17 @@ describe('WarRepository', () => {
     await repo.upsertMembers(warId, clanMembers, false);
     await repo.upsertMembers(warId, opponentMembers, true);
 
-    const storedWar = await repo.getWar(warId);
-    expect(storedWar).not.toBeNull();
-    if (storedWar) {
-      expect(storedWar.clanMembers.length).toBe(1);
-      expect(storedWar.clanMembers[0].name).toBe('ClanPlayer1');
-      expect(storedWar.opponentMembers.length).toBe(1);
-      expect(storedWar.opponentMembers[0].name).toBe('OpponentPlayer1');
+    const result = await repo.getWar(warId);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const storedWar = result.value;
+      expect(storedWar).not.toBeNull();
+      if (storedWar) {
+        expect(storedWar.clanMembers.length).toBe(1);
+        expect(storedWar.clanMembers[0].name).toBe('ClanPlayer1');
+        expect(storedWar.opponentMembers.length).toBe(1);
+        expect(storedWar.opponentMembers[0].name).toBe('OpponentPlayer1');
+      }
     }
   });
 
@@ -189,43 +197,47 @@ describe('WarRepository', () => {
     ];
     await attackRepo.addAttacks(warId, attacks);
 
-    const storedWar = await repo.getWar(warId);
-    expect(storedWar).not.toBeNull();
-    if (storedWar) {
-      expect(storedWar.state).toBe('inWar');
-      expect(storedWar.teamSize).toBe(2);
+    const result = await repo.getWar(warId);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const storedWar = result.value;
+      expect(storedWar).not.toBeNull();
+      if (storedWar) {
+        expect(storedWar.state).toBe('inWar');
+        expect(storedWar.teamSize).toBe(2);
 
-      const m1 = storedWar.clanMembers.find((m) => m.tag === '#M1');
-      const m2 = storedWar.clanMembers.find((m) => m.tag === '#M2');
-      const o1 = storedWar.opponentMembers.find((o) => o.tag === '#O1');
-      const o2 = storedWar.opponentMembers.find((o) => o.tag === '#O2');
+        const m1 = storedWar.clanMembers.find((m) => m.tag === '#M1');
+        const m2 = storedWar.clanMembers.find((m) => m.tag === '#M2');
+        const o1 = storedWar.opponentMembers.find((o) => o.tag === '#O1');
+        const o2 = storedWar.opponentMembers.find((o) => o.tag === '#O2');
 
-      expect(m1).toBeDefined();
-      expect(m2).toBeDefined();
-      expect(o1).toBeDefined();
-      expect(o2).toBeDefined();
+        expect(m1).toBeDefined();
+        expect(m2).toBeDefined();
+        expect(o1).toBeDefined();
+        expect(o2).toBeDefined();
 
-      if (m1 && m2 && o1 && o2) {
-        // M1 attacked O2 (order 1)
-        expect(m1.attacks).toHaveLength(1);
-        expect(m1.attacks[0]).toEqual(attacks[0]);
-        expect(m1.defenses).toHaveLength(0);
+        if (m1 && m2 && o1 && o2) {
+          // M1 attacked O2 (order 1)
+          expect(m1.attacks).toHaveLength(1);
+          expect(m1.attacks[0]).toEqual(attacks[0]);
+          expect(m1.defenses).toHaveLength(0);
 
-        // O1 attacked M2 (order 2)
-        // M2 attacked O1 (order 3)
-        expect(m2.attacks).toHaveLength(1);
-        expect(m2.attacks[0]).toEqual(attacks[2]); // order 3
-        expect(m2.defenses).toHaveLength(1);
-        expect(m2.defenses[0]).toEqual(attacks[1]); // order 2
+          // O1 attacked M2 (order 2)
+          // M2 attacked O1 (order 3)
+          expect(m2.attacks).toHaveLength(1);
+          expect(m2.attacks[0]).toEqual(attacks[2]); // order 3
+          expect(m2.defenses).toHaveLength(1);
+          expect(m2.defenses[0]).toEqual(attacks[1]); // order 2
 
-        expect(o1.attacks).toHaveLength(1);
-        expect(o1.attacks[0]).toEqual(attacks[1]); // order 2
-        expect(o1.defenses).toHaveLength(1);
-        expect(o1.defenses[0]).toEqual(attacks[2]); // order 3
+          expect(o1.attacks).toHaveLength(1);
+          expect(o1.attacks[0]).toEqual(attacks[1]); // order 2
+          expect(o1.defenses).toHaveLength(1);
+          expect(o1.defenses[0]).toEqual(attacks[2]); // order 3
 
-        expect(o2.attacks).toHaveLength(0);
-        expect(o2.defenses).toHaveLength(1);
-        expect(o2.defenses[0]).toEqual(attacks[0]); // order 1
+          expect(o2.attacks).toHaveLength(0);
+          expect(o2.defenses).toHaveLength(1);
+          expect(o2.defenses[0]).toEqual(attacks[0]); // order 1
+        }
       }
     }
   });

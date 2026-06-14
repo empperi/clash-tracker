@@ -1,5 +1,13 @@
 import { Firestore } from 'firebase-admin/firestore';
-import { MappedWar, MappedWarMember, MappedAttack, WarHeader } from '@clash-tracker/core';
+import {
+  MappedWar,
+  MappedWarMember,
+  MappedAttack,
+  WarHeader,
+  Result,
+  ok,
+  err,
+} from '@clash-tracker/core';
 
 export class WarRepository {
   constructor(private readonly db: Firestore) {}
@@ -7,15 +15,15 @@ export class WarRepository {
   /**
    * Retrieves a fully constructed MappedWar from Firestore including its members and attacks.
    */
-  async getWar(warId: string): Promise<MappedWar | null> {
+  async getWar(warId: string): Promise<Result<MappedWar | null, string>> {
     try {
       const docSnap = await this.db.doc(`wars/${warId}`).get();
       if (!docSnap.exists) {
-        return null;
+        return ok(null);
       }
       const header = docSnap.data();
       if (!header) {
-        return null;
+        return ok(null);
       }
 
       // Load members
@@ -56,7 +64,7 @@ export class WarRepository {
         .map(mapMember)
         .sort((a, b) => a.mapPosition - b.mapPosition);
 
-      return {
+      return ok({
         state: header.state as 'preparation' | 'inWar' | 'warEnded',
         teamSize: Number(header.teamSize || 0),
         opponentName: String(header.opponentName || ''),
@@ -66,10 +74,11 @@ export class WarRepository {
         preparationStartTime: String(header.preparationStartTime || ''),
         clanMembers,
         opponentMembers,
-      };
+      });
     } catch (error: unknown) {
-      console.error(`Error in getWar: ${error instanceof Error ? error.message : String(error)}`);
-      return null;
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`Error in getWar: ${msg}`);
+      return err(msg);
     }
   }
 
