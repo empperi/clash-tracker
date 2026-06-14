@@ -66,7 +66,7 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
   drag, translates the view container 1:1, and on release calls `resolveSwipe` to decide
   and `swipeTransition` to animate. Test the composable's state transitions with simulated
   gesture inputs (no real touch hardware needed — drive the handlers directly).
-- [ ] Task (web): Start loading the **target view's** data hook the moment a swipe begins
+- [x] c942177 Task (web): Start loading the **target view's** data hook the moment a swipe begins
   (eager-load). For now wire a no-op/loading flag the placeholder views expose; assert the
   hook fires on drag start in a test.
 - [ ] Task (web): Honor `prefers-reduced-motion` → skip slide, instant/cross-fade. Test the
