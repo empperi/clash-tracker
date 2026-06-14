@@ -9,3 +9,4 @@ storage.rules
 **/dist/
 **/lib/
 **/node_modules/
+**/dev-dist/

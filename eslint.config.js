@@ -34,6 +34,7 @@ export default tseslint.config(
       '.firebase/**',
       'functions/lib/**',
       'web/dist/**',
+      '**/dev-dist/**',
     ],
   }
 );

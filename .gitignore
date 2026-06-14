@@ -8,6 +8,7 @@ dist/
 build/
 *.tsbuildinfo
 web/dist/
+web/dev-dist/
 functions/lib/
 packages/*/dist/
 
