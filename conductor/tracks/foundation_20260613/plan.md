@@ -95,7 +95,7 @@ Goal: installable PWA that talks to emulators locally.
 
 - [x] 4fbd056 Task: Add `vite-plugin-pwa` with manifest (name "Clash Tracker", theme color, icons)
   and autoUpdate service worker. Test that the manifest is generated in the build output.
-- [ ] Task: Add a Firebase client init module reading config from `import.meta.env`;
+- [x] 5d7d131 Task: Add a Firebase client init module reading config from `import.meta.env`;
   connect to Auth/Firestore emulators when `VITE_USE_EMULATORS==='true'`. Test the
   branch selection (inject env) — do not hit the network in unit tests.
 - [ ] Task: Add app icons + offline fallback for read-only shell. Confirm SW registers.
