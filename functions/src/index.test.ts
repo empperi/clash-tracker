@@ -1,10 +1,26 @@
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { Result, ok } from '@clash-tracker/core';
 import { IngestSummary } from './use-cases/ingestCurrentWar';
+import { RecomputeSummary } from './use-cases/recomputePlayerStats';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { SecretsRepository } from './repositories/SecretsRepository';
 import { parseEncryptionKey } from './crypto';
+
+type IngestUseCase = (clanTag: string) => Promise<Result<IngestSummary, string>>;
+type RecomputeUseCase = () => Promise<Result<RecomputeSummary, string>>;
+
+// A recompute spy that records whether it ran.
+function recomputeSpy(
+  result: Result<RecomputeSummary, string> = ok({ playersUpserted: 0, current: 0, past: 0 })
+) {
+  const state = { called: false };
+  const fn: RecomputeUseCase = async () => {
+    state.called = true;
+    return result;
+  };
+  return { fn, state };
+}
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
   process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
@@ -19,10 +35,12 @@ describe('Cloud Function handlers delegation', () => {
   const secretsRepo = new SecretsRepository(db, encryptionKey);
 
   let handleScheduledIngest: (
-    ingestUseCase?: (clanTag: string) => Promise<Result<IngestSummary, string>>
+    ingestUseCase?: IngestUseCase,
+    recomputeUseCase?: RecomputeUseCase
   ) => Promise<void>;
   let handleTriggerIngestNow: (
-    ingestUseCase?: (clanTag: string) => Promise<Result<IngestSummary, string>>
+    ingestUseCase?: IngestUseCase,
+    recomputeUseCase?: RecomputeUseCase
   ) => Promise<{ success: boolean; syncState?: string; error?: string }>;
   let triggerIngestNow: {
     (request: { auth: undefined }): Promise<unknown>;
@@ -48,8 +66,28 @@ describe('Cloud Function handlers delegation', () => {
       return ok({ status: 'synced', warId: 'war123', attacksAdded: 2 });
     };
 
-    await handleScheduledIngest(mockIngest);
+    const recompute = recomputeSpy();
+    await handleScheduledIngest(mockIngest, recompute.fn);
     expect(calledClanTag).toBe('#2PGQYPQ');
+  });
+
+  it('handleScheduledIngest recomputes player stats after a successful ingest', async () => {
+    const mockIngest: IngestUseCase = async () =>
+      ok({ status: 'synced', warId: 'war123', attacksAdded: 2 });
+    const recompute = recomputeSpy();
+
+    await handleScheduledIngest(mockIngest, recompute.fn);
+    expect(recompute.state.called).toBe(true);
+  });
+
+  it('handleScheduledIngest does NOT recompute when the ingest fails', async () => {
+    const mockIngest: IngestUseCase = async () => ({ success: false, error: 'maintenance' });
+    const recompute = recomputeSpy();
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await handleScheduledIngest(mockIngest, recompute.fn);
+    consoleSpy.mockRestore();
+    expect(recompute.state.called).toBe(false);
   });
 
   it('handleScheduledIngest should log an error if use case returns failure', async () => {
@@ -102,10 +140,24 @@ describe('Cloud Function handlers delegation', () => {
       return ok({ status: 'synced', warId: 'war123', attacksAdded: 2 });
     };
 
-    const res = await handleTriggerIngestNow(mockIngest);
+    const recompute = recomputeSpy();
+    const res = await handleTriggerIngestNow(mockIngest, recompute.fn);
     expect(calledClanTag).toBe('#2PGQYPQ');
     expect(res.success).toBe(true);
     expect(res.syncState).toBe('synced');
+    expect(recompute.state.called).toBe(true);
+  });
+
+  it('handleTriggerIngestNow still returns success when recompute fails (logged, not fatal)', async () => {
+    const mockIngest: IngestUseCase = async () =>
+      ok({ status: 'synced', warId: 'war123', attacksAdded: 1 });
+    const recompute = recomputeSpy({ success: false, error: 'recompute boom' });
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await handleTriggerIngestNow(mockIngest, recompute.fn);
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('recompute boom'));
+    consoleSpy.mockRestore();
+    expect(res.success).toBe(true);
   });
 
   it('handleTriggerIngestNow should return success: false if use case fails', async () => {

@@ -3,13 +3,18 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar';
+import { makeRecomputePlayerStats, RecomputeSummary } from './use-cases/recomputePlayerStats';
 import { Result } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway';
 import { SecretsRepository } from './repositories/SecretsRepository';
 import { WarRepository } from './repositories/WarRepository';
 import { AttackRepository } from './repositories/AttackRepository';
+import { PlayerRepository } from './repositories/PlayerRepository';
 import { nodeHttpClient } from './gateway/HttpClient';
 import { parseEncryptionKey } from './crypto';
+
+type IngestUseCase = (clanTag: string) => Promise<Result<IngestSummary, string>>;
+type RecomputeUseCase = () => Promise<Result<RecomputeSummary, string>>;
 
 // Initialize firebase admin
 const app = getApps().length === 0 ? initializeApp() : getApp();
@@ -32,8 +37,22 @@ export function getIngestUseCase() {
   });
 }
 
+// Recompute use case factory. The clan roster comes from the live clan fetch.
+export function getRecomputeUseCase(clanTag: string): RecomputeUseCase {
+  const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
+  const encryptionKey = parseEncryptionKey(encKeyStr);
+  const secretsRepo = new SecretsRepository(db, encryptionKey);
+  const gateway = new CocApiGateway(nodeHttpClient, secretsRepo);
+  const warRepo = new WarRepository(db);
+  const playerRepo = new PlayerRepository(db);
+  const clanRepo = { getCurrentMembers: () => gateway.getClan(clanTag) };
+
+  return makeRecomputePlayerStats({ warRepo, clanRepo, playerRepo });
+}
+
 export async function handleScheduledIngest(
-  ingestUseCase?: (clanTag: string) => Promise<Result<IngestSummary, string>>
+  ingestUseCase?: IngestUseCase,
+  recomputeUseCase?: RecomputeUseCase
 ): Promise<void> {
   const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
   if (!encKeyStr) {
@@ -60,13 +79,23 @@ export async function handleScheduledIngest(
   const result = await useCase(clanTag);
   if (!result.success) {
     console.error(`Scheduled ingestion failed: ${result.error}`);
+    return;
+  }
+  console.log(`Scheduled ingestion completed successfully: ${JSON.stringify(result.value)}`);
+
+  // Refresh player aggregates after a successful ingest.
+  const recompute = recomputeUseCase || getRecomputeUseCase(clanTag);
+  const recomputeResult = await recompute();
+  if (!recomputeResult.success) {
+    console.error(`Player stats recompute failed: ${recomputeResult.error}`);
   } else {
-    console.log(`Scheduled ingestion completed successfully: ${JSON.stringify(result.value)}`);
+    console.log(`Player stats recomputed: ${JSON.stringify(recomputeResult.value)}`);
   }
 }
 
 export async function handleTriggerIngestNow(
-  ingestUseCase?: (clanTag: string) => Promise<Result<IngestSummary, string>>
+  ingestUseCase?: IngestUseCase,
+  recomputeUseCase?: RecomputeUseCase
 ): Promise<{ success: boolean; syncState?: string; error?: string }> {
   const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
   if (!encKeyStr) {
@@ -93,6 +122,15 @@ export async function handleTriggerIngestNow(
       error: result.error,
     };
   }
+
+  // Refresh player aggregates after a successful ingest (failures are logged,
+  // not fatal — the ingest itself succeeded).
+  const recompute = recomputeUseCase || getRecomputeUseCase(clanTag);
+  const recomputeResult = await recompute();
+  if (!recomputeResult.success) {
+    console.error(`Player stats recompute failed: ${recomputeResult.error}`);
+  }
+
   return {
     success: true,
     syncState: 'synced',
