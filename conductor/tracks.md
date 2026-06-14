@@ -36,7 +36,7 @@ and a pluggable `CocApiGateway` fetching clan + current war with typed error han
 The core. Scheduled polling of the current (classic) war; idempotent, lossless persistence
 of wars, members, attacks, defenses; stable identity, diff, and sync-status logic.
 
-### [ ] Track 4: Player stats & ranking domain [player_stats_ranking_20260613]
+### [x] Track 4: Player stats & ranking domain [player_stats_ranking_20260613]
 Pure `@clash-tracker/core` logic: per-player aggregation, attack-usage %, medians, the
 two-list participation split, the qualification line, and the six-key ordering comparator;
 plus persisting current/past player aggregates.

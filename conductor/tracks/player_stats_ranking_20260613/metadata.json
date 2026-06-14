@@ -3,7 +3,7 @@
   "description": "Player stats & ranking domain: aggregate per-player stats from tracked wars, attack-usage %, medians, eligibility lists, and the multi-key ordering",
   "type": "feature",
   "created_at": "2026-06-13T00:00:00Z",
-  "status": "pending",
+  "status": "complete",
   "order": 4,
   "depends_on": ["war_ingestion_20260613"]
 }
