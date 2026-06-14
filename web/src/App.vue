@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useQueryClient } from '@tanstack/vue-query';
 import { useSwipeNav } from './composables/useSwipeNav';
+import { createEagerLoader } from './composables/eagerLoad';
+import { PLAYERS_API, EMPTY_PLAYERS_API } from './api/players';
 import { VIEW_ORDER, componentForView } from './views/registry';
 import AppHeader from './components/AppHeader.vue';
 import AppNav from './components/AppNav.vue';
@@ -9,6 +12,8 @@ import AppNav from './components/AppNav.vue';
 const route = useRoute();
 const router = useRouter();
 const viewport = ref<HTMLElement | null>(null);
+
+const eagerLoad = createEagerLoader(useQueryClient(), inject(PLAYERS_API, EMPTY_PLAYERS_API));
 
 const prefersReducedMotion = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -34,7 +39,7 @@ const {
   viewWidth: () => viewport.value?.clientWidth ?? 0,
   target: viewport,
   prefersReducedMotion,
-  // onEagerLoad is wired once views expose data loaders (Track 5).
+  onEagerLoad: eagerLoad,
 });
 
 // Keep the carousel in sync with external navigation (nav taps, deep links, back/forward).
