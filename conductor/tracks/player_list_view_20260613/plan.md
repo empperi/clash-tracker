@@ -31,7 +31,7 @@ Goal: an accessible, mobile-legible row.
   expand or detail sheet). Assert secondary stats are reachable and accessible.
 - [x] Verification: row reviewed at 360px; numbers scannable. [checkpoint: 657d2a9]
 
-## Phase 3: Lists & qualification line
+## Phase 3: Lists & qualification line [checkpoint: 5bd4642]
 
 Goal: the two lists with the divider.
 
@@ -42,7 +42,7 @@ Goal: the two lists with the divider.
   carry the qualified styling AND an icon/label (not color-only), and ordering matches.
 - [x] 08ff99f Task: Tests + implement loading / empty / error states for the view.
 - [x] Verification: with fixture data, the line splits correctly and re-splits when
-  thresholds change. [checkpoint: <pending>]
+  thresholds change. [checkpoint: 5bd4642]
 
 ## Phase 4: Admin past-players (lazy + infinite scroll)
 
