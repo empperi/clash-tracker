@@ -21,6 +21,13 @@ export interface UseSwipeNavOptions {
    * progress (not after the animation finishes). No-op at an edge with no neighbor.
    */
   readonly onEagerLoad?: (target: string) => void;
+  /**
+   * Injected matcher for the user's reduced-motion preference (don't read `window`
+   * directly — pass `() => window.matchMedia('(prefers-reduced-motion: reduce)').matches`).
+   * When it returns `true`, the 1:1 slide is skipped and committed changes are instant
+   * (`animateMs === 0`) so the view can cross-fade instead. Defaults to no preference.
+   */
+  readonly prefersReducedMotion?: () => boolean;
 }
 
 export interface SwipeNav {
@@ -47,7 +54,15 @@ export interface SwipeNav {
  * tests without real touch events.
  */
 export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
-  const { order, current, navigate, viewWidth, now = () => Date.now(), onEagerLoad } = options;
+  const {
+    order,
+    current,
+    navigate,
+    viewWidth,
+    now = () => Date.now(),
+    onEagerLoad,
+    prefersReducedMotion = () => false,
+  } = options;
 
   const dragOffset = ref(0);
   const isDragging = ref(false);
@@ -87,7 +102,8 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
   function onMove(dx: number): void {
     if (!isDragging.value) return;
     lastDx = dx;
-    dragOffset.value = dx; // follow the finger 1:1
+    // Follow the finger 1:1 — unless the user prefers reduced motion, where we skip the slide.
+    dragOffset.value = prefersReducedMotion() ? 0 : dx;
     maybeEagerLoad(dx);
   }
 
@@ -101,7 +117,10 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
     const target = neighbor(decision);
     const change = decision !== 'stay' && target !== null;
 
-    animateMs.value = swipeTransition({ change, durationMs }).animateMs;
+    // Reduced motion: no slide animation — change is instant (the view cross-fades instead).
+    animateMs.value = prefersReducedMotion()
+      ? 0
+      : swipeTransition({ change, durationMs }).animateMs;
     isAnimating.value = true;
     dragOffset.value = 0; // settle; the container animates from its dragged offset back to 0
 

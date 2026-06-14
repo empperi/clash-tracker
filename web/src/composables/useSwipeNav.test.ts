@@ -148,6 +148,36 @@ describe('useSwipeNav', () => {
     });
   });
 
+  describe('prefers-reduced-motion', () => {
+    it('skips the 1:1 slide during a drag', () => {
+      const { nav } = setup({ prefersReducedMotion: () => true });
+      nav.onStart();
+      nav.onMove(-80);
+      expect(nav.dragOffset.value).toBe(0); // no slide
+    });
+
+    it('still changes the view but instantly (animateMs 0)', () => {
+      const { nav, navigated, setClock } = setup({ prefersReducedMotion: () => true });
+      nav.onStart();
+      nav.onMove(-30);
+      setClock(120);
+      nav.onEnd();
+      expect(navigated).toEqual(['admin']);
+      expect(nav.animateMs.value).toBe(0);
+    });
+
+    it('still eager-loads the target (loading is not motion)', () => {
+      const loaded: string[] = [];
+      const { nav } = setup({
+        prefersReducedMotion: () => true,
+        onEagerLoad: (t) => loaded.push(t),
+      });
+      nav.onStart();
+      nav.onMove(-10);
+      expect(loaded).toEqual(['admin']);
+    });
+  });
+
   it('clears the animating flag on endAnimation', () => {
     const { nav, setClock } = setup();
     nav.onStart();
