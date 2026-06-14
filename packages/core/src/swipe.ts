@@ -20,6 +20,44 @@ export const FLICK_MIN_DISTANCE_PX = 8;
 /** Slow drags commit once they pass this fraction of the view width. */
 export const SWIPE_DISTANCE_RATIO = 0.4;
 
+/** Duration (ms) for snapping a not-committed drag back to the current view. */
+export const SNAP_BACK_MS = 200;
+/** Floor for a settle animation so very fast flicks don't complete jarringly fast. */
+export const MIN_ANIMATE_MS = 150;
+/** Cap for a slow-drag settle animation so it never drags on too long. */
+export const SLOW_DRAG_MAX_ANIMATE_MS = 400;
+
+export interface SwipeTransitionInput {
+  /** Whether the gesture committed a view change (`true`) or snaps back (`false`). */
+  readonly change: boolean;
+  /** The originating gesture duration, in ms. */
+  readonly durationMs: number;
+}
+
+export interface SwipeTransition {
+  /** How long the settle animation should run, in ms. */
+  readonly animateMs: number;
+}
+
+/**
+ * Pure mapping from a resolved gesture to the settle-animation duration.
+ *
+ * A snap-back (no change) uses a fixed quick duration. A committed change from a quick
+ * flick (`durationMs <= 250ms`) completes within 250ms (floored so it isn't jarringly
+ * fast); a committed change from a slow, deliberate drag respects the user's pace,
+ * capped so it never overstays.
+ */
+export function swipeTransition({ change, durationMs }: SwipeTransitionInput): SwipeTransition {
+  if (!change) return { animateMs: SNAP_BACK_MS };
+
+  if (durationMs <= FLICK_MAX_DURATION_MS) {
+    const clamped = Math.min(Math.max(durationMs, MIN_ANIMATE_MS), FLICK_MAX_DURATION_MS);
+    return { animateMs: clamped };
+  }
+
+  return { animateMs: Math.min(durationMs, SLOW_DRAG_MAX_ANIMATE_MS) };
+}
+
 /**
  * Pure decision for a horizontal swipe gesture: should the view change, and which way?
  *

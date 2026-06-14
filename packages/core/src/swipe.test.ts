@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   resolveSwipe,
+  swipeTransition,
   SWIPE_DISTANCE_RATIO,
   FLICK_MAX_DURATION_MS,
   FLICK_MIN_DISTANCE_PX,
   FLICK_MIN_VELOCITY_PX_PER_MS,
+  SNAP_BACK_MS,
+  MIN_ANIMATE_MS,
+  SLOW_DRAG_MAX_ANIMATE_MS,
 } from './swipe';
 
 // Convention under test:
@@ -70,5 +74,38 @@ describe('resolveSwipe', () => {
       const velocity = FLICK_MIN_VELOCITY_PX_PER_MS - 0.05;
       expect(resolveSwipe({ dx: -40, viewWidth, durationMs: 200, velocity })).toBe('stay');
     });
+  });
+});
+
+describe('swipeTransition', () => {
+  it('uses a fixed quick snap-back when no change is committed', () => {
+    expect(swipeTransition({ change: false, durationMs: 50 }).animateMs).toBe(SNAP_BACK_MS);
+    expect(swipeTransition({ change: false, durationMs: 5000 }).animateMs).toBe(SNAP_BACK_MS);
+  });
+
+  it('floors a very fast flick so it does not complete jarringly fast', () => {
+    expect(swipeTransition({ change: true, durationMs: 40 }).animateMs).toBe(MIN_ANIMATE_MS);
+  });
+
+  it('completes a flick within 250ms', () => {
+    for (const durationMs of [40, 120, 200, FLICK_MAX_DURATION_MS]) {
+      const { animateMs } = swipeTransition({ change: true, durationMs });
+      expect(animateMs).toBeLessThanOrEqual(FLICK_MAX_DURATION_MS);
+      expect(animateMs).toBeGreaterThanOrEqual(MIN_ANIMATE_MS);
+    }
+  });
+
+  it('passes through a flick duration between the floor and the cap', () => {
+    expect(swipeTransition({ change: true, durationMs: 200 }).animateMs).toBe(200);
+  });
+
+  it('respects a slow drag pace beyond the flick threshold', () => {
+    expect(swipeTransition({ change: true, durationMs: 300 }).animateMs).toBe(300);
+  });
+
+  it('caps a very slow drag', () => {
+    expect(swipeTransition({ change: true, durationMs: 5000 }).animateMs).toBe(
+      SLOW_DRAG_MAX_ANIMATE_MS
+    );
   });
 });
