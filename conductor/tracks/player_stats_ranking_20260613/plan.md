@@ -8,7 +8,7 @@ emulator-tested repositories.
 > boundary values (`>=` semantics) and tie-break chains. Document the rounding and
 > divide-by-zero rules in a comment and reuse them.
 
-## Phase 1: Math & aggregation primitives (pure)
+## Phase 1: Math & aggregation primitives (pure) [checkpoint: 056e945]
 
 Goal: trustworthy building blocks.
 
@@ -16,7 +16,7 @@ Goal: trustworthy building blocks.
   empty (decide → 0 or null and document). Must not mutate input.
 - [x] a55b78a Task: Tests + implement `attackUsagePct({ attacksDone, attacksAvailable })` with the
   documented divide-by-zero (available 0 → 0) and rounding rule.
-- [x] Verification: primitives green. [checkpoint: <pending>]
+- [x] Verification: primitives green. [checkpoint: 056e945]
 
 ## Phase 2: Per-player aggregation (pure)
 
