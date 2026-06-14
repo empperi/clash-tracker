@@ -12,14 +12,14 @@ gateway) → `functions/`. Inject the encryption key, randomness, and HTTP clien
 
 Goal: safe, reversible token encryption.
 
-- [ ] Task: Write tests for `encryptToken`/`decryptToken` (AES-256-GCM) in `core`: round-trip
+- [x] 51f9f59 Task: Write tests for `encryptToken`/`decryptToken` (AES-256-GCM) in `core`: round-trip
   succeeds; tampered ciphertext/authTag → failure `Result`; wrong key → failure; output is
   base64 and contains iv+tag+ciphertext. Inject the IV generator for determinism. Red first.
-- [ ] Task: Implement the codec to pass. Use Node `crypto` (available in the functions
+- [x] 51f9f59 Task: Implement the codec to pass. Use Node `crypto` (available in the functions
   runtime; if `core` must stay runtime-agnostic, define the codec to accept injected
   crypto primitives, or place the codec in `functions/crypto` and keep only the payload
   format type in `core` — choose and note in tech-stack if deviating).
-- [ ] Verification: round-trip + tamper tests green; coverage ~100%. [checkpoint]
+- [x] Verification: round-trip + tamper tests green; coverage ~100%. [checkpoint]
 
 ## Phase 2: Secret/config repository (emulator-tested)
 
