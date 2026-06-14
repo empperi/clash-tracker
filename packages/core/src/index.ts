@@ -5,6 +5,7 @@ export * from './tag';
 export * from './mappers';
 export * from './gateway-types';
 export * from './identity';
+export * from './ingestion';
 
 /**
  * Simple utility function to add two numbers.
