@@ -35,11 +35,11 @@ Goal: full per-player stat object from per-war records.
 
 Goal: the two lists + qualification line.
 
-- [ ] Task: Tests + implement `splitByParticipation(players, minWarParticipation)` →
+- [x] 3915ca2 Task: Tests + implement `splitByParticipation(players, minWarParticipation)` →
   `{ qualifiedPool, notEnoughWars }` using `>=`. Boundary: exactly == min → qualified pool.
-- [ ] Task: Tests + implement `markQualification(qualifiedPool, acceptancePct)` setting
+- [x] 09d9bc2 Task: Tests + implement `markQualification(qualifiedPool, acceptancePct)` setting
   `aboveLine = attackUsagePct >= acceptancePct`. Boundary: exactly == → above the line.
-- [ ] Verification: split + line correct at boundaries. [checkpoint]
+- [x] Verification: split + line correct at boundaries. [checkpoint: <pending>]
 
 ## Phase 4: Ordering comparator (pure, higher-order)
 
