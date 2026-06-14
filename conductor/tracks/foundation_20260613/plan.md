@@ -83,7 +83,7 @@ Goal: Clash-themed tokens and base primitives.
 - [x] 34e77c8 Task: Add the global theme file (CSS custom properties: colors, fonts, spacing,
   radii) and document tokens. Add a font strategy (self-hosted display font or close
   free alternative). No test (CSS) — but include a visual checklist item.
-- [ ] Task: Build `BaseButton`, `BasePanel`/`Card`, and `ListRow` primitives using only
+- [x] 450dc48 Task: Build `BaseButton`, `BasePanel`/`Card`, and `ListRow` primitives using only
   tokens. Test: render, slot content, ≥44px touch target (assert min-height style), and
   variant props.
 - [ ] Task: Apply the theme to `AppHeader` and placeholder views so the app looks Clash-y.
