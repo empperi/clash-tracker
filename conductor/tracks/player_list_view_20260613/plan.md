@@ -20,7 +20,7 @@ Goal: load players + thresholds with proper states.
   change.
 - [x] Verification: composables return correct lists for fixture data. [checkpoint: 48505db]
 
-## Phase 2: Player row & stats
+## Phase 2: Player row & stats [checkpoint: 657d2a9]
 
 Goal: an accessible, mobile-legible row.
 
@@ -29,7 +29,7 @@ Goal: an accessible, mobile-legible row.
   values render and the row is a semantic list item with a ≥44px target.
 - [x] bc513de Task: Tests + implement progressive disclosure (primary stats visible; secondary via
   expand or detail sheet). Assert secondary stats are reachable and accessible.
-- [x] Verification: row reviewed at 360px; numbers scannable. [checkpoint: <pending>]
+- [x] Verification: row reviewed at 360px; numbers scannable. [checkpoint: 657d2a9]
 
 ## Phase 3: Lists & qualification line
 
