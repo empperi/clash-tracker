@@ -12,10 +12,7 @@ const slots = useSlots();
 <template>
   <div class="ct-panel">
     <!-- Header: show if title prop exists OR if title slot is provided -->
-    <div
-      v-if="title || slots.title"
-      class="ct-panel-header"
-    >
+    <div v-if="title || slots.title" class="ct-panel-header">
       <h3 class="ct-panel-title">
         <slot name="title">{{ title }}</slot>
       </h3>
@@ -27,10 +24,7 @@ const slots = useSlots();
     </div>
 
     <!-- Footer -->
-    <div
-      v-if="slots.footer"
-      class="ct-panel-footer"
-    >
+    <div v-if="slots.footer" class="ct-panel-footer">
       <slot name="footer" />
     </div>
   </div>

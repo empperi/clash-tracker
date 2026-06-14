@@ -6,8 +6,10 @@ import BaseButton from '../components/BaseButton.vue';
 <template>
   <div class="view-container">
     <h2>Admin Settings</h2>
-    <p class="subtitle">Set thresholds for reliable rosters, invite administrators, and manage settings.</p>
-    
+    <p class="subtitle">
+      Set thresholds for reliable rosters, invite administrators, and manage settings.
+    </p>
+
     <BasePanel title="Roster Thresholds">
       <div class="setting-item">
         <label class="setting-label">Acceptance Percentage</label>

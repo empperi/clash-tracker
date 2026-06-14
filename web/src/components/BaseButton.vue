@@ -25,7 +25,7 @@ const buttonClass = computed(() => {
     :class="buttonClass"
     :disabled="disabled"
     :aria-disabled="disabled"
-    style="min-height: 44px;"
+    style="min-height: 44px"
   >
     <slot />
   </button>
@@ -37,7 +37,7 @@ const buttonClass = computed(() => {
   align-items: center;
   justify-content: center;
   min-height: 44px; /* Touch target minimum requirement */
-  min-width: 44px;  /* Touch target minimum requirement */
+  min-width: 44px; /* Touch target minimum requirement */
   padding: var(--ct-spacing-sm) var(--ct-spacing-md);
   font-family: var(--ct-font-display);
   font-size: 16px;

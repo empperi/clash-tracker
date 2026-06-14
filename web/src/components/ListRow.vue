@@ -21,7 +21,7 @@ const rowClass = computed(() => {
 </script>
 
 <template>
-  <div :class="rowClass" style="min-height: 44px;">
+  <div :class="rowClass" style="min-height: 44px">
     <slot />
   </div>
 </template>
@@ -37,7 +37,9 @@ const rowClass = computed(() => {
   font-family: var(--ct-font-body);
   font-size: 15px;
   color: var(--ct-color-text-primary);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .ct-row:last-child {

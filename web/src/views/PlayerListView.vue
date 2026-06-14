@@ -8,13 +8,13 @@ import BaseButton from '../components/BaseButton.vue';
   <div class="view-container">
     <h2>Player List</h2>
     <p class="subtitle">Track participation to select the most reliable CWL roster.</p>
-    
+
     <BasePanel title="Roster Eligibility (Mock Data)">
       <div class="list-header">
         <span>Player</span>
         <span class="align-right">War Participation</span>
       </div>
-      
+
       <ListRow active>
         <div class="player-row">
           <span class="player-name">👑 Barbarian King</span>
@@ -22,7 +22,7 @@ import BaseButton from '../components/BaseButton.vue';
           <span class="participation-pct align-right">100%</span>
         </div>
       </ListRow>
-      
+
       <ListRow>
         <div class="player-row">
           <span class="player-name">🏹 Archer Queen</span>
@@ -30,11 +30,11 @@ import BaseButton from '../components/BaseButton.vue';
           <span class="participation-pct align-right">85%</span>
         </div>
       </ListRow>
-      
+
       <div class="qualification-line">
         <span class="qualification-label">⚠️ Roster Qualification Cutoff (70%)</span>
       </div>
-      
+
       <ListRow>
         <div class="player-row below-cutoff">
           <span class="player-name">✨ Grand Warden</span>
@@ -42,7 +42,7 @@ import BaseButton from '../components/BaseButton.vue';
           <span class="participation-pct align-right">50%</span>
         </div>
       </ListRow>
-      
+
       <ListRow>
         <div class="player-row below-cutoff">
           <span class="player-name">🛡️ Royal Champion</span>
@@ -50,7 +50,7 @@ import BaseButton from '../components/BaseButton.vue';
           <span class="participation-pct align-right">40%</span>
         </div>
       </ListRow>
-      
+
       <template #footer>
         <div class="panel-actions">
           <BaseButton variant="primary">Sync Members</BaseButton>

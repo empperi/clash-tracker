@@ -8,7 +8,7 @@ import BaseButton from '../components/BaseButton.vue';
   <div class="view-container">
     <h2>War Plan (CWL)</h2>
     <p class="subtitle">Select line-ups, manage town hall swaps, and generate optimal strategy.</p>
-    
+
     <BasePanel title="Active CWL War Plan">
       <div class="sync-status">
         <span class="status-indicator">🟢</span>
@@ -22,14 +22,14 @@ import BaseButton from '../components/BaseButton.vue';
             <span class="war-badge success">Won (42-38)</span>
           </div>
         </ListRow>
-        
+
         <ListRow clickable active>
           <div class="war-row">
             <span class="war-title">⚔️ War #2 vs Clash Kings</span>
             <span class="war-badge in-progress">In Progress</span>
           </div>
         </ListRow>
-        
+
         <ListRow clickable>
           <div class="war-row">
             <span class="war-title">⚔️ War #3 vs Gold Rushers</span>

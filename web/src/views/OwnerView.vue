@@ -6,21 +6,37 @@ import BaseButton from '../components/BaseButton.vue';
 <template>
   <div class="view-container">
     <h2>Owner Dashboard</h2>
-    <p class="subtitle">Configure your Clash of Clans API token, edit your clan tag, and manage accounts.</p>
-    
+    <p class="subtitle">
+      Configure your Clash of Clans API token, edit your clan tag, and manage accounts.
+    </p>
+
     <BasePanel title="Clan Configuration">
       <div class="config-form">
         <div class="form-group">
           <label for="clanTag" class="form-label">Clan Tag</label>
-          <input id="clanTag" type="text" value="#2QYY0YY09" placeholder="#CLAN_TAG" class="form-control" readonly />
+          <input
+            id="clanTag"
+            type="text"
+            value="#2QYY0YY09"
+            placeholder="#CLAN_TAG"
+            class="form-control"
+            readonly
+          />
         </div>
 
         <div class="form-group">
           <label for="apiToken" class="form-label">CoC API Token</label>
-          <input id="apiToken" type="password" value="••••••••••••••••••••" placeholder="API Token from developer.clashofclans.com" class="form-control" readonly />
+          <input
+            id="apiToken"
+            type="password"
+            value="••••••••••••••••••••"
+            placeholder="API Token from developer.clashofclans.com"
+            class="form-control"
+            readonly
+          />
         </div>
       </div>
-      
+
       <template #footer>
         <div class="panel-actions">
           <BaseButton variant="secondary">Edit</BaseButton>
