@@ -63,4 +63,30 @@ describe('PlayerRow', () => {
     expect(qualified.find('.qualified-badge').exists()).toBe(true);
     expect(qualified.text()).toContain('above the line'); // visually-hidden label
   });
+
+  it('collapses the detail region by default and exposes it via an accessible toggle', async () => {
+    const wrapper = mount(PlayerRow, { props: { player } });
+    const main = wrapper.find('.row-main');
+    const detailDisplay = () => (wrapper.find('.row-detail').element as HTMLElement).style.display;
+
+    // Collapsed by default (v-show -> display:none).
+    expect(main.attributes('aria-expanded')).toBe('false');
+    expect(detailDisplay()).toBe('none');
+
+    // The toggle controls the detail region by id (aria-controls).
+    expect(main.attributes('aria-controls')).toBe(wrapper.find('.row-detail').attributes('id'));
+
+    await main.trigger('click');
+    expect(main.attributes('aria-expanded')).toBe('true');
+    expect(detailDisplay()).not.toBe('none');
+
+    await main.trigger('click');
+    expect(main.attributes('aria-expanded')).toBe('false');
+    expect(detailDisplay()).toBe('none');
+  });
+
+  it('uses a real button for the toggle (keyboard operable)', () => {
+    const wrapper = mount(PlayerRow, { props: { player } });
+    expect(wrapper.find('.row-main').element.tagName).toBe('BUTTON');
+  });
 });
