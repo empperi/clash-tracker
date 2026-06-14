@@ -89,7 +89,7 @@ Goal: Clash-themed tokens and base primitives.
 - [x] e72a9f9 Task: Apply the theme to `AppHeader` and placeholder views so the app looks Clash-y.
 - [x] Verification: primitives reviewed at 360px and desktop; AA contrast checked. [checkpoint]
 
-## Phase 6: PWA & Firebase client wiring
+## Phase 6: PWA & Firebase client wiring [checkpoint: a8c9023]
 
 Goal: installable PWA that talks to emulators locally.
 
