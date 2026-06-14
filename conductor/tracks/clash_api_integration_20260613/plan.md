@@ -35,7 +35,7 @@ Goal: encrypted token + clan tag persisted in Firestore.
   allowed CoC base32 chars; provide a normalizer. Unit-test.
 - [x] Verification: emulator tests pass; confirmed no plaintext token in stored doc. [checkpoint]
 
-## Phase 3: Response mappers (pure)
+## Phase 3: Response mappers (pure) [checkpoint: da95856]
 
 Goal: raw CoC JSON → internal domain types.
 
