@@ -23,13 +23,13 @@ Goal: deterministic ids so repeated polls converge.
 
 Goal: idempotent, lossless merge logic.
 
-- [ ] Task: Add fixtures simulating the same war fetched at several points (prep, mid-war
+- [x] e8ef0f2 Task: Add fixtures simulating the same war fetched at several points (prep, mid-war
   with N attacks, more attacks later, warEnded). 
-- [ ] Task: Tests + implement `diffWar(stored, fetched)` returning `{ warHeader,
+- [x] e8ef0f2 Task: Tests + implement `diffWar(stored, fetched)` returning `{ warHeader,
   memberUpdates, attacksToAdd }`. Assertions: first ingest (stored=none) yields the full
   war; a later fetch with extra attacks yields only the new attacks; re-applying the same
   fetch yields an empty `attacksToAdd`. **Idempotency test is mandatory.**
-- [ ] Task: Tests + implement `computeSyncState(stored, fetched)` → `'synced' |
+- [x] e8ef0f2 Task: Tests + implement `computeSyncState(stored, fetched)` → `'synced' |
   'out-of-sync'`, plus a helper to set `lastSyncedAt` (time injected).
 - [ ] Verification: applying a diff twice == applying once; sync state correct. [checkpoint]
 
