@@ -12,7 +12,7 @@ emulator-tested repositories.
 
 Goal: trustworthy building blocks.
 
-- [ ] Task: Tests + implement `median(values: readonly number[])`: odd/even length, single,
+- [x] bf987e4 Task: Tests + implement `median(values: readonly number[])`: odd/even length, single,
   empty (decide → 0 or null and document). Must not mutate input.
 - [ ] Task: Tests + implement `attackUsagePct({ attacksDone, attacksAvailable })` with the
   documented divide-by-zero (available 0 → 0) and rounding rule.
