@@ -24,7 +24,7 @@ Each track lives in `conductor/tracks/<id>/` with `spec.md`, `plan.md`, and `met
 
 ## Tracks
 
-### [~] Track 1: Foundation, app shell, navigation, PWA, design system [foundation_20260613]
+### [x] Track 1: Foundation, app shell, navigation, PWA, design system [foundation_20260613]
 Monorepo + `@clash-tracker/core` + Vue 3 PWA shell with swipe navigation (250ms rule),
 Clash-themed design system, and emulator wiring. Placeholder views only.
 
