@@ -128,4 +128,54 @@ export class WarRepository {
     }
     await batch.commit();
   }
+
+  /**
+   * Updates the sync status metadata on the war document.
+   */
+  async updateSyncStatus(
+    warId: string,
+    syncState: 'synced' | 'out-of-sync',
+    lastSyncedAt: string
+  ): Promise<void> {
+    const docRef = this.db.doc(`wars/${warId}`);
+    await docRef.set(
+      {
+        syncState,
+        lastSyncedAt,
+      },
+      { merge: true }
+    );
+  }
+
+  /**
+   * Finds the active war in the database (i.e. not ended).
+   */
+  async getActiveWar(): Promise<Result<{ warId: string; war: MappedWar } | null, string>> {
+    try {
+      const snap = await this.db
+        .collection('wars')
+        .where('state', 'in', ['preparation', 'inWar'])
+        .limit(1)
+        .get();
+      if (snap.empty) {
+        return ok(null);
+      }
+      const doc = snap.docs[0];
+      if (!doc) {
+        return ok(null);
+      }
+      const warId = doc.id;
+      const warResult = await this.getWar(warId);
+      if (!warResult.success) {
+        return err(warResult.error);
+      }
+      if (!warResult.value) {
+        return ok(null);
+      }
+      return ok({ warId, war: warResult.value });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return err(msg);
+    }
+  }
 }

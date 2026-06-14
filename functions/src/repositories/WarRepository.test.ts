@@ -241,4 +241,60 @@ describe('WarRepository', () => {
       }
     }
   });
+
+  it('should update sync status and find the active war', async () => {
+    // 1. Initially no active war
+    const activeResult1 = await repo.getActiveWar();
+    expect(activeResult1.success).toBe(true);
+    if (activeResult1.success) {
+      expect(activeResult1.value).toBeNull();
+    }
+
+    // 2. Save an inWar header
+    const header: WarHeader = {
+      state: 'inWar',
+      teamSize: 2,
+      opponentName: 'Opponent Clan',
+      opponentTag: '#OPPONENT1',
+      startTime: '2026-06-15T10:00:00.000Z',
+      endTime: '2026-06-16T10:00:00.000Z',
+      preparationStartTime: '2026-06-14T10:00:00.000Z',
+    };
+    await repo.saveWarHeader(warId, header);
+
+    // 3. Find active war
+    const activeResult2 = await repo.getActiveWar();
+    expect(activeResult2.success).toBe(true);
+    if (activeResult2.success) {
+      expect(activeResult2.value).not.toBeNull();
+      if (activeResult2.value) {
+        expect(activeResult2.value.warId).toBe(warId);
+        expect(activeResult2.value.war.state).toBe('inWar');
+      }
+    }
+
+    // 4. Update sync status
+    await repo.updateSyncStatus(warId, 'synced', '2026-06-14T20:00:00.000Z');
+
+    // 5. Read back document and verify fields are written
+    const docSnap = await db.doc(`wars/${warId}`).get();
+    expect(docSnap.exists).toBe(true);
+    const data = docSnap.data();
+    expect(data?.syncState).toBe('synced');
+    expect(data?.lastSyncedAt).toBe('2026-06-14T20:00:00.000Z');
+
+    // 6. Transition to warEnded
+    const endedHeader: WarHeader = {
+      ...header,
+      state: 'warEnded',
+    };
+    await repo.saveWarHeader(warId, endedHeader);
+
+    // 7. Active war should now be null
+    const activeResult3 = await repo.getActiveWar();
+    expect(activeResult3.success).toBe(true);
+    if (activeResult3.success) {
+      expect(activeResult3.value).toBeNull();
+    }
+  });
 });
