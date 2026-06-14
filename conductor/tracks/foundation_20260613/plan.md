@@ -69,7 +69,7 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
 - [x] c942177 Task (web): Start loading the **target view's** data hook the moment a swipe begins
   (eager-load). For now wire a no-op/loading flag the placeholder views expose; assert the
   hook fires on drag start in a test.
-- [ ] Task (web): Honor `prefers-reduced-motion` → skip slide, instant/cross-fade. Test the
+- [x] d3b2bd0 Task (web): Honor `prefers-reduced-motion` → skip slide, instant/cross-fade. Test the
   branch via a matchMedia stub passed in (inject the matcher, don't read global).
 - [ ] Verification: manual — slow-drag follows finger and snaps; quick flick completes
   ≤250ms; reduced-motion disables slide. [checkpoint]
