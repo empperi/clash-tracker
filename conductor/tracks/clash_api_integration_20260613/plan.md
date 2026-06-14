@@ -21,7 +21,7 @@ Goal: safe, reversible token encryption.
   format type in `core` — choose and note in tech-stack if deviating).
 - [x] Verification: round-trip + tamper tests green; coverage ~100%. [checkpoint]
 
-## Phase 2: Secret/config repository (emulator-tested)
+## Phase 2: Secret/config repository (emulator-tested) [checkpoint: d76caa3]
 
 Goal: encrypted token + clan tag persisted in Firestore.
 
