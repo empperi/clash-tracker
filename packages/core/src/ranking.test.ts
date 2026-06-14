@@ -79,7 +79,12 @@ describe('composeComparators', () => {
 
 describe('byClanRoleRank', () => {
   it('orders Leader > Co-Leader > Elder > Member', () => {
-    const players = [mk('m', { role: 'member' }), mk('l', { role: 'leader' }), mk('e', { role: 'elder' }), mk('c', { role: 'coLeader' })];
+    const players = [
+      mk('m', { role: 'member' }),
+      mk('l', { role: 'leader' }),
+      mk('e', { role: 'elder' }),
+      mk('c', { role: 'coLeader' }),
+    ];
     const sorted = [...players].sort(byClanRoleRank);
     expect(sorted.map((p) => p.role)).toEqual(['leader', 'coLeader', 'elder', 'member']);
   });
@@ -102,7 +107,10 @@ describe('rankPlayers tie-break chain', () => {
   });
 
   it('3: median stars breaks a usage+wars tie', () => {
-    firstWins(mk('a', { usage: 80, wars: 10, stars: 3 }), mk('b', { usage: 80, wars: 10, stars: 2 }));
+    firstWins(
+      mk('a', { usage: 80, wars: 10, stars: 3 }),
+      mk('b', { usage: 80, wars: 10, stars: 2 })
+    );
   });
 
   it('4: median attacks-defended breaks the next tie', () => {
@@ -134,11 +142,7 @@ describe('rankPlayers tie-break chain', () => {
 
 describe('sortPlayers', () => {
   it('sorts a roster end-to-end by the full priority order', () => {
-    const players = [
-      mk('low', { usage: 40 }),
-      mk('top', { usage: 95 }),
-      mk('mid', { usage: 70 }),
-    ];
+    const players = [mk('low', { usage: 40 }), mk('top', { usage: 95 }), mk('mid', { usage: 70 })];
     expect(sortPlayers(players).map((p) => p.name)).toEqual(['top', 'mid', 'low']);
   });
 
