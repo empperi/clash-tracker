@@ -44,7 +44,7 @@ Goal: the two lists with the divider.
 - [x] Verification: with fixture data, the line splits correctly and re-splits when
   thresholds change. [checkpoint: 5bd4642]
 
-## Phase 4: Admin past-players (lazy + infinite scroll)
+## Phase 4: Admin past-players (lazy + infinite scroll) [checkpoint: 7531715]
 
 Goal: leavers section, loaded only when toggled.
 
@@ -55,7 +55,7 @@ Goal: leavers section, loaded only when toggled.
   until enabled, and fetches the next page on demand.
 - [x] e565d64 Task: Tests + implement the past-players section with infinite scroll (IntersectionObserver
   or sentinel; inject the observer for testability). Appends pages; same row component.
-- [x] Verification: toggle reveals leavers, scrolling loads more, nothing loads before toggle. [checkpoint: <pending>]
+- [x] Verification: toggle reveals leavers, scrolling loads more, nothing loads before toggle. [checkpoint: 7531715]
 
 ## Phase 5: Polish & integration
 
