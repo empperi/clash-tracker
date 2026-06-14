@@ -31,8 +31,9 @@ export function encryptToken(
     // Package as: iv (12 bytes) + tag (16 bytes) + ciphertext
     const payload = Buffer.concat([actualIv, tag, ciphertext]);
     return ok(payload.toString('base64'));
-  } catch (error: any) {
-    return err(error?.message || 'Encryption failed');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return err(message || 'Encryption failed');
   }
 }
 
@@ -40,21 +41,18 @@ export function encryptToken(
  * Decrypts a token encrypted with AES-256-GCM.
  * @param payload The base64-encoded encrypted token payload.
  * @param key A 32-byte key for decryption.
- * @returns A Result wrapping the decrypted plaintext token or an Error.
+ * @returns A Result wrapping the decrypted plaintext token or an error message.
  */
-export function decryptToken(
-  payload: string,
-  key: Uint8Array
-): Result<string, Error> {
+export function decryptToken(payload: string, key: Uint8Array): Result<string, string> {
   try {
     if (key.length !== 32) {
-      return err(new Error('Decryption key must be exactly 32 bytes'));
+      return err('Decryption key must be exactly 32 bytes');
     }
 
     const buffer = Buffer.from(payload, 'base64');
     // Minimum length: 12 bytes IV + 16 bytes tag = 28 bytes
     if (buffer.length < 28) {
-      return err(new Error('Invalid payload length'));
+      return err('Invalid payload length');
     }
 
     const iv = buffer.subarray(0, 12);
@@ -63,12 +61,13 @@ export function decryptToken(
 
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(tag);
-    
+
     let decrypted = decipher.update(ciphertext);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
 
     return ok(decrypted.toString('utf8'));
-  } catch (error: any) {
-    return err(error instanceof Error ? error : new Error(error?.message || 'Decryption failed'));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return err(message || 'Decryption failed');
   }
 }

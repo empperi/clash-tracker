@@ -37,7 +37,7 @@ describe('crypto codec', () => {
     const buffer = Buffer.from(originalBase64, 'base64');
     buffer[buffer.length - 1] ^= 0xff; // flip last byte
     const tamperedBase64 = buffer.toString('base64');
-    
+
     const decryptedResult = decryptToken(tamperedBase64, dummyKey);
     expect(decryptedResult.success).toBe(false);
   });

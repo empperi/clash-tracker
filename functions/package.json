@@ -19,5 +19,8 @@
   },
   "dependencies": {
     "@clash-tracker/core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0"
   }
 }
