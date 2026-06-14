@@ -76,7 +76,7 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
   Carousel reworked from snap-back to slide-to-target with wraparound; user-confirmed
   2026-06-14. Verified in a real browser (nav taps, left/right swipe, wraparound).
 
-## Phase 5: Design system / theme
+## Phase 5: Design system / theme [checkpoint: eca5cac]
 
 Goal: Clash-themed tokens and base primitives.
 
