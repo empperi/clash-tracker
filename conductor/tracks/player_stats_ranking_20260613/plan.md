@@ -41,7 +41,7 @@ Goal: the two lists + qualification line.
   `aboveLine = attackUsagePct >= acceptancePct`. Boundary: exactly == → above the line.
 - [x] Verification: split + line correct at boundaries. [checkpoint: 652bb36]
 
-## Phase 4: Ordering comparator (pure, higher-order)
+## Phase 4: Ordering comparator (pure, higher-order) [checkpoint: 65c819e]
 
 Goal: the six-key sort for both lists.
 
@@ -51,7 +51,7 @@ Goal: the six-key sort for both lists.
   `rankPlayers` comparator in the exact priority from `product.md`. Tests must walk each
   tie-break level (equal usage% → wars decide; equal wars → median stars; …; finally role).
 - [x] ed93599 Task: Provide `sortPlayers(list)` returning a new sorted array (no mutation).
-- [x] Verification: ordering exactly matches the spec, including deep tie-breaks. [checkpoint: <pending>]
+- [x] Verification: ordering exactly matches the spec, including deep tie-breaks. [checkpoint: 65c819e]
 
 ## Phase 5: Recompute & persist (emulator-tested)
 
