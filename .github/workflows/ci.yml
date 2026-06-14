@@ -75,6 +75,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify Firebase web config is present
+        # Fail fast with a clear message instead of silently shipping a site that crashes
+        # with auth/invalid-api-key. These are GitHub Actions *Variables* (vars.*), not secrets.
+        run: |
+          missing=0
+          for v in VITE_FIREBASE_API_KEY VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_APP_ID; do
+            if [ -z "${!v}" ]; then
+              echo "::error::$v is empty. Set it under Settings → Secrets and variables → Actions → Variables."
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+        env:
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+
       - name: Build applications
         run: npm run build
         env:
