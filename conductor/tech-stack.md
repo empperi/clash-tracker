@@ -100,6 +100,7 @@ which option is active. Do **not** hard-code `api.clashofclans.com`.
 - The token is **never** written to logs, returned to any client, or placed in a
   client-readable Firestore document. The owner UI can *set* it but never *read* it back.
 - The clan tag is stored alongside but may be shown in the UI (it is not secret).
+- **Note (2026-06-14):** To keep `@clash-tracker/core` completely runtime-agnostic and avoid importing Node-specific type definitions (like `Buffer` or `node:crypto`) in the browser context, the encryption codec implementation lives in the `@clash-tracker/functions` package, not in `core`.
 
 ## Authentication & sessions
 
