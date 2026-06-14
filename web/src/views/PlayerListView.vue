@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { PLAYERS_API, EMPTY_PLAYERS_API } from '../api/players';
+import { CAN_VIEW_PAST_PLAYERS } from '../api/session';
 import { usePlayers } from '../composables/usePlayers';
 import { usePlayerLists } from '../composables/usePlayerLists';
 import PlayerRow from '../components/PlayerRow.vue';
 import QualificationLine from '../components/QualificationLine.vue';
+import PastPlayersSection from '../components/PastPlayersSection.vue';
 import BasePanel from '../components/BasePanel.vue';
 
 const api = inject(PLAYERS_API, EMPTY_PLAYERS_API);
+const canViewPastPlayers = inject(CAN_VIEW_PAST_PLAYERS, ref(false));
 const { players, thresholds, isLoading, isError } = usePlayers(api);
 const { qualifiedAbove, qualifiedBelow, notEnoughWars } = usePlayerLists(players, thresholds);
 
@@ -48,6 +51,8 @@ const hasQualifiedList = computed(
           <PlayerRow v-for="p in notEnoughWars" :key="p.tag" :player="p" />
         </ul>
       </BasePanel>
+
+      <PastPlayersSection v-if="canViewPastPlayers" />
     </template>
   </div>
 </template>

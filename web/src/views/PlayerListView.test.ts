@@ -1,11 +1,14 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect } from 'vitest';
+import { ref } from 'vue';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import type { Player } from '@clash-tracker/core';
 import PlayerListView from './PlayerListView.vue';
 import PlayerRow from '../components/PlayerRow.vue';
 import QualificationLine from '../components/QualificationLine.vue';
+import PastPlayersSection from '../components/PastPlayersSection.vue';
 import { PLAYERS_API, type PlayersApi, type Thresholds } from '../api/players';
+import { CAN_VIEW_PAST_PLAYERS } from '../api/session';
 
 function mk(tag: string, wars: number, usage: number): Player {
   return {
@@ -28,15 +31,24 @@ function mk(tag: string, wars: number, usage: number): Player {
   };
 }
 
-function mountView(api: PlayersApi) {
+function mountView(api: PlayersApi, canViewPastPlayers = false) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return mount(PlayerListView, {
     global: {
       plugins: [[VueQueryPlugin, { queryClient }]],
-      provide: { [PLAYERS_API as symbol]: api },
+      provide: {
+        [PLAYERS_API as symbol]: api,
+        [CAN_VIEW_PAST_PLAYERS as symbol]: ref(canViewPastPlayers),
+      },
     },
   });
 }
+
+const rosterApi = (players: readonly Player[]): PlayersApi => ({
+  fetchCurrentPlayers: async () => players,
+  fetchThresholds: async () => okThresholds,
+  fetchPastPlayers: async () => [],
+});
 
 const okThresholds: Thresholds = { acceptancePct: 70, minWarParticipation: 5 };
 
@@ -106,6 +118,18 @@ describe('PlayerListView', () => {
       .filter((r) => r.props('qualified') === true)
       .map((r) => (r.props('player') as Player).tag);
     expect(qualifiedRows).toEqual(['#a', '#b']);
+  });
+
+  it('hides the past-players section when the viewer lacks the capability', async () => {
+    const wrapper = mountView(rosterApi([mk('#a', 10, 95)]), false);
+    await flushPromises();
+    expect(wrapper.findComponent(PastPlayersSection).exists()).toBe(false);
+  });
+
+  it('shows the past-players section when the viewer has the capability', async () => {
+    const wrapper = mountView(rosterApi([mk('#a', 10, 95)]), true);
+    await flushPromises();
+    expect(wrapper.findComponent(PastPlayersSection).exists()).toBe(true);
   });
 
   it('re-splits when thresholds change without refetching players', async () => {
