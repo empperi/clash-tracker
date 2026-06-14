@@ -55,7 +55,7 @@ Goal: a running themed app with routed placeholder views and nav.
 
 Goal: natural swipe between adjacent views honoring the 250ms rule.
 
-- [ ] Task (core, pure): Implement `resolveSwipe({ dx, viewWidth, durationMs, velocity })
+- [x] 14367ac Task (core, pure): Implement `resolveSwipe({ dx, viewWidth, durationMs, velocity })
   → 'next' | 'prev' | 'stay'` in `@clash-tracker/core`. Encode the rule: a flick faster
   than 250ms past a small distance/velocity threshold → next/prev; a slow drag settles by
   distance (>~40% width → change, else stay). Unit-test the boundary cases thoroughly (no DOM).
