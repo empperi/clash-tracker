@@ -45,13 +45,13 @@ Goal: the two lists + qualification line.
 
 Goal: the six-key sort for both lists.
 
-- [ ] Task: Tests + implement small key-extractors and a `composeComparators(...)` helper
+- [x] 98aea26 Task: Tests + implement small key-extractors and a `composeComparators(...)` helper
   (higher-order) so the order is declared as a list of (extractor, direction).
-- [ ] Task: Tests + implement `byClanRoleRank` (Leader>Co-Leader>Elder>Member) and the full
+- [x] e0b7c94 Task: Tests + implement `byClanRoleRank` (Leader>Co-Leader>Elder>Member) and the full
   `rankPlayers` comparator in the exact priority from `product.md`. Tests must walk each
   tie-break level (equal usage% → wars decide; equal wars → median stars; …; finally role).
-- [ ] Task: Provide `sortPlayers(list)` returning a new sorted array (no mutation).
-- [ ] Verification: ordering exactly matches the spec, including deep tie-breaks. [checkpoint]
+- [x] ed93599 Task: Provide `sortPlayers(list)` returning a new sorted array (no mutation).
+- [x] Verification: ordering exactly matches the spec, including deep tie-breaks. [checkpoint: <pending>]
 
 ## Phase 5: Recompute & persist (emulator-tested)
 
