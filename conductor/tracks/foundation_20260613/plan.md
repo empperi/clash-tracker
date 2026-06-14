@@ -80,7 +80,7 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
 
 Goal: Clash-themed tokens and base primitives.
 
-- [ ] Task: Add the global theme file (CSS custom properties: colors, fonts, spacing,
+- [x] 34e77c8 Task: Add the global theme file (CSS custom properties: colors, fonts, spacing,
   radii) and document tokens. Add a font strategy (self-hosted display font or close
   free alternative). No test (CSS) — but include a visual checklist item.
 - [ ] Task: Build `BaseButton`, `BasePanel`/`Card`, and `ListRow` primitives using only
