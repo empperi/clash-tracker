@@ -35,14 +35,14 @@ Goal: an accessible, mobile-legible row.
 
 Goal: the two lists with the divider.
 
-- [ ] Task: Tests + implement a `QualificationLine` divider component (visible separator +
+- [x] 1ef0143 Task: Tests + implement a `QualificationLine` divider component (visible separator +
   label/icon). Assert it renders between above/below groups.
-- [ ] Task: Tests + implement `PlayerListView.vue`: renders List 1 (above-line group, line,
+- [x] 08ff99f Task: Tests + implement `PlayerListView.vue`: renders List 1 (above-line group, line,
   below-line group) and List 2, each ordered via the composable. Assert above-line players
   carry the qualified styling AND an icon/label (not color-only), and ordering matches.
-- [ ] Task: Tests + implement loading / empty / error states for the view.
-- [ ] Verification: with fixture data, the line splits correctly and re-splits when
-  thresholds change. [checkpoint]
+- [x] 08ff99f Task: Tests + implement loading / empty / error states for the view.
+- [x] Verification: with fixture data, the line splits correctly and re-splits when
+  thresholds change. [checkpoint: <pending>]
 
 ## Phase 4: Admin past-players (lazy + infinite scroll)
 
