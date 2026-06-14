@@ -4,6 +4,7 @@ export * from './swipe';
 export * from './tag';
 export * from './mappers';
 export * from './gateway-types';
+export * from './identity';
 
 /**
  * Simple utility function to add two numbers.
