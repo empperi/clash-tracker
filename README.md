@@ -115,6 +115,13 @@ Set these in the repo's *Settings → Secrets and variables → Actions* (never 
 
 > Workflow lives in `.github/workflows/ci.yml`.
 
+**Firebase web config for production builds (not secret):** local dev needs nothing — it
+defaults to the emulators with demo placeholders. A *production* hosting build must have the
+`VITE_FIREBASE_*` values (see `web/.env.example`) present when `npm run build` runs in the
+deploy job. These are **public** Firebase web-config values (the web apiKey identifies the
+project, it doesn't grant access), so set them as plain GitHub Actions **variables**, not
+secrets, and pass them to the build step. Add this before the first real `release-*` deploy.
+
 ---
 
 ## How it's built — Conductor
