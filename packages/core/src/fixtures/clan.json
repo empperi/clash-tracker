@@ -1,0 +1,43 @@
+{
+  "tag": "#2PGQYPQ",
+  "name": "Militia",
+  "type": "inviteOnly",
+  "description": "Active war clan",
+  "location": {
+    "id": 32000006,
+    "name": "Finland",
+    "isCountry": true,
+    "countryCode": "FI"
+  },
+  "members": 4,
+  "memberList": [
+    {
+      "tag": "#2PGQYPQ1",
+      "name": "LeaderPlayer",
+      "role": "leader",
+      "townHallLevel": 16,
+      "clanRank": 1
+    },
+    {
+      "tag": "#2PGQYPQ2",
+      "name": "CoLeaderPlayer",
+      "role": "coLeader",
+      "townHallLevel": 15,
+      "clanRank": 2
+    },
+    {
+      "tag": "#2PGQYPQ3",
+      "name": "ElderPlayer",
+      "role": "admin",
+      "townHallLevel": 14,
+      "clanRank": 3
+    },
+    {
+      "tag": "#2PGQYPQ4",
+      "name": "MemberPlayer",
+      "role": "member",
+      "townHallLevel": 13,
+      "clanRank": 4
+    }
+  ]
+}

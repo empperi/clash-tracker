@@ -1,0 +1,61 @@
+{
+  "state": "inWar",
+  "teamSize": 2,
+  "preparationStartTime": "20260614T100000.000Z",
+  "startTime": "20260615T100000.000Z",
+  "endTime": "20260616T100000.000Z",
+  "clan": {
+    "tag": "#2PGQYPQ",
+    "name": "Militia",
+    "members": [
+      {
+        "tag": "#2PGQYPQ1",
+        "name": "LeaderPlayer",
+        "townhallLevel": 16,
+        "mapPosition": 1,
+        "attacks": [
+          {
+            "attackerTag": "#2PGQYPQ1",
+            "defenderTag": "#OPPONENT_M1",
+            "stars": 3,
+            "destructionPercentage": 100,
+            "order": 1
+          }
+        ]
+      },
+      {
+        "tag": "#2PGQYPQ2",
+        "name": "CoLeaderPlayer",
+        "townhallLevel": 15,
+        "mapPosition": 2
+      }
+    ]
+  },
+  "opponent": {
+    "tag": "#OPPONENT1",
+    "name": "Opponent Clan",
+    "members": [
+      {
+        "tag": "#OPPONENT_M1",
+        "name": "OpponentPlayer1",
+        "townhallLevel": 16,
+        "mapPosition": 1,
+        "attacks": [
+          {
+            "attackerTag": "#OPPONENT_M1",
+            "defenderTag": "#2PGQYPQ2",
+            "stars": 2,
+            "destructionPercentage": 85,
+            "order": 2
+          }
+        ]
+      },
+      {
+        "tag": "#OPPONENT_M2",
+        "name": "OpponentPlayer2",
+        "townhallLevel": 15,
+        "mapPosition": 2
+      }
+    ]
+  }
+}

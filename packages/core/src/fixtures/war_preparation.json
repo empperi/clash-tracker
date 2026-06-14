@@ -1,0 +1,31 @@
+{
+  "state": "preparation",
+  "teamSize": 5,
+  "preparationStartTime": "20260614T100000.000Z",
+  "startTime": "20260615T100000.000Z",
+  "endTime": "20260616T100000.000Z",
+  "clan": {
+    "tag": "#2PGQYPQ",
+    "name": "Militia",
+    "members": [
+      {
+        "tag": "#2PGQYPQ1",
+        "name": "LeaderPlayer",
+        "townhallLevel": 16,
+        "mapPosition": 1
+      }
+    ]
+  },
+  "opponent": {
+    "tag": "#OPPONENT1",
+    "name": "Opponent Clan",
+    "members": [
+      {
+        "tag": "#OPPONENT_M1",
+        "name": "OpponentPlayer1",
+        "townhallLevel": 16,
+        "mapPosition": 1
+      }
+    ]
+  }
+}

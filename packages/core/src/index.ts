@@ -2,6 +2,7 @@ export * from './result';
 export * from './domain';
 export * from './swipe';
 export * from './tag';
+export * from './mappers';
 
 /**
  * Simple utility function to add two numbers.
