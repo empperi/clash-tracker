@@ -41,7 +41,7 @@ Pure `@clash-tracker/core` logic: per-player aggregation, attack-usage %, median
 two-list participation split, the qualification line, and the six-key ordering comparator;
 plus persisting current/past player aggregates.
 
-### [ ] Track 5: Player List view [player_list_view_20260613]
+### [x] Track 5: Player List view [player_list_view_20260613]
 The flagship public view: two ranked lists with an unmistakable qualification line, all
 per-player stats, mobile-first layout, and an admin-only lazy infinite-scroll past-players
 section. Reads precomputed aggregates; reuses Track 4's pure functions.

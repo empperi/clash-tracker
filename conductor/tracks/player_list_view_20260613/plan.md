@@ -57,7 +57,7 @@ Goal: leavers section, loaded only when toggled.
   or sentinel; inject the observer for testability). Appends pages; same row component.
 - [x] Verification: toggle reveals leavers, scrolling loads more, nothing loads before toggle. [checkpoint: 7531715]
 
-## Phase 5: Polish & integration
+## Phase 5: Polish & integration [checkpoint: 05f0cf2]
 
 Goal: production-ready view.
 
@@ -66,7 +66,7 @@ Goal: production-ready view.
 - [x] ced71c6 Task: Wire eager-load: trigger `usePlayers` fetch as the swipe toward this view begins
   (hook into Track 1's swipe-start). Test the trigger.
 - [x] Verification: full web suite (79) + production build/PWA green; manual mobile + desktop
-  review pending owner sign-off (no seeded player data locally yet). [checkpoint: <pending>]
+  review pending owner sign-off (no seeded player data locally yet). [checkpoint: 05f0cf2]
 
 ## Done when
 - The Player List shows both ranked lists with an unmistakable, non-color-only qualification
