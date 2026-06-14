@@ -31,7 +31,7 @@ Goal: full per-player stat object from per-war records.
   wars, one war, multiple wars, missed attacks, never-attacked, never-defended.
 - [x] Verification: aggregation matches hand-computed fixtures. [checkpoint: 8c66c65]
 
-## Phase 3: Eligibility split (pure)
+## Phase 3: Eligibility split (pure) [checkpoint: 652bb36]
 
 Goal: the two lists + qualification line.
 
@@ -39,7 +39,7 @@ Goal: the two lists + qualification line.
   `{ qualifiedPool, notEnoughWars }` using `>=`. Boundary: exactly == min → qualified pool.
 - [x] 09d9bc2 Task: Tests + implement `markQualification(qualifiedPool, acceptancePct)` setting
   `aboveLine = attackUsagePct >= acceptancePct`. Boundary: exactly == → above the line.
-- [x] Verification: split + line correct at boundaries. [checkpoint: <pending>]
+- [x] Verification: split + line correct at boundaries. [checkpoint: 652bb36]
 
 ## Phase 4: Ordering comparator (pure, higher-order)
 
