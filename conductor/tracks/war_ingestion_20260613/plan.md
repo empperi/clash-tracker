@@ -8,7 +8,7 @@ repositories (emulator-tested); the **scheduled function** is a thin wrapper.
 > Write the idempotency tests first and make them ruthless (apply the same fetch twice,
 > assert identical state).
 
-## Phase 1: War & attack identity (pure)
+## Phase 1: War & attack identity (pure) [checkpoint: 1ec8d36]
 
 Goal: deterministic ids so repeated polls converge.
 
