@@ -59,7 +59,7 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
   → 'next' | 'prev' | 'stay'` in `@clash-tracker/core`. Encode the rule: a flick faster
   than 250ms past a small distance/velocity threshold → next/prev; a slow drag settles by
   distance (>~40% width → change, else stay). Unit-test the boundary cases thoroughly (no DOM).
-- [ ] Task (core, pure): Implement `swipeTransition({ change, durationMs }) →
+- [x] 59c5286 Task (core, pure): Implement `swipeTransition({ change, durationMs }) →
   { animateMs }` returning ≤250ms for flicks and a proportional duration for slow drags.
   Unit-test.
 - [ ] Task (web): Build a `useSwipeNav` composable using VueUse `useSwipe` that, during a
