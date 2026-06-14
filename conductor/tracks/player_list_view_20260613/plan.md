@@ -7,7 +7,7 @@ rendered states (loading/empty/error, the line) with Vue Test Utils / Testing Li
 > Implementer note: do NOT re-implement ordering or eligibility here — import the Track 4
 > functions. The qualification line must be obvious AND not color-only.
 
-## Phase 1: Data composable
+## Phase 1: Data composable [checkpoint: 48505db]
 
 Goal: load players + thresholds with proper states.
 
@@ -18,18 +18,18 @@ Goal: load players + thresholds with proper states.
   `splitByParticipation`, `markQualification`, and `sortPlayers` from `core`, returning
   `{ qualifiedAbove, qualifiedBelow, notEnoughWars }`. Pure-ish; recomputes when thresholds
   change.
-- [x] Verification: composables return correct lists for fixture data. [checkpoint: <pending>]
+- [x] Verification: composables return correct lists for fixture data. [checkpoint: 48505db]
 
 ## Phase 2: Player row & stats
 
 Goal: an accessible, mobile-legible row.
 
-- [ ] Task: Tests + implement `PlayerRow.vue` showing all required stats (name, role, TH,
+- [x] 18a00ff Task: Tests + implement `PlayerRow.vue` showing all required stats (name, role, TH,
   wars, attacks done, % done, median destruction/stars/defenses/own-destruction). Assert the
   values render and the row is a semantic list item with a ≥44px target.
-- [ ] Task: Tests + implement progressive disclosure (primary stats visible; secondary via
+- [x] bc513de Task: Tests + implement progressive disclosure (primary stats visible; secondary via
   expand or detail sheet). Assert secondary stats are reachable and accessible.
-- [ ] Verification: row reviewed at 360px; numbers scannable. [checkpoint]
+- [x] Verification: row reviewed at 360px; numbers scannable. [checkpoint: <pending>]
 
 ## Phase 3: Lists & qualification line
 
