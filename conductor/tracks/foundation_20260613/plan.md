@@ -99,7 +99,7 @@ Goal: installable PWA that talks to emulators locally.
   connect to Auth/Firestore emulators when `VITE_USE_EMULATORS==='true'`. Test the
   branch selection (inject env) — do not hit the network in unit tests.
 - [x] b050d01 Task: Add app icons + offline fallback for read-only shell. Confirm SW registers.
-- [ ] Verification: build, `firebase emulators:start`, install the PWA, confirm standalone
+- [x] Verification: build, `firebase emulators:start`, install the PWA, confirm standalone
   launch and offline shell. [checkpoint]
 
 ## Phase 7: CI/CD (GitHub Actions)
