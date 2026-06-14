@@ -35,3 +35,12 @@ test('App shows the active view and its wrapped neighbours', async () => {
   expect(text).toContain('War Plan');
   expect(text).toContain('Owner');
 });
+
+test('navigating the router (nav tap / deep link) recentres the carousel', async () => {
+  const wrapper = await mountApp();
+  await router.push('/admin');
+  await wrapper.vm.$nextTick();
+  // The route watcher should recentre on Admin without throwing.
+  const track = wrapper.find('.swipe-track');
+  expect(track.attributes('style')).toContain('translateX(calc(-100% + 0px))');
+});
