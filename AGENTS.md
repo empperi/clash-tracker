@@ -47,11 +47,14 @@ conductor/       Specs, plans, product/tech/workflow docs.
 
 ```bash
 npm install                       # install all workspaces
-npm test                          # run all tests
+npm test                          # run all tests (requires active emulators for repo tests)
+npm run test:emulator             # run all tests within the Firebase Emulator Suite
 npm run lint                      # lint all workspaces
 npm run emulators                 # Firebase emulators (Firestore/Auth/Functions/Storage)
 npm run dev --workspace web       # run the PWA against emulators
 ```
+
+> **Note on repository tests**: Firestore/Auth repository tests require the emulator suite to be active. You can run them via `npm run test:emulator` (which spins up the emulators, runs the test suite, and tears them down) or by starting the emulators via `npm run emulators` and executing `npm test` in another terminal window. Ensure test documents use isolated paths/collections to avoid collisons.
 
 Use `CI=true` for watch-mode tools so they run once.
 
