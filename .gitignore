@@ -39,6 +39,9 @@ serviceAccount*.json
 .runtimeconfig.json
 .secret.local
 
+# Playwright MCP debug artifacts (snapshots, console logs)
+.playwright-mcp/
+
 # Editor / OS
 .idea/
 .vscode/
