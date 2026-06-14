@@ -33,7 +33,7 @@ Goal: idempotent, lossless merge logic.
   'out-of-sync'`, plus a helper to set `lastSyncedAt` (time injected).
 - [ ] Verification: applying a diff twice == applying once; sync state correct. [checkpoint]
 
-## Phase 3: Repositories (emulator-tested)
+## Phase 3: Repositories (emulator-tested) [checkpoint: b01df82]
 
 Goal: persist wars, members, attacks.
 
