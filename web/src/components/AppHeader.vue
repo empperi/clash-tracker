@@ -32,35 +32,35 @@ const logoSrc = computed(() => props.clanLogo || defaultLogo);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background-color: var(--color-bg-panel, #242526);
-  border-bottom: 2px solid var(--color-primary, #d4af37);
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  background-color: var(--ct-color-surface-card);
+  border-bottom: 2px solid var(--ct-color-gold);
+  box-shadow: var(--ct-shadow-md);
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--ct-spacing-sm);
 }
 
 .clan-logo {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
-  border-radius: 4px;
-  border: 1px solid var(--color-primary, #d4af37);
-  background-color: #1a1a1a;
+  border-radius: var(--ct-radius-sm);
+  border: 2px solid var(--ct-color-gold);
+  background-color: var(--ct-color-surface-well);
 }
 
 .clan-name {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--color-text-header, #ffffff);
+  font-family: var(--ct-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ct-color-gold-text);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 </style>

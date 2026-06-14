@@ -27,10 +27,10 @@ import { RouterLink } from 'vue-router';
 .app-nav {
   display: flex;
   justify-content: space-around;
-  background-color: var(--color-bg-panel, #242526);
-  border-top: 2px solid var(--color-border, #3e3f40);
+  background-color: var(--ct-color-surface-card);
+  border-top: 2px solid var(--ct-color-border);
   padding: 0.5rem 0;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ct-shadow-lg);
 }
 
 .nav-item {
@@ -41,7 +41,8 @@ import { RouterLink } from 'vue-router';
   flex: 1;
   min-height: 48px; /* Touch target >= 44px */
   text-decoration: none;
-  color: var(--color-text-muted, #8e9297);
+  color: var(--ct-color-text-secondary);
+  font-family: var(--ct-font-body);
   font-size: 0.75rem;
   font-weight: 500;
   transition:
@@ -59,7 +60,7 @@ import { RouterLink } from 'vue-router';
 }
 
 .nav-item.active {
-  color: var(--color-primary, #d4af37);
+  color: var(--ct-color-gold);
   font-weight: 700;
 }
 </style>
