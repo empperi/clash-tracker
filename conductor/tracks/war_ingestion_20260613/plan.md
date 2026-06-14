@@ -50,7 +50,7 @@ Goal: persist wars, members, attacks.
 
 Goal: one tested function that ingests a current-war fetch.
 
-- [ ] Task: Tests + implement `makeIngestCurrentWar({ gateway, warRepo, attackRepo, now })`
+- [x] 5dcf12f Task: Tests + implement `makeIngestCurrentWar({ gateway, warRepo, attackRepo, now })`
   returning `async () => Result<IngestSummary>`. Drive it with in-memory repos + a fake
   gateway returning fixtures:
   - `notInWar`/preparation-only → no war persisted, summary says "nothing to ingest".
