@@ -37,12 +37,12 @@ Goal: idempotent, lossless merge logic.
 
 Goal: persist wars, members, attacks.
 
-- [ ] Task: Emulator tests + implement `WarRepository`: `getWar(warId)`, `saveWarHeader`,
+- [x] c94bf5e Task: Emulator tests + implement `WarRepository`: `getWar(warId)`, `saveWarHeader`,
   `upsertMembers`, returning typed domain objects.
-- [ ] Task: Emulator tests + implement `AttackRepository`: `addAttacks(warId, attacks)`
+- [x] 99aecf3 Task: Emulator tests + implement `AttackRepository`: `addAttacks(warId, attacks)`
   keyed by `attackId` (idempotent writes — adding the same attack twice leaves one doc),
   `listAttacks(warId)`.
-- [ ] Task: Emulator test: full round-trip — save war + members + attacks, read back, assert
+- [x] 99aecf3 Task: Emulator test: full round-trip — save war + members + attacks, read back, assert
   shape and counts.
 - [ ] Verification: repeated `addAttacks` of the same set → no duplicates. [checkpoint]
 
