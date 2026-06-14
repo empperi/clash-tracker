@@ -89,8 +89,8 @@ This is a **single-developer project with no pull requests** — work is pushed 
 
 | Trigger | What runs | Gate |
 |---------|-----------|------|
-| **Any push** (any branch) | Install → type-check → lint → **full test suite** (unit + Firebase-emulator-backed) | A failing test fails the workflow |
-| **Push a tag matching `release-*`** | Build → `firebase deploy` (hosting + functions + rules) | **Only deploys if the tests pass** |
+| **Any push** (any branch) | Install → format check → type-check → lint → **full test suite** (unit + Firebase-emulator-backed) | A failing test, lint, or format check fails the workflow |
+| **Push a tag matching `release-*`** | Build → `firebase deploy --only hosting,firestore:rules,storage` | **Only deploys if the tests/checks pass** |
 
 ### Releasing
 
@@ -110,11 +110,10 @@ push never deploys; only a `release-*` tag does.
 
 Set these in the repo's *Settings → Secrets and variables → Actions* (never commit them):
 
-- `FIREBASE_SERVICE_ACCOUNT` (or `FIREBASE_TOKEN`) — credentials for `firebase deploy`.
-- `CLASH_TOKEN_ENC_KEY` — the AES key for the CoC token (used by functions at runtime).
-- Any other runtime config the functions need.
+- `FIREBASE_SERVICE_ACCOUNT` — Google Cloud Service Account JSON credentials for `firebase deploy` (deprecated `FIREBASE_TOKEN` is not used).
+- `CLASH_TOKEN_ENC_KEY` — the AES key for the CoC token (used by functions at runtime, required in Track 2).
 
-> Workflow lives in `.github/workflows/` (added by Track 1, the Foundation track).
+> Workflow lives in `.github/workflows/ci.yml`.
 
 ---
 
