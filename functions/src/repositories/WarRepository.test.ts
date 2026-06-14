@@ -298,3 +298,47 @@ describe('WarRepository', () => {
     }
   });
 });
+
+describe('WarRepository.listWars', () => {
+  const repo = new WarRepository(db);
+  const warIds = ['list-war-a', 'list-war-b'];
+
+  const cleanup = async () => {
+    for (const id of warIds) {
+      await db.doc(`wars/${id}`).delete();
+    }
+  };
+
+  beforeEach(cleanup);
+  afterEach(cleanup);
+
+  const header = (opponentTag: string): WarHeader => ({
+    state: 'warEnded',
+    teamSize: 1,
+    opponentName: 'Opp',
+    opponentTag,
+    startTime: '2026-06-15T10:00:00.000Z',
+    endTime: '2026-06-16T10:00:00.000Z',
+    preparationStartTime: '2026-06-14T10:00:00.000Z',
+  });
+
+  it('returns every tracked war fully reconstructed', async () => {
+    await repo.saveWarHeader(warIds[0]!, header('#OPP_A'));
+    await repo.saveWarHeader(warIds[1]!, header('#OPP_B'));
+
+    const result = await repo.listWars();
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const tags = result.value.map((w) => w.opponentTag).sort();
+      expect(tags).toEqual(['#OPP_A', '#OPP_B']);
+    }
+  });
+
+  it('returns an empty list when there are no wars', async () => {
+    const result = await repo.listWars();
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.value).toEqual([]);
+    }
+  });
+});

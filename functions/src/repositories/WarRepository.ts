@@ -178,4 +178,28 @@ export class WarRepository {
       return err(msg);
     }
   }
+
+  /**
+   * Loads every tracked war, each fully reconstructed (header + members +
+   * attacks). Used by the player-stats recompute to aggregate across all wars.
+   */
+  async listWars(): Promise<Result<readonly MappedWar[], string>> {
+    try {
+      const snap = await this.db.collection('wars').get();
+      const wars: MappedWar[] = [];
+      for (const doc of snap.docs) {
+        const warResult = await this.getWar(doc.id);
+        if (!warResult.success) {
+          return err(warResult.error);
+        }
+        if (warResult.value) {
+          wars.push(warResult.value);
+        }
+      }
+      return ok(wars);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return err(msg);
+    }
+  }
 }
