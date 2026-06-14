@@ -90,7 +90,10 @@ This is a **single-developer project with no pull requests** — work is pushed 
 | Trigger | What runs | Gate |
 |---------|-----------|------|
 | **Any push** (any branch) | Install → format check → type-check → lint → **full test suite** (unit + Firebase-emulator-backed) | A failing test, lint, or format check fails the workflow |
-| **Push a tag matching `release-*`** | Build → `firebase deploy --only hosting,firestore:rules,storage` | **Only deploys if the tests/checks pass** |
+| **Push a tag matching `release-*`** | Build → `firebase deploy --only hosting` | **Only deploys if the tests/checks pass** |
+
+> Currently hosting-only. `firestore:rules` and `storage` rules are added to the deploy in
+> Track 2, once the CI service account has the matching IAM roles and those rules are in use.
 
 ### Releasing
 
