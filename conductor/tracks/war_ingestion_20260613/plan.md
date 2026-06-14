@@ -62,7 +62,7 @@ Goal: one tested function that ingests a current-war fetch.
     out-of-sync.
 - [ ] Verification: all ingestion scenarios green using in-memory deps. [checkpoint]
 
-## Phase 5: Scheduled function + manual trigger
+## Phase 5: Scheduled function + manual trigger [checkpoint: aa07491]
 
 Goal: run ingestion automatically and on demand.
 
