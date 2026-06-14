@@ -87,7 +87,7 @@ Goal: Clash-themed tokens and base primitives.
   tokens. Test: render, slot content, ≥44px touch target (assert min-height style), and
   variant props.
 - [x] e72a9f9 Task: Apply the theme to `AppHeader` and placeholder views so the app looks Clash-y.
-- [ ] Verification: primitives reviewed at 360px and desktop; AA contrast checked. [checkpoint]
+- [x] Verification: primitives reviewed at 360px and desktop; AA contrast checked. [checkpoint]
 
 ## Phase 6: PWA & Firebase client wiring
 
