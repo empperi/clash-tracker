@@ -20,6 +20,10 @@ export default tseslint.config(
     rules: {
       'vue/multi-word-component-names': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
+      // TypeScript / vue-tsc already resolve identifiers (incl. browser globals like
+      // `window`, `HTMLElement`). typescript-eslint disables core no-undef for .ts; extend
+      // that to .vue so SFCs using browser globals don't false-positive.
+      'no-undef': 'off',
     },
   },
   {
