@@ -49,7 +49,7 @@ Goal: raw CoC JSON → internal domain types.
   states explicitly.
 - [x] Verification: mappers produce correct typed objects for every fixture state. [checkpoint]
 
-## Phase 4: Pluggable CoC API gateway
+## Phase 4: Pluggable CoC API gateway [checkpoint: b9274bf]
 
 Goal: authenticated, configurable HTTP access with typed errors.
 
