@@ -19,7 +19,7 @@ Goal: deterministic ids so repeated polls converge.
   round/order). Two distinct attacks never collide; the same attack across polls → same id.
 - [ ] Verification: identity tests green. [checkpoint]
 
-## Phase 2: Ingestion diff & sync (pure)
+## Phase 2: Ingestion diff & sync (pure) [checkpoint: cc2a014]
 
 Goal: idempotent, lossless merge logic.
 
