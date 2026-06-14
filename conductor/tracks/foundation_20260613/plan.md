@@ -102,7 +102,7 @@ Goal: installable PWA that talks to emulators locally.
 - [x] Verification: build, `firebase emulators:start`, install the PWA, confirm standalone
   launch and offline shell. [checkpoint]
 
-## Phase 7: CI/CD (GitHub Actions)
+## Phase 7: CI/CD (GitHub Actions) [checkpoint: a8b9bdc]
 
 Goal: tests on every push; tag-gated production deploy. **No PRs** — this is a single-dev
 repo pushing straight to `main`/`master`.
