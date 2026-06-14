@@ -116,8 +116,8 @@ repo pushing straight to `main`/`master`.
   `release-*` (e.g. `on: push: tags: ['release-*']`). It must `needs:` the test job so it
   **only runs when tests pass**. Steps: checkout, Node 20, `npm ci`, `npm run build`, then
   `firebase deploy --only hosting,firestore:rules,storage` authenticating with the
-  `FIREBASE_SERVICE_ACCOUNT` GitHub secret. Use the project from `.firebaserc`.
-- [x] b8c9d2e Task: Document required GitHub **secrets** (`FIREBASE_SERVICE_ACCOUNT`,
+  `FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER` GitHub secret. Use the project from `.firebaserc`.
+- [x] b8c9d2e Task: Document required GitHub **secrets** (`FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER`,
   `CLASH_TOKEN_ENC_KEY`) in the workflow file header and `README.md`. No secrets committed.
 - [x] b8c9d2e Task: Update `README.md` with the CI/CD section (push → tests; `release-*` tag →
   gated deploy) — see the "Deployment & CI/CD" heading. Confirm the documented tag format
