@@ -62,7 +62,7 @@ Goal: natural swipe between adjacent views honoring the 250ms rule.
 - [x] 59c5286 Task (core, pure): Implement `swipeTransition({ change, durationMs }) →
   { animateMs }` returning ≤250ms for flicks and a proportional duration for slow drags.
   Unit-test.
-- [ ] Task (web): Build a `useSwipeNav` composable using VueUse `useSwipe` that, during a
+- [x] 43d6c44 Task (web): Build a `useSwipeNav` composable using VueUse `useSwipe` that, during a
   drag, translates the view container 1:1, and on release calls `resolveSwipe` to decide
   and `swipeTransition` to animate. Test the composable's state transitions with simulated
   gesture inputs (no real touch hardware needed — drive the handlers directly).
