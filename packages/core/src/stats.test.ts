@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { median } from './stats';
+import { median, attackUsagePct } from './stats';
 
 describe('median', () => {
   it('returns 0 for an empty array (documented divide-by-nothing rule)', () => {
@@ -33,5 +33,29 @@ describe('median', () => {
     const snapshot = [...input];
     median(input);
     expect(input).toEqual(snapshot);
+  });
+});
+
+describe('attackUsagePct', () => {
+  it('returns 0 when no attacks are available (documented divide-by-zero rule)', () => {
+    expect(attackUsagePct({ attacksDone: 0, attacksAvailable: 0 })).toBe(0);
+  });
+
+  it('returns 0 when none of the available attacks were used', () => {
+    expect(attackUsagePct({ attacksDone: 0, attacksAvailable: 14 })).toBe(0);
+  });
+
+  it('returns 100 when every available attack was used', () => {
+    expect(attackUsagePct({ attacksDone: 14, attacksAvailable: 14 })).toBe(100);
+  });
+
+  it('computes a simple percentage', () => {
+    expect(attackUsagePct({ attacksDone: 7, attacksAvailable: 14 })).toBe(50);
+  });
+
+  it('rounds to the nearest integer (consistent with the 1% slider)', () => {
+    expect(attackUsagePct({ attacksDone: 1, attacksAvailable: 3 })).toBe(33); // 33.33 -> 33
+    expect(attackUsagePct({ attacksDone: 2, attacksAvailable: 3 })).toBe(67); // 66.67 -> 67
+    expect(attackUsagePct({ attacksDone: 5, attacksAvailable: 8 })).toBe(63); // 62.5 -> 63
   });
 });

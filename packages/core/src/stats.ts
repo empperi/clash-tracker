@@ -20,3 +20,24 @@ export function median(values: readonly number[]): number {
   }
   return (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
+
+/**
+ * Computes attack-usage % = attacksDone / attacksAvailable * 100.
+ *
+ * Rules (documented once, reused across the stats domain):
+ * - Divide-by-zero: when `attacksAvailable` is 0 (a player on no rosters, or a
+ *   war with no available attacks) the result is `0` — never `NaN`/`Infinity`.
+ * - Rounding: rounded to the nearest **integer** (`Math.round`). This keeps the
+ *   metric consistent with the Acceptance Percentage Level slider, which moves in
+ *   1% increments, so the `>=` qualification comparison and the ordering key both
+ *   operate on the same integer percentage the user sees.
+ */
+export function attackUsagePct(input: {
+  readonly attacksDone: number;
+  readonly attacksAvailable: number;
+}): number {
+  if (input.attacksAvailable <= 0) {
+    return 0;
+  }
+  return Math.round((input.attacksDone / input.attacksAvailable) * 100);
+}
