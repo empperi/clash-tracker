@@ -15,6 +15,12 @@ export interface UseSwipeNavOptions {
   readonly target?: Ref<HTMLElement | null>;
   /** Injectable clock (ms). Defaults to `Date.now`. */
   readonly now?: () => number;
+  /**
+   * Called once per gesture as soon as the drag direction is known, with the target view
+   * id — so the destination view can start loading its data while the swipe is still in
+   * progress (not after the animation finishes). No-op at an edge with no neighbor.
+   */
+  readonly onEagerLoad?: (target: string) => void;
 }
 
 export interface SwipeNav {
@@ -41,7 +47,7 @@ export interface SwipeNav {
  * tests without real touch events.
  */
 export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
-  const { order, current, navigate, viewWidth, now = () => Date.now() } = options;
+  const { order, current, navigate, viewWidth, now = () => Date.now(), onEagerLoad } = options;
 
   const dragOffset = ref(0);
   const isDragging = ref(false);
@@ -50,6 +56,7 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
 
   let startTime = 0;
   let lastDx = 0;
+  let eagerFired = false;
 
   function neighbor(decision: SwipeDecision): string | null {
     const index = order.indexOf(current());
@@ -64,13 +71,24 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
     isAnimating.value = false;
     startTime = now();
     lastDx = 0;
+    eagerFired = false;
     dragOffset.value = 0;
+  }
+
+  function maybeEagerLoad(dx: number): void {
+    if (eagerFired || !onEagerLoad || dx === 0) return;
+    const target = neighbor(dx < 0 ? 'next' : 'prev');
+    if (target !== null) {
+      onEagerLoad(target);
+      eagerFired = true;
+    }
   }
 
   function onMove(dx: number): void {
     if (!isDragging.value) return;
     lastDx = dx;
     dragOffset.value = dx; // follow the finger 1:1
+    maybeEagerLoad(dx);
   }
 
   function onEnd(): void {

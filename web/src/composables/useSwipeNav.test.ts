@@ -112,6 +112,42 @@ describe('useSwipeNav', () => {
     expect(navigated).toEqual([]);
   });
 
+  describe('eager-load', () => {
+    it('fires once with the target view as soon as the drag direction is known', () => {
+      const loaded: string[] = [];
+      const { nav } = setup({ onEagerLoad: (t) => loaded.push(t) });
+      nav.onStart();
+      nav.onMove(-10); // leftward -> next of war-plan
+      expect(loaded).toEqual(['admin']);
+      nav.onMove(-80); // continued drag does not re-fire
+      expect(loaded).toEqual(['admin']);
+    });
+
+    it('fires for the previous view on a rightward drag', () => {
+      const loaded: string[] = [];
+      const { nav } = setup({ onEagerLoad: (t) => loaded.push(t) });
+      nav.onStart();
+      nav.onMove(12);
+      expect(loaded).toEqual(['player-list']);
+    });
+
+    it('does not fire toward an edge, but fires when the drag flips to a valid neighbor', () => {
+      const loaded: string[] = [];
+      const { nav } = setup({ current: () => 'owner', onEagerLoad: (t) => loaded.push(t) });
+      nav.onStart();
+      nav.onMove(-10); // next of owner -> none
+      expect(loaded).toEqual([]);
+      nav.onMove(15); // prev of owner -> admin
+      expect(loaded).toEqual(['admin']);
+    });
+
+    it('works without an onEagerLoad callback', () => {
+      const { nav } = setup();
+      nav.onStart();
+      expect(() => nav.onMove(-10)).not.toThrow();
+    });
+  });
+
   it('clears the animating flag on endAnimation', () => {
     const { nav, setClock } = setup();
     nav.onStart();
