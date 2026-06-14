@@ -66,13 +66,13 @@ Goal: one tested function that ingests a current-war fetch.
 
 Goal: run ingestion automatically and on demand.
 
-- [ ] Task: Wire a scheduled Cloud Function (e.g. every 20 min) that constructs the use case
+- [x] b7847ed Task: Wire a scheduled Cloud Function (e.g. every 20 min) that constructs the use case
   with real gateway + repositories (key/clan tag from config) and runs it. Keep the handler
   ~5 lines; test that it delegates to the use case (inject the use case).
-- [ ] Task: Add a callable `triggerIngestNow` running the same use case once and returning
+- [x] b7847ed Task: Add a callable `triggerIngestNow` running the same use case once and returning
   the sync status. (Auth gating deferred to Track 6 — note this; for now restrict to
   emulator/internal.)
-- [ ] Task: Add back-off/logging for rate-limit/maintenance results; assert (via the use
+- [x] b7847ed Task: Add back-off/logging for rate-limit/maintenance results; assert (via the use
   case result) that failures don't write partial data. Confirm no token is logged.
 - [ ] Verification: against the emulator + seeded secrets, run the trigger during a real or
   fixture war and confirm `wars/*` + attacks populate and re-running doesn't duplicate.
