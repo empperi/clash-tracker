@@ -22,14 +22,14 @@ Goal: trustworthy building blocks.
 
 Goal: full per-player stat object from per-war records.
 
-- [ ] Task: Define the input type (a player's per-war records: attacks with stars/
+- [x] e14c822 Task: Define the input type (a player's per-war records: attacks with stars/
   destruction, attacks available, defenses faced, own-base destruction, war timestamp) and
   the output `PlayerStats` type in `core`.
-- [ ] Task: Tests + implement `aggregatePlayerStats(records)` computing wars participated,
+- [x] b7c6f19 Task: Tests + implement `aggregatePlayerStats(records)` computing wars participated,
   attacks done/available, attack-usage %, median destruction, median stars, median
   defenses-per-war, median own-destruction-per-war, and `lastWarParticipatedAt`. Cover: no
   wars, one war, multiple wars, missed attacks, never-attacked, never-defended.
-- [ ] Verification: aggregation matches hand-computed fixtures. [checkpoint]
+- [x] Verification: aggregation matches hand-computed fixtures. [checkpoint: <pending>]
 
 ## Phase 3: Eligibility split (pure)
 
