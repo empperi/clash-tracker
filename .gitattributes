@@ -1,8 +1,9 @@
 # Enforce LF line endings for all text files
 * text=auto eol=lf
 
-# Ensure binary files are not modified
-*.png filter=lfs diff=lfs merge=lfs -text
-*.jpg filter=lfs diff=lfs merge=lfs -text
-*.gif filter=lfs diff=lfs merge=lfs -text
-*.ico filter=lfs diff=lfs merge=lfs -text
+# Treat images as binary: no EOL normalization, and NOT via Git LFS — they are small app
+# assets, so plain Git avoids LFS quota/CI-checkout pitfalls (a broken icon breaks PWA install).
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
