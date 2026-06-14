@@ -1,62 +1,54 @@
 <script setup lang="ts">
+import { computed, inject } from 'vue';
+import { PLAYERS_API, EMPTY_PLAYERS_API } from '../api/players';
+import { usePlayers } from '../composables/usePlayers';
+import { usePlayerLists } from '../composables/usePlayerLists';
+import PlayerRow from '../components/PlayerRow.vue';
+import QualificationLine from '../components/QualificationLine.vue';
 import BasePanel from '../components/BasePanel.vue';
-import ListRow from '../components/ListRow.vue';
-import BaseButton from '../components/BaseButton.vue';
+
+const api = inject(PLAYERS_API, EMPTY_PLAYERS_API);
+const { players, thresholds, isLoading, isError } = usePlayers(api);
+const { qualifiedAbove, qualifiedBelow, notEnoughWars } = usePlayerLists(players, thresholds);
+
+const isEmpty = computed(() => !isLoading.value && !isError.value && players.value.length === 0);
+const hasQualifiedList = computed(
+  () => qualifiedAbove.value.length > 0 || qualifiedBelow.value.length > 0
+);
 </script>
 
 <template>
   <div class="view-container">
     <h2>Player List</h2>
-    <p class="subtitle">Track participation to select the most reliable CWL roster.</p>
+    <p class="subtitle">Who's pulling their weight — and who's above the CWL line.</p>
 
-    <BasePanel title="Roster Eligibility (Mock Data)">
-      <div class="list-header">
-        <span>Player</span>
-        <span class="align-right">War Participation</span>
-      </div>
+    <div v-if="isLoading" class="state-loading" role="status">Loading roster…</div>
 
-      <ListRow active>
-        <div class="player-row">
-          <span class="player-name">👑 Barbarian King</span>
-          <span class="tag-qualified">Qualified</span>
-          <span class="participation-pct align-right">100%</span>
-        </div>
-      </ListRow>
+    <div v-else-if="isError" class="state-error" role="alert">
+      Couldn't load the roster. Pull to refresh or try again shortly.
+    </div>
 
-      <ListRow>
-        <div class="player-row">
-          <span class="player-name">🏹 Archer Queen</span>
-          <span class="tag-qualified">Qualified</span>
-          <span class="participation-pct align-right">85%</span>
-        </div>
-      </ListRow>
+    <div v-else-if="isEmpty" class="state-empty">
+      No tracked players yet. Stats appear here after the first war is ingested.
+    </div>
 
-      <div class="qualification-line">
-        <span class="qualification-label">⚠️ Roster Qualification Cutoff (70%)</span>
-      </div>
+    <template v-else>
+      <BasePanel v-if="hasQualifiedList" title="Qualified pool">
+        <ul class="player-list">
+          <PlayerRow v-for="p in qualifiedAbove" :key="p.tag" :player="p" :qualified="true" />
+          <li class="line-item">
+            <QualificationLine :acceptance-pct="thresholds.acceptancePct" />
+          </li>
+          <PlayerRow v-for="p in qualifiedBelow" :key="p.tag" :player="p" />
+        </ul>
+      </BasePanel>
 
-      <ListRow>
-        <div class="player-row below-cutoff">
-          <span class="player-name">✨ Grand Warden</span>
-          <span class="tag-unqualified">Below Threshold</span>
-          <span class="participation-pct align-right">50%</span>
-        </div>
-      </ListRow>
-
-      <ListRow>
-        <div class="player-row below-cutoff">
-          <span class="player-name">🛡️ Royal Champion</span>
-          <span class="tag-unqualified">Below Threshold</span>
-          <span class="participation-pct align-right">40%</span>
-        </div>
-      </ListRow>
-
-      <template #footer>
-        <div class="panel-actions">
-          <BaseButton variant="primary">Sync Members</BaseButton>
-        </div>
-      </template>
-    </BasePanel>
+      <BasePanel v-if="notEnoughWars.length > 0" title="Not enough wars">
+        <ul class="player-list">
+          <PlayerRow v-for="p in notEnoughWars" :key="p.tag" :player="p" />
+        </ul>
+      </BasePanel>
+    </template>
   </div>
 </template>
 
@@ -73,85 +65,29 @@ import BaseButton from '../components/BaseButton.vue';
   margin-bottom: var(--ct-spacing-md);
 }
 
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--ct-spacing-xs) var(--ct-spacing-sm);
-  font-family: var(--ct-font-display);
-  font-size: 12px;
-  color: var(--ct-color-text-muted);
-  text-transform: uppercase;
-  border-bottom: 2px solid var(--ct-color-border);
-  margin-bottom: var(--ct-spacing-xs);
+.player-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.player-row {
-  display: flex;
-  align-items: center;
-  width: 100%;
+.line-item {
+  list-style: none;
 }
 
-.player-name {
-  font-family: var(--ct-font-display);
-  font-weight: 500;
-  flex: 1;
+.state-loading,
+.state-error,
+.state-empty {
+  padding: var(--ct-spacing-lg);
+  text-align: center;
+  border-radius: var(--ct-radius-md);
+  background-color: var(--ct-color-surface-card);
+  border: 1px solid var(--ct-color-border);
+  color: var(--ct-color-text-secondary);
 }
 
-.tag-qualified {
-  background-color: var(--ct-color-green-light);
-  color: var(--ct-color-green);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: var(--ct-radius-sm);
-  margin-right: var(--ct-spacing-md);
-}
-
-.tag-unqualified {
-  background-color: var(--ct-color-red-light);
+.state-error {
   color: var(--ct-color-red);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: var(--ct-radius-sm);
-  margin-right: var(--ct-spacing-md);
-}
-
-.participation-pct {
-  font-family: var(--ct-font-display);
-  font-weight: 600;
-  color: var(--ct-color-gold-text);
-  width: 50px;
-}
-
-.align-right {
-  text-align: right;
-}
-
-.qualification-line {
-  border-top: 2px dashed var(--ct-color-red);
-  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
-  margin: var(--ct-spacing-xs) 0;
-  background-color: rgba(255, 77, 77, 0.05);
-  border-radius: var(--ct-radius-sm);
-  display: flex;
-  justify-content: center;
-}
-
-.qualification-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ct-color-red);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.below-cutoff {
-  opacity: 0.75;
-}
-
-.panel-actions {
-  display: flex;
-  justify-content: flex-end;
+  border-color: var(--ct-color-red);
 }
 </style>

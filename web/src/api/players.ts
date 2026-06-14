@@ -12,6 +12,7 @@ import {
   type DocumentData,
   type QueryConstraint,
 } from 'firebase/firestore';
+import type { InjectionKey } from 'vue';
 import type { Player, PlayerStats } from '@clash-tracker/core';
 
 /** The two CWL-eligibility thresholds, stored in `publicSettings/config`. */
@@ -76,6 +77,16 @@ export interface PlayersApi {
   fetchThresholds(): Promise<Thresholds>;
   fetchPastPlayers(page?: PastPlayersPage): Promise<readonly Player[]>;
 }
+
+/** Injection key so views/composables receive the api (provided in main.ts). */
+export const PLAYERS_API: InjectionKey<PlayersApi> = Symbol('PlayersApi');
+
+/** A no-op api used as the inject fallback (renders the empty state, never crashes). */
+export const EMPTY_PLAYERS_API: PlayersApi = {
+  fetchCurrentPlayers: async () => [],
+  fetchThresholds: async () => DEFAULT_THRESHOLDS,
+  fetchPastPlayers: async () => [],
+};
 
 /** The real Firestore-backed implementation (client SDK, read-only). */
 export function createPlayersApi(db: Firestore): PlayersApi {
