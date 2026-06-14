@@ -86,7 +86,7 @@ Goal: Clash-themed tokens and base primitives.
 - [x] 450dc48 Task: Build `BaseButton`, `BasePanel`/`Card`, and `ListRow` primitives using only
   tokens. Test: render, slot content, ≥44px touch target (assert min-height style), and
   variant props.
-- [ ] Task: Apply the theme to `AppHeader` and placeholder views so the app looks Clash-y.
+- [x] e72a9f9 Task: Apply the theme to `AppHeader` and placeholder views so the app looks Clash-y.
 - [ ] Verification: primitives reviewed at 360px and desktop; AA contrast checked. [checkpoint]
 
 ## Phase 6: PWA & Firebase client wiring
