@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { byKey, composeComparators, byClanRoleRank, rankPlayers } from './ranking';
+import { byKey, composeComparators, byClanRoleRank, rankPlayers, sortPlayers } from './ranking';
 import type { Player, ClanRole, PlayerStats } from './domain';
 
 // Build a player; `keys` overrides only the fields the comparator looks at.
@@ -129,5 +129,33 @@ describe('rankPlayers tie-break chain', () => {
   it('returns 0 for two players identical on every key', () => {
     const keys = { usage: 80, wars: 10, stars: 3, defenses: 4, th: 16, role: 'elder' as ClanRole };
     expect(rankPlayers(mk('a', keys), mk('b', keys))).toBe(0);
+  });
+});
+
+describe('sortPlayers', () => {
+  it('sorts a roster end-to-end by the full priority order', () => {
+    const players = [
+      mk('low', { usage: 40 }),
+      mk('top', { usage: 95 }),
+      mk('mid', { usage: 70 }),
+    ];
+    expect(sortPlayers(players).map((p) => p.name)).toEqual(['top', 'mid', 'low']);
+  });
+
+  it('does not mutate the input array', () => {
+    const players = [mk('a', { usage: 10 }), mk('b', { usage: 90 })];
+    const order = players.map((p) => p.name);
+    sortPlayers(players);
+    expect(players.map((p) => p.name)).toEqual(order);
+  });
+
+  it('is stable for fully-tied players (preserves input order)', () => {
+    const keys = { usage: 80, wars: 5, stars: 2, defenses: 1, th: 10, role: 'member' as ClanRole };
+    const players = [mk('first', keys), mk('second', keys), mk('third', keys)];
+    expect(sortPlayers(players).map((p) => p.name)).toEqual(['first', 'second', 'third']);
+  });
+
+  it('returns an empty array for an empty roster', () => {
+    expect(sortPlayers([])).toEqual([]);
   });
 });

@@ -63,3 +63,11 @@ export const rankPlayers: Comparator<Player> = composeComparators<Player>(
   byKey((p) => p.thLevel, 'desc'),
   byClanRoleRank
 );
+
+/**
+ * Returns a new array sorted by `rankPlayers`. The input is not mutated, and the
+ * sort is stable, so players that tie on all six keys keep their input order.
+ */
+export function sortPlayers(players: readonly Player[]): Player[] {
+  return [...players].sort(rankPlayers);
+}
