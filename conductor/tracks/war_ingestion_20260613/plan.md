@@ -17,7 +17,7 @@ Goal: deterministic ids so repeated polls converge.
   different id because prep start differs).
 - [x] 919982c Task: Tests + implement `attackId(attack)` — unique per attack (attacker + defender +
   round/order). Two distinct attacks never collide; the same attack across polls → same id.
-- [ ] Verification: identity tests green. [checkpoint]
+- [x] 1ec8d36 Verification: identity tests green. [checkpoint]
 
 ## Phase 2: Ingestion diff & sync (pure) [checkpoint: cc2a014]
 
@@ -31,7 +31,7 @@ Goal: idempotent, lossless merge logic.
   fetch yields an empty `attacksToAdd`. **Idempotency test is mandatory.**
 - [x] e8ef0f2 Task: Tests + implement `computeSyncState(stored, fetched)` → `'synced' |
   'out-of-sync'`, plus a helper to set `lastSyncedAt` (time injected).
-- [ ] Verification: applying a diff twice == applying once; sync state correct. [checkpoint]
+- [x] cc2a014 Verification: applying a diff twice == applying once; sync state correct. [checkpoint]
 
 ## Phase 3: Repositories (emulator-tested) [checkpoint: b01df82]
 
@@ -44,7 +44,7 @@ Goal: persist wars, members, attacks.
   `listAttacks(warId)`.
 - [x] 99aecf3 Task: Emulator test: full round-trip — save war + members + attacks, read back, assert
   shape and counts.
-- [ ] Verification: repeated `addAttacks` of the same set → no duplicates. [checkpoint]
+- [x] b01df82 Verification: repeated `addAttacks` of the same set → no duplicates. [checkpoint]
 
 ## Phase 4: Ingestion use case (pure orchestration over injected deps) [checkpoint: 80b702b]
 
@@ -60,7 +60,7 @@ Goal: one tested function that ingests a current-war fetch.
   - `warEnded` fetch → final snapshot captured, war marked ended.
   - gateway error (429/maintenance) → `Result` failure, **no state mutation**, sync flagged
     out-of-sync.
-- [ ] Verification: all ingestion scenarios green using in-memory deps. [checkpoint]
+- [x] 80b702b Verification: all ingestion scenarios green using in-memory deps. [checkpoint]
 
 ## Phase 5: Scheduled function + manual trigger [checkpoint: aa07491]
 
