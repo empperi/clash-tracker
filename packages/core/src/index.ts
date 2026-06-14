@@ -8,6 +8,7 @@ export * from './identity';
 export * from './ingestion';
 export * from './stats';
 export * from './player-stats';
+export * from './eligibility';
 
 /**
  * Simple utility function to add two numbers.
