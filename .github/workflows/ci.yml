@@ -5,9 +5,9 @@
 # - Deploys to Firebase Hosting, Firestore Rules, and Storage on push of tags matching `release-*` (only after tests pass).
 #
 # Required GitHub Secrets (Repository Settings -> Secrets and variables -> Actions):
-# - FIREBASE_SERVICE_ACCOUNT: JSON key of the Google Cloud/Firebase service account
-#   used for deployment. Must have permissions to deploy Firebase Hosting, Firestore,
-#   and Cloud Storage.
+# - FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER: JSON key of the Google Cloud/Firebase
+#   service account used for deployment (created by `firebase github:init`). Must have
+#   permissions to deploy Firebase Hosting, Firestore, and Cloud Storage.
 # - CLASH_TOKEN_ENC_KEY: AES key for encrypting/decrypting the Clash of Clans API token (required in Track 2 functions).
 #
 
@@ -79,7 +79,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER }}
 
       - name: Deploy to Firebase
         run: npx firebase deploy --only hosting,firestore:rules,storage

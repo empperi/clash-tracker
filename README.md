@@ -110,7 +110,7 @@ push never deploys; only a `release-*` tag does.
 
 Set these in the repo's *Settings → Secrets and variables → Actions* (never commit them):
 
-- `FIREBASE_SERVICE_ACCOUNT` — Google Cloud Service Account JSON credentials for `firebase deploy` (deprecated `FIREBASE_TOKEN` is not used).
+- `FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER` — Google Cloud Service Account JSON credentials for `firebase deploy`, created by `firebase github:init` (deprecated `FIREBASE_TOKEN` is not used).
 - `CLASH_TOKEN_ENC_KEY` — the AES key for the CoC token (used by functions at runtime, required in Track 2).
 
 > Workflow lives in `.github/workflows/ci.yml`.
