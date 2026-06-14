@@ -38,7 +38,7 @@ export function setupFirebase(
 
   if (useEmulators) {
     deps.connectFirestoreEmulator(db, 'localhost', 8080);
-    deps.connectAuthEmulator(auth, 'http://localhost:9099');
+    deps.connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   }
 
   return { app, db, auth };
