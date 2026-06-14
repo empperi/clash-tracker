@@ -1,5 +1,39 @@
 import { describe, it, expect } from 'vitest';
-import { byKey, composeComparators } from './ranking';
+import { byKey, composeComparators, byClanRoleRank, rankPlayers } from './ranking';
+import type { Player, ClanRole, PlayerStats } from './domain';
+
+// Build a player; `keys` overrides only the fields the comparator looks at.
+function mk(
+  id: string,
+  keys: {
+    usage?: number;
+    wars?: number;
+    stars?: number;
+    defenses?: number;
+    th?: number;
+    role?: ClanRole;
+  } = {}
+): Player {
+  const stats: PlayerStats = {
+    warsParticipated: keys.wars ?? 5,
+    attacksDone: 0,
+    attacksAvailable: 0,
+    attackUsagePct: keys.usage ?? 50,
+    medianDestruction: 0,
+    medianStars: keys.stars ?? 2,
+    medianDefenses: keys.defenses ?? 1,
+    medianOwnDestruction: 0,
+    lastWarParticipatedAt: null,
+  };
+  return {
+    tag: `#${id}`,
+    name: id,
+    role: keys.role ?? 'member',
+    thLevel: keys.th ?? 10,
+    inClan: true,
+    stats,
+  };
+}
 
 describe('byKey', () => {
   const items = [{ n: 3 }, { n: 1 }, { n: 2 }];
@@ -40,5 +74,60 @@ describe('composeComparators', () => {
 
   it('returns 0 with no comparators', () => {
     expect(composeComparators<Row>()({ a: 1, b: 2 }, { a: 3, b: 4 })).toBe(0);
+  });
+});
+
+describe('byClanRoleRank', () => {
+  it('orders Leader > Co-Leader > Elder > Member', () => {
+    const players = [mk('m', { role: 'member' }), mk('l', { role: 'leader' }), mk('e', { role: 'elder' }), mk('c', { role: 'coLeader' })];
+    const sorted = [...players].sort(byClanRoleRank);
+    expect(sorted.map((p) => p.role)).toEqual(['leader', 'coLeader', 'elder', 'member']);
+  });
+});
+
+describe('rankPlayers tie-break chain', () => {
+  // Each case: A and B tie on every higher-priority key and differ only at the
+  // named key, where A is the "better" value; A must sort before B (cmp < 0).
+  const firstWins = (a: Player, b: Player) => {
+    expect(rankPlayers(a, b)).toBeLessThan(0);
+    expect(rankPlayers(b, a)).toBeGreaterThan(0);
+  };
+
+  it('1: attack-usage % decides first', () => {
+    firstWins(mk('a', { usage: 80 }), mk('b', { usage: 79 }));
+  });
+
+  it('2: wars participated breaks an attack-usage tie', () => {
+    firstWins(mk('a', { usage: 80, wars: 10 }), mk('b', { usage: 80, wars: 9 }));
+  });
+
+  it('3: median stars breaks a usage+wars tie', () => {
+    firstWins(mk('a', { usage: 80, wars: 10, stars: 3 }), mk('b', { usage: 80, wars: 10, stars: 2 }));
+  });
+
+  it('4: median attacks-defended breaks the next tie', () => {
+    firstWins(
+      mk('a', { usage: 80, wars: 10, stars: 3, defenses: 4 }),
+      mk('b', { usage: 80, wars: 10, stars: 3, defenses: 2 })
+    );
+  });
+
+  it('5: TH level breaks the next tie', () => {
+    firstWins(
+      mk('a', { usage: 80, wars: 10, stars: 3, defenses: 4, th: 16 }),
+      mk('b', { usage: 80, wars: 10, stars: 3, defenses: 4, th: 15 })
+    );
+  });
+
+  it('6: clan role breaks the deepest tie (Leader over Member)', () => {
+    firstWins(
+      mk('a', { usage: 80, wars: 10, stars: 3, defenses: 4, th: 16, role: 'leader' }),
+      mk('b', { usage: 80, wars: 10, stars: 3, defenses: 4, th: 16, role: 'member' })
+    );
+  });
+
+  it('returns 0 for two players identical on every key', () => {
+    const keys = { usage: 80, wars: 10, stars: 3, defenses: 4, th: 16, role: 'elder' as ClanRole };
+    expect(rankPlayers(mk('a', keys), mk('b', keys))).toBe(0);
   });
 });

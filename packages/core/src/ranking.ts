@@ -4,6 +4,9 @@
  * only breaks ties left by the previous one (see `rankPlayers`).
  */
 
+import { clanRoleRank } from './domain';
+import type { Player } from './domain';
+
 export type Comparator<T> = (a: T, b: T) => number;
 export type Direction = 'asc' | 'desc';
 
@@ -38,3 +41,25 @@ export function composeComparators<T>(...comparators: readonly Comparator<T>[]):
     return 0;
   };
 }
+
+/** Orders players by clan role: Leader > Co-Leader > Elder > Member. */
+export const byClanRoleRank: Comparator<Pick<Player, 'role'>> = byKey(
+  (p) => clanRoleRank(p.role),
+  'desc'
+);
+
+/**
+ * The product's six-key player ordering (both lists), in priority order
+ * (all descending), per `product.md`:
+ *   1. attack-usage %  2. wars participated  3. median stars
+ *   4. median attacks-defended  5. TH level  6. clan role.
+ * Ties beyond role are left to the (stable) sort — see `sortPlayers`.
+ */
+export const rankPlayers: Comparator<Player> = composeComparators<Player>(
+  byKey((p) => p.stats.attackUsagePct, 'desc'),
+  byKey((p) => p.stats.warsParticipated, 'desc'),
+  byKey((p) => p.stats.medianStars, 'desc'),
+  byKey((p) => p.stats.medianDefenses, 'desc'),
+  byKey((p) => p.thLevel, 'desc'),
+  byClanRoleRank
+);

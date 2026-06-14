@@ -48,6 +48,17 @@ export interface PlayerStats {
   readonly lastWarParticipatedAt: string | null;
 }
 
+/** A clan player with identity plus their aggregate stats — the unit ranked and persisted. */
+export interface Player {
+  readonly tag: string;
+  readonly name: string;
+  readonly role: ClanRole;
+  readonly thLevel: number;
+  /** Whether the player is currently in the clan (false = retained past member). */
+  readonly inClan: boolean;
+  readonly stats: PlayerStats;
+}
+
 export type WarType = 'classic' | 'cwl';
 
 export type SyncState = 'synced' | 'out-of-sync';
