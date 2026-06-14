@@ -22,7 +22,7 @@ describe('makeIngestCurrentWar Integration Test with Firestore Emulator', () => 
   const warRepo = new WarRepository(db);
   const attackRepo = new AttackRepository(db);
   const clanTag = '#2PGQYPQ';
-  const warId = '2PGQYPQ-OPPONENT-20260614T200000000Z'; // clean tag format ID
+  const warId = '2PGQYPQ-OPPONENT1-20260614T100000000Z'; // clean tag format ID
   const warDocRef = db.doc(`wars/${warId}`);
 
   const cleanup = async () => {
