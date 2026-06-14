@@ -11,14 +11,14 @@ rendered states (loading/empty/error, the line) with Vue Test Utils / Testing Li
 
 Goal: load players + thresholds with proper states.
 
-- [ ] Task: Tests + implement `usePlayers()` (vue-query): fetches current players from
+- [x] e3ca153 Task: Tests + implement `usePlayers()` (vue-query): fetches current players from
   `players/*` and thresholds from `publicSettings/config`; exposes `isLoading`/`isError`/
   data. Inject the repository/fetcher so tests use in-memory data (no live Firestore).
-- [ ] Task: Tests + implement `usePlayerLists(players, thresholds)` calling
+- [x] 5e5e028 Task: Tests + implement `usePlayerLists(players, thresholds)` calling
   `splitByParticipation`, `markQualification`, and `sortPlayers` from `core`, returning
   `{ qualifiedAbove, qualifiedBelow, notEnoughWars }`. Pure-ish; recomputes when thresholds
   change.
-- [ ] Verification: composables return correct lists for fixture data. [checkpoint]
+- [x] Verification: composables return correct lists for fixture data. [checkpoint: <pending>]
 
 ## Phase 2: Player row & stats
 
