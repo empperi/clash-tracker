@@ -9,6 +9,7 @@ export * from './ingestion';
 export * from './stats';
 export * from './player-stats';
 export * from './eligibility';
+export * from './ranking';
 
 /**
  * Simple utility function to add two numbers.
