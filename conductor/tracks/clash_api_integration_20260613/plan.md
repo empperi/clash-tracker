@@ -53,18 +53,18 @@ Goal: raw CoC JSON → internal domain types.
 
 Goal: authenticated, configurable HTTP access with typed errors.
 
-- [ ] Task: Define a `HttpClient` interface (inject `fetch`-like) and an error
+- [x] 19b95c0 Task: Define a `HttpClient` interface (inject `fetch`-like) and an error
   classification (pure, in `core`): map status → `RateLimited | Unauthorized |
   IpNotWhitelisted | NotFound | Maintenance | Unknown`. Unit-test the classifier.
-- [ ] Task: Write tests for `CocApiGateway.getClan`/`getCurrentWar` using a fake
+- [x] 19b95c0 Task: Write tests for `CocApiGateway.getClan`/`getCurrentWar` using a fake
   `HttpClient` returning fixtures: asserts correct URL (base URL from config, `#`→`%23`),
   Authorization header carries the decrypted token, success maps via the mappers, and each
   error status yields the right typed `Result`. Red first.
-- [ ] Task: Implement the gateway: read base URL from `COC_API_BASE_URL`, obtain the token
+- [x] 19b95c0 Task: Implement the gateway: read base URL from `COC_API_BASE_URL`, obtain the token
   via `SecretsRepository.getDecryptedToken`, set timeouts, never log the token.
-- [ ] Task: Add a **flag-gated** live integration test (`COC_LIVE_TEST=1`) hitting the real
+- [x] 19b95c0 Task: Add a **flag-gated** live integration test (`COC_LIVE_TEST=1`) hitting the real
   API for `getClan` to validate end-to-end (skipped by default in CI).
-- [ ] Verification: fixture-based tests green; manual live check documented. [checkpoint]
+- [x] Verification: fixture-based tests green; manual live check documented. [checkpoint]
 
 ## Phase 5: Seed/bootstrap
 
