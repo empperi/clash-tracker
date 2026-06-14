@@ -25,15 +25,15 @@ Goal: safe, reversible token encryption.
 
 Goal: encrypted token + clan tag persisted in Firestore.
 
-- [ ] Task: Write emulator tests for a `SecretsRepository`: `setToken` writes only
+- [x] f0eb7ff Task: Write emulator tests for a `SecretsRepository`: `setToken` writes only
   ciphertext (assert the stored field does not equal plaintext); `getDecryptedToken`
   returns the original; `setClanTag`/`getClanTag` round-trip; invalid clan tag rejected.
   Inject the key. Red first (repo not implemented).
-- [ ] Task: Implement `SecretsRepository` over `secrets/coc` using the Admin SDK + the
+- [x] f0eb7ff Task: Implement `SecretsRepository` over `secrets/coc` using the Admin SDK + the
   codec. Make the encryption key an injected dependency (from env in production).
-- [ ] Task: Add clan-tag validation (pure, in `core`): must start with `#`, uppercase,
+- [x] f0eb7ff Task: Add clan-tag validation (pure, in `core`): must start with `#`, uppercase,
   allowed CoC base32 chars; provide a normalizer. Unit-test.
-- [ ] Verification: emulator tests pass; confirm no plaintext token in stored doc. [checkpoint]
+- [x] Verification: emulator tests pass; confirmed no plaintext token in stored doc. [checkpoint]
 
 ## Phase 3: Response mappers (pure)
 
