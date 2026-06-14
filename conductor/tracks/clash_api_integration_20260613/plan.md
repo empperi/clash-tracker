@@ -39,15 +39,15 @@ Goal: encrypted token + clan tag persisted in Firestore.
 
 Goal: raw CoC JSON → internal domain types.
 
-- [ ] Task: Add fixture JSON files (sample `clan`, `currentwar` in several states:
+- [x] 692e39e Task: Add fixture JSON files (sample `clan`, `currentwar` in several states:
   notInWar, preparation, inWar, warEnded) under a test fixtures dir.
-- [ ] Task: Write tests + implement `mapClan(json)` → members with `{ tag, name, role,
+- [x] 692e39e Task: Write tests + implement `mapClan(json)` → members with `{ tag, name, role,
   thLevel }` (map CoC role strings → `ClanRole`). Handle missing/unknown fields.
-- [ ] Task: Write tests + implement `mapWar(json)` → `War` with opponent, team size, state,
+- [x] 692e39e Task: Write tests + implement `mapWar(json)` → `War` with opponent, team size, state,
   start/end times, and per-member attacks (`stars`, `destructionPercent`, `order`,
   attacker/defender tags) and defenses. Handle the "no current war" and "preparation"
   states explicitly.
-- [ ] Verification: mappers produce correct typed objects for every fixture state. [checkpoint]
+- [x] Verification: mappers produce correct typed objects for every fixture state. [checkpoint]
 
 ## Phase 4: Pluggable CoC API gateway
 
