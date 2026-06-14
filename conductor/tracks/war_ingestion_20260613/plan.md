@@ -46,7 +46,7 @@ Goal: persist wars, members, attacks.
   shape and counts.
 - [ ] Verification: repeated `addAttacks` of the same set → no duplicates. [checkpoint]
 
-## Phase 4: Ingestion use case (pure orchestration over injected deps)
+## Phase 4: Ingestion use case (pure orchestration over injected deps) [checkpoint: 80b702b]
 
 Goal: one tested function that ingests a current-war fetch.
 
