@@ -8,7 +8,7 @@ gateway) → `functions/`. Inject the encryption key, randomness, and HTTP clien
 > not mocks. The gateway is tested with **recorded JSON fixtures**; keep live calls behind
 > an env flag.
 
-## Phase 1: Token encryption codec (pure)
+## Phase 1: Token encryption codec (pure) [checkpoint: 13f46ba]
 
 Goal: safe, reversible token encryption.
 
