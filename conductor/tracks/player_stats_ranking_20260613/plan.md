@@ -14,9 +14,9 @@ Goal: trustworthy building blocks.
 
 - [x] bf987e4 Task: Tests + implement `median(values: readonly number[])`: odd/even length, single,
   empty (decide → 0 or null and document). Must not mutate input.
-- [ ] Task: Tests + implement `attackUsagePct({ attacksDone, attacksAvailable })` with the
+- [x] a55b78a Task: Tests + implement `attackUsagePct({ attacksDone, attacksAvailable })` with the
   documented divide-by-zero (available 0 → 0) and rounding rule.
-- [ ] Verification: primitives green. [checkpoint]
+- [x] Verification: primitives green. [checkpoint: <pending>]
 
 ## Phase 2: Per-player aggregation (pure)
 
