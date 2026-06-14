@@ -5,30 +5,32 @@ import { validateClanTag, normalizeClanTag } from '@clash-tracker/core';
 
 /**
  * Parses and returns a 32-byte Uint8Array key from a hex, base64, or raw string.
+ * Rejects any key that does not resolve to exactly 32 bytes of key material.
  */
 export function parseEncryptionKey(keyStr: string): Uint8Array {
   // If it is 64 hex chars, decode as hex
   if (keyStr.length === 64 && /^[0-9a-fA-F]+$/.test(keyStr)) {
     return new Uint8Array(Buffer.from(keyStr, 'hex'));
   }
-  // Try decoding as base64 if it results in exactly 32 bytes
-  try {
+
+  // Base64 check: standard base64 for 32 bytes is 44 characters long
+  if (keyStr.length === 44 && /^[A-Za-z0-9+/=]+$/.test(keyStr)) {
     const buf = Buffer.from(keyStr, 'base64');
     if (buf.length === 32) {
       return new Uint8Array(buf);
     }
-  } catch {
-    // Ignore and proceed to fallback
   }
-  // UTF-8 fallback, pad/truncate to 32 bytes
+
+  // UTF-8 fallback
   const encoder = new TextEncoder();
   const bytes = encoder.encode(keyStr);
   if (bytes.length === 32) {
     return bytes;
   }
-  const padded = new Uint8Array(32);
-  padded.set(bytes.slice(0, 32));
-  return padded;
+
+  throw new Error(
+    `Invalid key length: Key must resolve to exactly 32 bytes (64 hex characters, a 44-character base64 string, or a 32-byte UTF-8 string). Provided key resolved to ${bytes.length} bytes.`
+  );
 }
 
 async function main() {
@@ -51,7 +53,14 @@ async function main() {
   }
 
   // Parse encryption key
-  const encryptionKey = parseEncryptionKey(encKeyStr);
+  let encryptionKey: Uint8Array;
+  try {
+    encryptionKey = parseEncryptionKey(encKeyStr);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`Error: ${msg}`);
+    process.exit(1);
+  }
 
   // Initialize Firebase Admin (pointing to emulator by default if not set otherwise)
   if (!process.env.FIRESTORE_EMULATOR_HOST && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {

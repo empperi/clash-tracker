@@ -19,20 +19,31 @@ describe('parseEncryptionKey', () => {
     expect(parsed[31]).toBe(0x0a);
   });
 
-  it('should fallback to UTF-8 string encoding and pad to 32 bytes', () => {
-    const rawStr = 'short-key';
+  it('should correctly accept a raw 32-character ASCII string (32 bytes)', () => {
+    const rawStr = 'a'.repeat(32);
     const parsed = parseEncryptionKey(rawStr);
     expect(parsed.length).toBe(32);
-    // 's' is 115 (0x73)
-    expect(parsed[0]).toBe(115);
-    // Padded bytes should be 0
-    expect(parsed[31]).toBe(0);
+    expect(parsed[0]).toBe(97);
+    expect(parsed[31]).toBe(97);
   });
 
-  it('should fallback to UTF-8 string encoding and truncate to 32 bytes', () => {
+  it('should throw an error for short hex keys', () => {
+    const shortHex = '0123456789abcdef';
+    expect(() => parseEncryptionKey(shortHex)).toThrow('Invalid key length');
+  });
+
+  it('should throw an error for long hex keys that are not 64 chars', () => {
+    const oddHex = 'a'.repeat(63);
+    expect(() => parseEncryptionKey(oddHex)).toThrow('Invalid key length');
+  });
+
+  it('should throw an error for short strings', () => {
+    const rawStr = 'short-key';
+    expect(() => parseEncryptionKey(rawStr)).toThrow('Invalid key length');
+  });
+
+  it('should throw an error for long strings', () => {
     const rawStr = 'a'.repeat(50);
-    const parsed = parseEncryptionKey(rawStr);
-    expect(parsed.length).toBe(32);
-    expect(parsed[31]).toBe(97); // 'a'
+    expect(() => parseEncryptionKey(rawStr)).toThrow('Invalid key length');
   });
 });

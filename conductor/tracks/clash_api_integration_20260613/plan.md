@@ -70,11 +70,11 @@ Goal: authenticated, configurable HTTP access with typed errors.
 
 Goal: set token + clan tag before the owner UI exists.
 
-- [ ] Task: Add a small seed script (`functions/scripts/seed-secrets.ts` or an emulator
+- [x] 52bd3c0 Task: Add a small seed script (`functions/scripts/seed-secrets.ts` or an emulator
   seed) that, given env `CLASH_TOKEN`/`CLAN_TAG`/`CLASH_TOKEN_ENC_KEY`, writes `secrets/coc`
   via `SecretsRepository`. Test the script's pure parts; document the run command in the
   track README/plan notes.
-- [ ] Verification: run the seed against the emulator, then call `getClan` via the gateway
+- [x] Verification: run the seed against the emulator, then call `getClan` via the gateway
   and confirm a real/typed clan object returns. [checkpoint]
 
 ## Done when
