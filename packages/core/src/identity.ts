@@ -13,9 +13,10 @@ export function getWarId(
 }
 
 /**
- * Deterministically generates a stable attack ID from the attacker tag and the global attack order in the war.
+ * Deterministically generates a stable attack ID from the attacker tag, defender tag, and the global attack order in the war.
  */
-export function getAttackId(attackerTag: string, order: number): string {
+export function getAttackId(attackerTag: string, defenderTag: string, order: number): string {
   const cleanAttacker = attackerTag.replace(/#/g, '').toUpperCase();
-  return `${cleanAttacker}-${order}`;
+  const cleanDefender = defenderTag.replace(/#/g, '').toUpperCase();
+  return `${cleanAttacker}-${cleanDefender}-${order}`;
 }

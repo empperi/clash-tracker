@@ -40,21 +40,47 @@ describe('getWarId', () => {
 });
 
 describe('getAttackId', () => {
-  it('should generate a stable deterministic attackId from attacker tag and order', () => {
+  it('should generate a stable deterministic attackId from attacker tag, defender tag, and order', () => {
     const attackerTag = '#MEMBER1';
+    const defenderTag = '#OPPONENT1';
     const order = 5;
 
-    const id1 = getAttackId(attackerTag, order);
-    const id2 = getAttackId(attackerTag, order);
+    const id1 = getAttackId(attackerTag, defenderTag, order);
+    const id2 = getAttackId(attackerTag, defenderTag, order);
 
     expect(id1).toBe(id2);
-    expect(id1).toBe('MEMBER1-5');
+    expect(id1).toBe('MEMBER1-OPPONENT1-5');
   });
 
-  it('should generate different attackIds for different order/attacks of same member', () => {
+  it('should generate different attackIds for different order/attacks of same member and opponent', () => {
     const attackerTag = '#MEMBER1';
-    const id1 = getAttackId(attackerTag, 1);
-    const id2 = getAttackId(attackerTag, 2);
+    const defenderTag = '#OPPONENT1';
+    const id1 = getAttackId(attackerTag, defenderTag, 1);
+    const id2 = getAttackId(attackerTag, defenderTag, 2);
+
+    expect(id1).not.toBe(id2);
+  });
+
+  it('should generate different attackIds for different attackers with same order and defender', () => {
+    const attackerTag1 = '#MEMBER1';
+    const attackerTag2 = '#MEMBER2';
+    const defenderTag = '#OPPONENT1';
+    const order = 1;
+
+    const id1 = getAttackId(attackerTag1, defenderTag, order);
+    const id2 = getAttackId(attackerTag2, defenderTag, order);
+
+    expect(id1).not.toBe(id2);
+  });
+
+  it('should generate different attackIds for same attacker and order but different defender', () => {
+    const attackerTag = '#MEMBER1';
+    const defenderTag1 = '#OPPONENT1';
+    const defenderTag2 = '#OPPONENT2';
+    const order = 1;
+
+    const id1 = getAttackId(attackerTag, defenderTag1, order);
+    const id2 = getAttackId(attackerTag, defenderTag2, order);
 
     expect(id1).not.toBe(id2);
   });

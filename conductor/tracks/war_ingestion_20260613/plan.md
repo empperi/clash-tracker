@@ -12,10 +12,10 @@ repositories (emulator-tested); the **scheduled function** is a thin wrapper.
 
 Goal: deterministic ids so repeated polls converge.
 
-- [ ] Task: Tests + implement `warId(war)` in `core` — stable across polls of the same war,
+- [x] 919982c Task: Tests + implement `warId(war)` in `core` — stable across polls of the same war,
   distinct for a new opponent/prep-start. Cover edge cases (same opponent in a later war →
   different id because prep start differs).
-- [ ] Task: Tests + implement `attackId(attack)` — unique per attack (attacker + defender +
+- [x] 919982c Task: Tests + implement `attackId(attack)` — unique per attack (attacker + defender +
   round/order). Two distinct attacks never collide; the same attack across polls → same id.
 - [ ] Verification: identity tests green. [checkpoint]
 
