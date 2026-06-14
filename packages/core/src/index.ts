@@ -3,6 +3,7 @@ export * from './domain';
 export * from './swipe';
 export * from './tag';
 export * from './mappers';
+export * from './gateway-types';
 
 /**
  * Simple utility function to add two numbers.
