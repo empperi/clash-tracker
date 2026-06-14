@@ -1,44 +1,81 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { RouterView, useRoute, useRouter } from 'vue-router';
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useSwipeNav } from './composables/useSwipeNav';
+import { VIEW_ORDER, componentForView } from './views/registry';
 import AppHeader from './components/AppHeader.vue';
 import AppNav from './components/AppNav.vue';
 
-// Left-to-right order of the swipeable views; must mirror the router.
-const VIEW_ORDER = ['player-list', 'war-plan', 'admin', 'owner'] as const;
-
 const route = useRoute();
 const router = useRouter();
-const container = ref<HTMLElement | null>(null);
+const viewport = ref<HTMLElement | null>(null);
 
 const prefersReducedMotion = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const { dragOffset, isAnimating, animateMs, endAnimation } = useSwipeNav({
+const initialView = route.name ? String(route.name) : (VIEW_ORDER[0] ?? 'player-list');
+
+const {
+  activeView,
+  prevView,
+  nextView,
+  dragOffset,
+  isAnimating,
+  animateMs,
+  targetPercent,
+  onTransitionEnd,
+  setActiveView,
+} = useSwipeNav({
   order: VIEW_ORDER,
-  current: () => (route.name ? String(route.name) : VIEW_ORDER[0]),
-  navigate: (name) => {
-    void router.push({ name });
+  initial: initialView,
+  navigate: (view) => {
+    void router.push({ name: view });
   },
-  viewWidth: () => container.value?.clientWidth ?? 0,
-  target: container,
+  viewWidth: () => viewport.value?.clientWidth ?? 0,
+  target: viewport,
   prefersReducedMotion,
-  // onEagerLoad is intentionally omitted until views expose data loaders (Track 5).
+  // onEagerLoad is wired once views expose data loaders (Track 5).
 });
 
-const contentStyle = computed(() => ({
-  transform: `translateX(${dragOffset.value}px)`,
-  transition: isAnimating.value ? `transform ${animateMs.value}ms ease-out` : 'none',
-}));
+// Keep the carousel in sync with external navigation (nav taps, deep links, back/forward).
+watch(
+  () => route.name,
+  (name) => {
+    if (name && String(name) !== activeView.value) setActiveView(String(name));
+  }
+);
+
+const trackStyle = computed(() =>
+  isAnimating.value
+    ? {
+        transform: `translateX(${targetPercent.value}%)`,
+        transition: `transform ${animateMs.value}ms ease-out`,
+      }
+    : {
+        transform: `translateX(calc(-100% + ${dragOffset.value}px))`,
+        transition: 'none',
+      }
+);
+
+function handleTransitionEnd(event: TransitionEvent): void {
+  if (event.propertyName === 'transform') onTransitionEnd();
+}
 </script>
 
 <template>
   <div class="app-container">
     <AppHeader />
-    <main ref="container" class="app-content">
-      <div class="swipe-content" :style="contentStyle" @transitionend="endAnimation">
-        <RouterView />
+    <main ref="viewport" class="app-viewport">
+      <div class="swipe-track" :style="trackStyle" @transitionend="handleTransitionEnd">
+        <section class="swipe-panel" aria-hidden="true">
+          <component :is="componentForView(prevView)" :key="`prev-${prevView}`" />
+        </section>
+        <section class="swipe-panel">
+          <component :is="componentForView(activeView)" :key="`active-${activeView}`" />
+        </section>
+        <section class="swipe-panel" aria-hidden="true">
+          <component :is="componentForView(nextView)" :key="`next-${nextView}`" />
+        </section>
       </div>
     </main>
     <AppNav />
@@ -51,13 +88,23 @@ const contentStyle = computed(() => ({
   flex-direction: column;
   min-height: 100vh;
 }
-.app-content {
+.app-viewport {
   flex: 1;
-  overflow-x: hidden;
+  position: relative;
+  overflow: hidden;
   touch-action: pan-y;
 }
-.swipe-content {
+.swipe-track {
+  display: flex;
   height: 100%;
+  width: 100%;
+  /* Centre the middle (active) panel; neighbours sit just off-screen on either side. */
   will-change: transform;
+}
+.swipe-panel {
+  flex: 0 0 100%;
+  min-width: 100%;
+  height: 100%;
+  overflow-y: auto;
 }
 </style>

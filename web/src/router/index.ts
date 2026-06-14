@@ -1,30 +1,15 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import PlayerListView from '../views/PlayerListView.vue';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { VIEWS } from '../views/registry';
+
+const routes: RouteRecordRaw[] = VIEWS.map((view) => ({
+  path: view.path,
+  name: view.name,
+  component: view.component,
+}));
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'player-list',
-      component: PlayerListView,
-    },
-    {
-      path: '/war-plan',
-      name: 'war-plan',
-      component: () => import('../views/WarPlanView.vue'),
-    },
-    {
-      path: '/admin',
-      name: 'admin',
-      component: () => import('../views/AdminView.vue'),
-    },
-    {
-      path: '/owner',
-      name: 'owner',
-      component: () => import('../views/OwnerView.vue'),
-    },
-  ],
+  routes,
 });
 
 export default router;
