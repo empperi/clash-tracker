@@ -66,7 +66,7 @@ Goal: authenticated, configurable HTTP access with typed errors.
   API for `getClan` to validate end-to-end (skipped by default in CI).
 - [x] Verification: fixture-based tests green; manual live check documented. [checkpoint]
 
-## Phase 5: Seed/bootstrap
+## Phase 5: Seed/bootstrap [checkpoint: 9851b0b]
 
 Goal: set token + clan tag before the owner UI exists.
 
