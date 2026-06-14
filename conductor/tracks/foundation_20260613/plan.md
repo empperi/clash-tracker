@@ -98,7 +98,7 @@ Goal: installable PWA that talks to emulators locally.
 - [x] 5d7d131 Task: Add a Firebase client init module reading config from `import.meta.env`;
   connect to Auth/Firestore emulators when `VITE_USE_EMULATORS==='true'`. Test the
   branch selection (inject env) — do not hit the network in unit tests.
-- [ ] Task: Add app icons + offline fallback for read-only shell. Confirm SW registers.
+- [x] b050d01 Task: Add app icons + offline fallback for read-only shell. Confirm SW registers.
 - [ ] Verification: build, `firebase emulators:start`, install the PWA, confirm standalone
   launch and offline shell. [checkpoint]
 
