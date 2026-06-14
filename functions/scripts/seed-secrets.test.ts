@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseEncryptionKey } from './seed-secrets';
+import { parseEncryptionKey } from '../src/crypto';
 
 describe('parseEncryptionKey', () => {
   it('should correctly parse 64 hex characters into a 32-byte Uint8Array', () => {

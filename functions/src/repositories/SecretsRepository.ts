@@ -7,9 +7,10 @@ export class SecretsRepository {
 
   constructor(
     private readonly db: Firestore,
-    private readonly encryptionKey: Uint8Array
+    private readonly encryptionKey: Uint8Array,
+    private readonly docPath: string = 'secrets/coc'
   ) {
-    this.docRef = this.db.doc('secrets/coc');
+    this.docRef = this.db.doc(docPath);
   }
 
   /**

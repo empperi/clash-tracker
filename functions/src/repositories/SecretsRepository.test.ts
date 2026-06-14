@@ -13,8 +13,9 @@ const db = getFirestore(app);
 
 describe('SecretsRepository', () => {
   const dummyKey = new Uint8Array(32).fill(0x05);
-  const repo = new SecretsRepository(db, dummyKey);
-  const docRef = db.doc('secrets/coc');
+  const docPath = 'secrets/secrets-repo-test';
+  const repo = new SecretsRepository(db, dummyKey, docPath);
+  const docRef = db.doc(docPath);
 
   beforeEach(async () => {
     // Clean up the document before each test

@@ -6,6 +6,9 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
     "public": "web/dist",
     "ignore": [
@@ -21,6 +24,9 @@
     ]
   },
   "emulators": {
+    "functions": {
+      "port": 5001
+    },
     "auth": {
       "port": 9099
     },
