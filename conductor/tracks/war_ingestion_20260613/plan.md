@@ -74,7 +74,7 @@ Goal: run ingestion automatically and on demand.
   emulator/internal.)
 - [x] b7847ed Task: Add back-off/logging for rate-limit/maintenance results; assert (via the use
   case result) that failures don't write partial data. Confirm no token is logged.
-- [ ] Verification: against the emulator + seeded secrets, run the trigger during a real or
+- [x] bc3c568 Verification: against the emulator + seeded secrets, run the trigger during a real or
   fixture war and confirm `wars/*` + attacks populate and re-running doesn't duplicate.
   [checkpoint]
 
