@@ -57,17 +57,19 @@ Goal: the six-key sort for both lists.
 
 Goal: write `players/*` aggregates after ingestion.
 
-- [ ] Task: Emulator tests + implement `PlayerRepository`: `upsertPlayer`,
+- [x] 3988046 Task: Emulator tests + implement `PlayerRepository`: `upsertPlayer`,
   `getCurrentPlayers` (`inClan=true`), `getPastPlayers` ordered by `lastWarParticipatedAt`
   desc (uses the composite index), with pagination support for infinite scroll later.
-- [ ] Task: Tests + implement `makeRecomputePlayerStats({ warRepo, playerRepo, clanRepo })`:
+- [x] 33362a4 Task: Tests + implement `makeRecomputePlayerStats({ warRepo, playerRepo, clanRepo })`:
   load tracked wars + latest clan member list, compute aggregates via the pure functions,
   upsert players, mark leavers `inClan=false` (retained). Drive the logic with in-memory
   deps in unit tests; one emulator test for the end-to-end persistence.
-- [ ] Task: Hook recompute to run after a successful ingestion (call it from the Track 3 use
+- [x] f4b927b Task: Hook recompute to run after a successful ingestion (call it from the Track 3 use
   case or a Firestore trigger on war writes — choose, keep the handler thin, test the wiring).
-- [ ] Verification: after ingesting fixture wars, `players/*` holds correct aggregates;
-  leavers retained and partitioned correctly. [checkpoint]
+  Chose **edge composition** in the ingestion handlers (runs once per ingest cycle, catches
+  both header + attack writes; a war-doc trigger would miss attack subcollection writes).
+- [x] Verification: after ingesting fixture wars, `players/*` holds correct aggregates;
+  leavers retained and partitioned correctly. [checkpoint: <pending>]
 
 ## Done when
 - Aggregates, medians, attack-usage %, the two-list split, the qualification line, and the
