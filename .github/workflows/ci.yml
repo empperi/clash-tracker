@@ -118,6 +118,9 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER }}
 
+      - name: Create environment config for functions
+        run: echo "CLASH_TOKEN_ENC_KEY=${{ secrets.CLASH_TOKEN_ENC_KEY }}" > functions/.env
+
       - name: Deploy Functions to Firebase
         run: npm run deploy --workspace @clash-tracker/functions -- --project militia-clash-tracker
 
