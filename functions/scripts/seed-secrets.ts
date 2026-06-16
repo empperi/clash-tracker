@@ -39,9 +39,9 @@ async function main() {
     console.log(`Setting FIRESTORE_EMULATOR_HOST to 127.0.0.1:8080 (default emulator port)`);
   }
 
-  console.log('Initializing Firebase Admin SDK...');
-  const app =
-    getApps().length === 0 ? initializeApp({ projectId: 'demo-clash-tracker' }) : getApp();
+  const projectId = process.env.GCLOUD_PROJECT || 'militia-clash-tracker';
+  console.log(`Initializing Firebase Admin SDK for project: ${projectId}...`);
+  const app = getApps().length === 0 ? initializeApp({ projectId }) : getApp();
   const db = getFirestore(app);
 
   const repo = new SecretsRepository(db, encryptionKey);
