@@ -87,16 +87,19 @@ import BaseButton from '../components/BaseButton.vue';
 
 .form-control {
   padding: var(--ct-spacing-sm) var(--ct-spacing-md);
-  background-color: var(--ct-color-surface-well);
+  background-color: #130a05;
   border: 2px solid var(--ct-color-border);
   border-radius: var(--ct-radius-md);
   color: var(--ct-color-text-primary);
   font-family: var(--ct-font-body);
   font-size: 15px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-control:focus {
   border-color: var(--ct-color-border-focus);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 8px rgba(255, 194, 0, 0.25);
   outline: none;
 }
 

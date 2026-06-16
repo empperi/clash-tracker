@@ -36,7 +36,7 @@ const hasQualifiedList = computed(
     </div>
 
     <template v-else>
-      <BasePanel v-if="hasQualifiedList" title="Qualified pool">
+      <BasePanel v-if="hasQualifiedList" title="Qualified pool" :no-padding="true">
         <ul class="player-list">
           <PlayerRow v-for="p in qualifiedAbove" :key="p.tag" :player="p" :qualified="true" />
           <li class="line-item">
@@ -46,7 +46,7 @@ const hasQualifiedList = computed(
         </ul>
       </BasePanel>
 
-      <BasePanel v-if="notEnoughWars.length > 0" title="Not enough wars">
+      <BasePanel v-if="notEnoughWars.length > 0" title="Not enough wars" :no-padding="true">
         <ul class="player-list">
           <PlayerRow v-for="p in notEnoughWars" :key="p.tag" :player="p" />
         </ul>

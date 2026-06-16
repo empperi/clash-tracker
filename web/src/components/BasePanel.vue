@@ -3,9 +3,13 @@ import { useSlots } from 'vue';
 
 interface Props {
   title?: string;
+  noPadding?: boolean;
 }
 
-defineProps<Props>();
+withDefaults(defineProps<Props>(), {
+  title: '',
+  noPadding: false,
+});
 const slots = useSlots();
 </script>
 
@@ -19,7 +23,7 @@ const slots = useSlots();
     </div>
 
     <!-- Body -->
-    <div class="ct-panel-body">
+    <div class="ct-panel-body" :class="{ 'no-padding': noPadding }">
       <slot />
     </div>
 
@@ -32,7 +36,7 @@ const slots = useSlots();
 
 <style scoped>
 .ct-panel {
-  background-color: var(--ct-color-surface-card);
+  background: var(--ct-gradient-wood);
   border: 2px solid var(--ct-color-border);
   border-radius: var(--ct-radius-lg);
   box-shadow: var(--ct-shadow-md);
@@ -43,24 +47,43 @@ const slots = useSlots();
 }
 
 .ct-panel-header {
-  background-color: var(--ct-color-surface-well);
+  background: var(--ct-gradient-wood-light);
   border-bottom: 2px solid var(--ct-color-border);
   padding: var(--ct-spacing-sm) var(--ct-spacing-md);
   display: flex;
   align-items: center;
+  position: relative;
+}
+
+/* Gold left indicator ribbon for headers */
+.ct-panel-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  background: var(--ct-gradient-gold);
+  border-radius: 0 4px 4px 0;
 }
 
 .ct-panel-title {
   margin: 0;
+  margin-left: var(--ct-spacing-xs);
   font-family: var(--ct-font-display);
   font-size: 18px;
   color: var(--ct-color-gold-text);
   line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .ct-panel-body {
   padding: var(--ct-spacing-md);
   flex: 1;
+}
+
+.ct-panel-body.no-padding {
+  padding: 0;
 }
 
 .ct-panel-footer {

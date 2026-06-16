@@ -57,8 +57,8 @@ const rowClass = computed(() => {
 
 /* Selected/active row style */
 .ct-row-active {
-  background-color: var(--ct-color-gold-light);
-  border-left: 3px solid var(--ct-color-gold);
-  padding-left: calc(var(--ct-spacing-md) - 3px); /* Adjust padding to keep alignment */
+  background: var(--ct-gradient-gold-soft);
+  border-left: 4px solid var(--ct-color-gold);
+  padding-left: calc(var(--ct-spacing-md) - 4px); /* Adjust padding to keep alignment */
 }
 </style>

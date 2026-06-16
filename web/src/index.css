@@ -7,29 +7,38 @@
 
 :root {
   /* Colors - Clash-themed palette */
-  --ct-color-bg: #0f0904; /* Deep warm dark background */
-  --ct-color-surface-card: #20140a; /* Chunky wood/stone panel */
+  --ct-color-bg: #0b0704; /* Deep rich dark background */
+  --ct-color-surface-card: #22140b; /* Chunky rich wood panel */
   --ct-color-surface-hover: #2d1c0f; /* Interactive card states */
-  --ct-color-surface-well: #160d06; /* Indented wells/tables */
-  --ct-color-border: #3b2514; /* Wood plank border */
+  --ct-color-surface-well: #130a05; /* Indented wells/tables */
+  --ct-color-border: #442a17; /* Wood plank border */
   --ct-color-border-focus: #ffc200; /* Selected/focus border */
 
-  /* Brand Accents */
+  /* Brand Accents & Gradients */
   --ct-color-gold: #ffc200; /* Clash Gold */
   --ct-color-gold-hover: #ffd633;
   --ct-color-gold-text: #ffdf7a; /* Light gold for readable text */
-  --ct-color-gold-light: rgba(255, 194, 0, 0.15);
+  --ct-color-gold-light: rgba(255, 194, 0, 0.08);
+  
+  /* Modern Rich Gradients */
+  --ct-gradient-gold: linear-gradient(135deg, #ffe066 0%, #ffc200 50%, #cca300 100%);
+  --ct-gradient-gold-hover: linear-gradient(135deg, #fff099 0%, #ffd633 50%, #e6b800 100%);
+  --ct-gradient-wood: linear-gradient(to bottom, #2c1a0e, #1a1008);
+  --ct-gradient-wood-light: linear-gradient(to bottom, #392212, #26170c);
+  --ct-gradient-dark: linear-gradient(to bottom, #160c06, #0b0603);
+  --ct-gradient-gold-soft: linear-gradient(135deg, rgba(255, 194, 0, 0.09) 0%, rgba(255, 194, 0, 0.02) 100%);
+  --ct-gradient-badge: linear-gradient(to bottom, #4a311c, #322012);
 
   /* Status Colors */
   --ct-color-green: #37d67a; /* Friendly participation / qualified */
-  --ct-color-green-light: rgba(55, 214, 122, 0.1);
+  --ct-color-green-light: rgba(55, 214, 122, 0.08);
   --ct-color-red: #ff4d4d; /* Enemy / unqualified */
-  --ct-color-red-light: rgba(255, 77, 77, 0.1);
+  --ct-color-red-light: rgba(255, 77, 77, 0.08);
 
   /* Typography Colors */
-  --ct-color-text-primary: #f6eedf; /* Warm parchment off-white */
-  --ct-color-text-secondary: #bdada0; /* Muted warm tan/grey */
-  --ct-color-text-muted: #827265; /* Darker brown/tan */
+  --ct-color-text-primary: #f8f3eb; /* Warm parchment off-white */
+  --ct-color-text-secondary: #c2b1a3; /* Muted warm tan/grey */
+  --ct-color-text-muted: #8e7d70; /* Darker brown/tan */
 
   /* Typography - Clash chunky display & readable body */
   --ct-font-display: 'Fredoka', system-ui, -apple-system, sans-serif;
@@ -43,15 +52,15 @@
   --ct-spacing-xl: 32px;
 
   /* Border Radii - Chunky Clash style */
-  --ct-radius-sm: 4px;
-  --ct-radius-md: 10px;
-  --ct-radius-lg: 16px;
-  --ct-radius-xl: 24px;
+  --ct-radius-sm: 6px;
+  --ct-radius-md: 12px;
+  --ct-radius-lg: 18px;
+  --ct-radius-xl: 26px;
 
   /* Shadows & Focus */
-  --ct-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --ct-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
-  --ct-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.6);
+  --ct-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --ct-shadow-md: 0 6px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --ct-shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --ct-focus-ring: 0 0 0 3px rgba(255, 194, 0, 0.4);
 
   /* Swipe Transitions */
@@ -64,7 +73,8 @@
 
 body {
   margin: 0;
-  background-color: var(--ct-color-bg);
+  background: radial-gradient(circle at top, #1e1107 0%, #0a0603 100%);
+  background-attachment: fixed;
   color: var(--ct-color-text-primary);
   font-family: var(--ct-font-body);
   font-size: 16px;
@@ -84,6 +94,7 @@ h6 {
   margin-top: 0;
   color: var(--ct-color-gold-text);
   letter-spacing: 0.02em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Touch targets & interactive controls reset */

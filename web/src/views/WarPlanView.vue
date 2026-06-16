@@ -9,7 +9,7 @@ import BaseButton from '../components/BaseButton.vue';
     <h2>War Plan (CWL)</h2>
     <p class="subtitle">Select line-ups, manage town hall swaps, and generate optimal strategy.</p>
 
-    <BasePanel title="Active CWL War Plan">
+    <BasePanel title="Active CWL War Plan" :no-padding="true">
       <div class="sync-status">
         <span class="status-indicator">🟢</span>
         <span class="status-text">Synced with game data</span>
@@ -64,12 +64,14 @@ import BaseButton from '../components/BaseButton.vue';
   display: flex;
   align-items: center;
   gap: var(--ct-spacing-xs);
-  margin-bottom: var(--ct-spacing-md);
-  padding: var(--ct-spacing-xs) var(--ct-spacing-sm);
+  margin: var(--ct-spacing-md);
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
   background-color: var(--ct-color-surface-well);
   border-radius: var(--ct-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.02);
   font-size: 13px;
   color: var(--ct-color-text-primary);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .war-list {
@@ -86,29 +88,33 @@ import BaseButton from '../components/BaseButton.vue';
 
 .war-title {
   font-family: var(--ct-font-display);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .war-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: var(--ct-radius-sm);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .war-badge.success {
-  background-color: var(--ct-color-green-light);
+  background-color: rgba(55, 214, 122, 0.12);
   color: var(--ct-color-green);
+  border: 1px solid rgba(55, 214, 122, 0.2);
 }
 
 .war-badge.in-progress {
-  background-color: var(--ct-color-gold-light);
-  color: var(--ct-color-gold);
+  background-color: rgba(255, 194, 0, 0.12);
+  color: var(--ct-color-gold-text);
+  border: 1px solid rgba(255, 194, 0, 0.2);
 }
 
 .war-badge.pending {
-  background-color: var(--ct-color-surface-well);
+  background-color: rgba(0, 0, 0, 0.3);
   color: var(--ct-color-text-muted);
   border: 1px solid var(--ct-color-border);
 }

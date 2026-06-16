@@ -27,10 +27,10 @@ import { RouterLink } from 'vue-router';
 .app-nav {
   display: flex;
   justify-content: space-around;
-  background-color: var(--ct-color-surface-card);
+  background: linear-gradient(to top, #120a05 0%, #22140b 100%);
   border-top: 2px solid var(--ct-color-border);
-  padding: 0.5rem 0;
-  box-shadow: var(--ct-shadow-lg);
+  padding: 0.4rem 0;
+  box-shadow: var(--ct-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .nav-item {
@@ -45,22 +45,46 @@ import { RouterLink } from 'vue-router';
   font-family: var(--ct-font-body);
   font-size: 0.75rem;
   font-weight: 500;
-  transition:
-    color 0.2s ease,
-    transform 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .nav-icon {
-  font-size: 1.25rem;
-  margin-bottom: 0.15rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.2rem;
+  filter: grayscale(40%);
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.nav-item:hover:not(.active) .nav-icon {
+  filter: grayscale(0%);
+  transform: translateY(-2px);
 }
 
 .nav-item:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 .nav-item.active {
   color: var(--ct-color-gold);
   font-weight: 700;
+}
+
+.nav-item.active .nav-icon {
+  filter: grayscale(0%);
+  transform: scale(1.1) translateY(-2px);
+  text-shadow: 0 0 10px rgba(255, 194, 0, 0.6);
+}
+
+/* Glowing gold indicator dot for active view */
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--ct-color-gold);
+  box-shadow: 0 0 6px var(--ct-color-gold);
 }
 </style>

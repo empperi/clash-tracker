@@ -38,67 +38,75 @@ const buttonClass = computed(() => {
   justify-content: center;
   min-height: 44px; /* Touch target minimum requirement */
   min-width: 44px; /* Touch target minimum requirement */
-  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  padding: var(--ct-spacing-sm) var(--ct-spacing-lg);
   font-family: var(--ct-font-display);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   border-radius: var(--ct-radius-md);
-  border: 2px solid var(--ct-color-border);
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
-  box-shadow: var(--ct-shadow-sm);
+  transition: background-color 0.1s ease, transform 0.05s ease, border-bottom-width 0.05s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 /* Primary style (Gold-on-wood theme) */
 .ct-btn-primary {
-  background-color: var(--ct-color-gold);
-  color: var(--ct-color-surface-well); /* Dark contrast */
-  border-color: var(--ct-color-gold);
+  background: var(--ct-gradient-gold);
+  color: #130a05; /* Dark contrast */
+  border: 2px solid #ffcc00;
+  border-bottom: 5px solid #b38600;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .ct-btn-primary:hover:not(:disabled) {
-  background-color: var(--ct-color-gold-hover);
-  border-color: var(--ct-color-gold-hover);
-  transform: translateY(-1px);
+  background: var(--ct-gradient-gold-hover);
 }
 
 .ct-btn-primary:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Secondary style (Stone/Parchment theme) */
+/* Secondary style (Stone/Wood theme) */
 .ct-btn-secondary {
-  background-color: var(--ct-color-surface-card);
+  background: linear-gradient(to bottom, #4a311c, #322012);
   color: var(--ct-color-text-primary);
-  border-color: var(--ct-color-border);
+  border: 2px solid var(--ct-color-border);
+  border-bottom: 5px solid #1a0f07;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .ct-btn-secondary:hover:not(:disabled) {
-  background-color: var(--ct-color-surface-hover);
+  background: linear-gradient(to bottom, #593d25, #3d2817);
   border-color: var(--ct-color-border-focus);
-  transform: translateY(-1px);
 }
 
 .ct-btn-secondary:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* Danger style (Red attack styling) */
 .ct-btn-danger {
-  background-color: var(--ct-color-red);
-  color: var(--ct-color-text-primary);
-  border-color: var(--ct-color-red);
+  background: linear-gradient(to bottom, #ff5353, #d91a1a);
+  color: #ffffff;
+  border: 2px solid #ff7373;
+  border-bottom: 5px solid #8c0d0d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .ct-btn-danger:hover:not(:disabled) {
-  background-color: #ff6666;
-  border-color: #ff6666;
-  transform: translateY(-1px);
+  background: linear-gradient(to bottom, #ff7373, #f22929);
 }
 
 .ct-btn-danger:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* Disabled state */
@@ -106,6 +114,7 @@ const buttonClass = computed(() => {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
+  border-bottom-width: 5px !important;
   box-shadow: none;
 }
 </style>

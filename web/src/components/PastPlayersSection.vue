@@ -68,16 +68,22 @@ onUnmounted(() => observer?.disconnect());
   width: 100%;
   min-height: 44px;
   padding: var(--ct-spacing-sm) var(--ct-spacing-md);
-  background-color: var(--ct-color-surface-card);
-  border: 1px dashed var(--ct-color-border);
+  background: var(--ct-gradient-wood);
+  border: 2px dashed var(--ct-color-border);
   border-radius: var(--ct-radius-md);
   color: var(--ct-color-text-secondary);
   font-family: var(--ct-font-display);
   font-size: 13px;
   cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  box-shadow: var(--ct-shadow-sm);
 }
-.toggle:hover {
-  background-color: var(--ct-color-surface-hover);
+.toggle:hover,
+.toggle:focus-visible {
+  background: var(--ct-gradient-wood-light);
+  border-color: var(--ct-color-gold);
+  color: var(--ct-color-gold-text);
+  outline: none;
 }
 
 .past-note {
