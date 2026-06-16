@@ -35,8 +35,11 @@ try {
 
   // 4. Run firebase deploy
   console.log('Running firebase deploy...');
-  // Note: we run it with shell option to ensure windows compatibility if needed
-  execSync('npx firebase deploy --only functions', { cwd: functionsDir, stdio: 'inherit' });
+  const args = process.argv.slice(2).join(' ');
+  execSync(`npx firebase deploy --only functions ${args}`, {
+    cwd: functionsDir,
+    stdio: 'inherit',
+  });
 } catch (error) {
   console.error('Deployment failed:', error);
   process.exitCode = 1;

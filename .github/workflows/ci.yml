@@ -118,5 +118,8 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER }}
 
-      - name: Deploy to Firebase
-        run: npx firebase deploy --project militia-clash-tracker
+      - name: Deploy Functions to Firebase
+        run: npm run deploy --workspace @clash-tracker/functions -- --project militia-clash-tracker
+
+      - name: Deploy Hosting & Rules to Firebase
+        run: npx firebase deploy --only hosting,firestore,storage --project militia-clash-tracker
