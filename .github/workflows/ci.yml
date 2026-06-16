@@ -116,7 +116,4 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER }}
 
       - name: Deploy to Firebase
-        # Hosting only for now: the github:init service account is scoped to Hosting.
-        # firestore:rules and storage return in Track 2 once the SA has the matching IAM
-        # roles (Firebase Rules Admin / Storage Admin) and those rules are actually used.
-        run: npx firebase deploy --only hosting --project militia-clash-tracker
+        run: npx firebase deploy --project militia-clash-tracker
