@@ -10,7 +10,7 @@ import {
   MappedWar,
   CocApiError,
 } from '@clash-tracker/core';
-import { SecretsRepository } from '../repositories/SecretsRepository';
+import { SecretsRepository } from '../repositories/SecretsRepository.js';
 
 export class CocApiGateway {
   constructor(

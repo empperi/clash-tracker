@@ -1,6 +1,6 @@
 import { Firestore } from 'firebase-admin/firestore';
 import { Result, ok, err, normalizeClanTag, validateClanTag } from '@clash-tracker/core';
-import { encryptToken, decryptToken } from '../crypto';
+import { encryptToken, decryptToken } from '../crypto.js';
 
 export class SecretsRepository {
   private readonly docRef;
