@@ -122,4 +122,4 @@ jobs:
         run: npm run deploy --workspace @clash-tracker/functions -- --project militia-clash-tracker
 
       - name: Deploy Hosting & Rules to Firebase
-        run: npx firebase deploy --only hosting,firestore,storage --project militia-clash-tracker
+        run: npx firebase deploy --only hosting,firestore --project militia-clash-tracker
