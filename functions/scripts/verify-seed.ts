@@ -46,8 +46,9 @@ async function verify() {
   const { parseEncryptionKey } = await import('./seed-secrets');
   const encryptionKey = parseEncryptionKey(encKeyStr);
 
-  const app =
-    getApps().length === 0 ? initializeApp({ projectId: 'demo-clash-tracker' }) : getApp();
+  const projectId = process.env.GCLOUD_PROJECT || 'militia-clash-tracker';
+  console.log(`Initializing Firebase Admin SDK for project: ${projectId}...`);
+  const app = getApps().length === 0 ? initializeApp({ projectId }) : getApp();
   const db = getFirestore(app);
 
   const repo = new SecretsRepository(db, encryptionKey);
