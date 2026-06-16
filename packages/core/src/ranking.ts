@@ -4,8 +4,8 @@
  * only breaks ties left by the previous one (see `rankPlayers`).
  */
 
-import { clanRoleRank } from './domain';
-import type { Player } from './domain';
+import { clanRoleRank } from './domain.js';
+import type { Player } from './domain.js';
 
 export type Comparator<T> = (a: T, b: T) => number;
 export type Direction = 'asc' | 'desc';

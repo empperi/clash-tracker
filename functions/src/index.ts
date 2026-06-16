@@ -1,5 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar.js';
@@ -15,6 +16,9 @@ import { parseEncryptionKey } from './crypto.js';
 
 type IngestUseCase = (clanTag: string) => Promise<Result<IngestSummary, string>>;
 type RecomputeUseCase = () => Promise<Result<RecomputeSummary, string>>;
+
+// Set global options to deploy to Europe (Belgium)
+setGlobalOptions({ region: 'europe-west1' });
 
 // Initialize firebase admin
 const app = getApps().length === 0 ? initializeApp() : getApp();

@@ -1,5 +1,5 @@
-import type { PlayerWarRecord, PlayerStats } from './domain';
-import { median, attackUsagePct } from './stats';
+import type { PlayerWarRecord, PlayerStats } from './domain.js';
+import { median, attackUsagePct } from './stats.js';
 
 /**
  * Aggregates a player's per-war records into their overall `PlayerStats`.

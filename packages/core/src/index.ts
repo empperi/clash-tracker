@@ -1,15 +1,15 @@
-export * from './result';
-export * from './domain';
-export * from './swipe';
-export * from './tag';
-export * from './mappers';
-export * from './gateway-types';
-export * from './identity';
-export * from './ingestion';
-export * from './stats';
-export * from './player-stats';
-export * from './eligibility';
-export * from './ranking';
+export * from './result.js';
+export * from './domain.js';
+export * from './swipe.js';
+export * from './tag.js';
+export * from './mappers.js';
+export * from './gateway-types.js';
+export * from './identity.js';
+export * from './ingestion.js';
+export * from './stats.js';
+export * from './player-stats.js';
+export * from './eligibility.js';
+export * from './ranking.js';
 
 /**
  * Simple utility function to add two numbers.

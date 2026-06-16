@@ -9,11 +9,11 @@
     "node": "22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && esbuild lib/index.js --bundle --platform=node --target=node22 --outfile=lib/index.js --allow-overwrite --format=esm --external:firebase-admin --external:firebase-functions",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "serve": "npm run build && firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "node scripts/deploy-functions.js",
     "lint": "eslint . --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit"
   },
@@ -23,6 +23,7 @@
     "firebase-functions": "^7.2.5"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.28.1"
   }
 }

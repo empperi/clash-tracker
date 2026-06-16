@@ -1,6 +1,6 @@
-import { MappedWar, MappedWarMember, MappedAttack } from './mappers';
-import { getAttackId } from './identity';
-import { SyncState } from './domain';
+import { MappedWar, MappedWarMember, MappedAttack } from './mappers.js';
+import { getAttackId } from './identity.js';
+import { SyncState } from './domain.js';
 
 export interface WarHeader {
   readonly state: 'preparation' | 'inWar' | 'warEnded';

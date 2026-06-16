@@ -1,4 +1,4 @@
-import { ClanRole } from './domain';
+import { ClanRole } from './domain.js';
 
 export interface MappedMember {
   readonly tag: string;
