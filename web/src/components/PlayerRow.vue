@@ -133,9 +133,18 @@ function toggle(): void {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.9; }
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
 }
 
 /* Identity block */
@@ -207,7 +216,9 @@ function toggle(): void {
   color: var(--ct-color-text-muted);
   font-size: 10px;
   flex: 0 0 auto;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.15s ease;
   display: inline-block;
   padding: 4px;
 }

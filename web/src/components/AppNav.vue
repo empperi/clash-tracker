@@ -30,7 +30,9 @@ import { RouterLink } from 'vue-router';
   background: linear-gradient(to top, #120a05 0%, #22140b 100%);
   border-top: 2px solid var(--ct-color-border);
   padding: 0.4rem 0;
-  box-shadow: var(--ct-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    var(--ct-shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .nav-item {
@@ -53,7 +55,9 @@ import { RouterLink } from 'vue-router';
   font-size: 1.3rem;
   margin-bottom: 0.2rem;
   filter: grayscale(40%);
-  transition: filter 0.2s ease, transform 0.2s ease;
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease;
 }
 
 .nav-item:hover:not(.active) .nav-icon {

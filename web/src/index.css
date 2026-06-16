@@ -19,14 +19,18 @@
   --ct-color-gold-hover: #ffd633;
   --ct-color-gold-text: #ffdf7a; /* Light gold for readable text */
   --ct-color-gold-light: rgba(255, 194, 0, 0.08);
-  
+
   /* Modern Rich Gradients */
   --ct-gradient-gold: linear-gradient(135deg, #ffe066 0%, #ffc200 50%, #cca300 100%);
   --ct-gradient-gold-hover: linear-gradient(135deg, #fff099 0%, #ffd633 50%, #e6b800 100%);
   --ct-gradient-wood: linear-gradient(to bottom, #2c1a0e, #1a1008);
   --ct-gradient-wood-light: linear-gradient(to bottom, #392212, #26170c);
   --ct-gradient-dark: linear-gradient(to bottom, #160c06, #0b0603);
-  --ct-gradient-gold-soft: linear-gradient(135deg, rgba(255, 194, 0, 0.09) 0%, rgba(255, 194, 0, 0.02) 100%);
+  --ct-gradient-gold-soft: linear-gradient(
+    135deg,
+    rgba(255, 194, 0, 0.09) 0%,
+    rgba(255, 194, 0, 0.02) 100%
+  );
   --ct-gradient-badge: linear-gradient(to bottom, #4a311c, #322012);
 
   /* Status Colors */

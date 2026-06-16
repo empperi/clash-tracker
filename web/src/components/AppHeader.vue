@@ -35,7 +35,9 @@ const logoSrc = computed(() => props.clanLogo || defaultLogo);
   padding: var(--ct-spacing-sm) var(--ct-spacing-md);
   background: var(--ct-gradient-wood);
   border-bottom: 3px solid var(--ct-color-gold);
-  box-shadow: var(--ct-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    var(--ct-shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
 }
 

@@ -44,7 +44,10 @@ const buttonClass = computed(() => {
   font-weight: 700;
   border-radius: var(--ct-radius-md);
   cursor: pointer;
-  transition: background-color 0.1s ease, transform 0.05s ease, border-bottom-width 0.05s ease;
+  transition:
+    background-color 0.1s ease,
+    transform 0.05s ease,
+    border-bottom-width 0.05s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   user-select: none;
   text-transform: uppercase;
