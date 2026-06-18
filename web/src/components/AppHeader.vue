@@ -11,9 +11,9 @@ const props = withDefaults(defineProps<Props>(), {
   clanLogo: '',
 });
 
-// Inline SVG data URI for default logo
-const defaultLogo =
-  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23d4af37"><circle cx="50" cy="50" r="40" stroke="%238a6d1c" stroke-width="5" /><path d="M30 45 h40 v10 h-40 z" /><path d="M45 30 h10 v40 h-10 z" /></svg>';
+// Default to the app's PWA icon (served from /public). The `clanLogo` prop can still
+// override it, leaving the hook in place for any future owner/multi-clan branding.
+const defaultLogo = '/icons/icon-512x512.png';
 
 const logoSrc = computed(() => props.clanLogo || defaultLogo);
 </script>
@@ -60,13 +60,11 @@ const logoSrc = computed(() => props.clanLogo || defaultLogo);
 }
 
 .clan-logo {
-  width: 38px;
-  height: 38px;
+  /* Expanded to fill the footprint the old 2px border + backing chip used to occupy. */
+  width: 42px;
+  height: 42px;
   object-fit: contain;
   border-radius: var(--ct-radius-sm);
-  border: 2px solid var(--ct-color-gold);
-  background-color: var(--ct-color-surface-well);
-  box-shadow: 0 0 8px rgba(255, 194, 0, 0.3);
   transition: transform 0.2s ease;
 }
 
