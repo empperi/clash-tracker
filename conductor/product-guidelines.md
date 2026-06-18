@@ -9,8 +9,9 @@ track — UI work must conform, and reviewers should check against them.
   earthy browns, parchment/stone panels, gold accents, with stars (gold attack stars) and
   red/green for enemy/friendly framing. Use the game's bold, slightly rounded display
   styling for headings.
-- **Clan identity is dynamic.** The clan **name** and **logo** are owner-configurable and
-  appear in the header on every view. Never hard-code them.
+- **Clan identity is dynamic.** The clan **name** is owner-configurable and appears in the
+  header on every view. Never hard-code it. (The header also shows a generic default crest;
+  a configurable per-clan logo is intentionally not supported — single-clan app.)
 - **Tasteful, not a clone.** Modern, clean, legible — inspired by CoC, not a pixel copy.
   Readability and contrast win over decoration.
 
@@ -51,7 +52,7 @@ consistent and adjustable in one place.
 
 - **Instant-save controls** (the two threshold sliders) persist on change with no separate
   Save button; show a subtle saved/in-flight indicator. Other owner settings (clan name,
-  logo, token, clan tag) use **explicit Save buttons** as specified.
+  token, clan tag) use **explicit Save buttons** as specified.
 - Show clear **loading**, **empty**, and **error** states for every data view. Never a
   blank screen.
 - The Player List **qualification line** must be unmistakable: a visible divider plus a

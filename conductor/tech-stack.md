@@ -16,7 +16,6 @@ file must be made before** the corresponding implementation, with a dated note.
 | Backend | **Firebase Cloud Functions** (2nd gen, Node 20, TS) | Serverless; the only place the CoC token is decrypted and used. |
 | Database | **Cloud Firestore** | Real-time, scales to zero, simple security rules; document model fits players/wars. |
 | Auth | **Firebase Authentication — Email Link (passwordless)** | Native magic-link login exactly as specified. |
-| File storage | **Cloud Storage for Firebase** | Clan logo PNG (≤600×600). |
 | Scheduling | **Scheduled Cloud Functions** (Cloud Scheduler) | Periodic war polling/ingestion. |
 | Hosting | **Firebase Hosting** | Serves the PWA; `/api/**` rewrites to functions. |
 | Secrets | **Cloud Functions secrets / env + AES-256-GCM** | Token encrypted at rest, key never in code. |
@@ -125,7 +124,7 @@ which option is active. Do **not** hard-code `api.clashofclans.com`.
 | `wars/{warId}` | public read | One tracked war: type (classic/cwl), opponent, start/end times, team size, sync status. |
 | `wars/{warId}/attacks/{attackId}` | public read | Each attack: attacker tag, defender tag, stars, destruction %, order. |
 | `wars/{warId}/members/{memberTag}` | public read | Per-war roster: attacks used/available, defenses faced, own-base destruction. |
-| `publicSettings/config` | public read | Clan name, logo URL, Acceptance Percentage Level, Minimum War Participation. |
+| `publicSettings/config` | public read | Clan name, Acceptance Percentage Level, Minimum War Participation. |
 | `secrets/coc` | server only | Encrypted token, clan tag. |
 | `accounts/{uid}` | server only | Owner/admin accounts: email, role, username, playerTag. |
 | `pendingAccounts/{id}` | server only | Invitations awaiting registration (with createdAt for the 30-min expiry). |

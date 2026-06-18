@@ -1,6 +1,6 @@
 {
   "id": "owner_view_20260613",
-  "description": "Owner view: clan name, clan logo upload, encrypted CoC API token, clan tag, and admin/owner account management with self-protection",
+  "description": "Owner view: clan name, encrypted CoC API token, clan tag, and admin/owner account management with self-protection",
   "type": "feature",
   "created_at": "2026-06-13T00:00:00Z",
   "status": "pending",

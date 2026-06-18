@@ -4,16 +4,16 @@
 
 ## Overview
 
-The owner-only configuration surface: set the **clan name** and **clan logo** shown in the
-header everywhere, set the **CoC API token** (write-only, encrypted at rest — never read
-back), set the **clan tag**, and **manage admin/owner accounts** (delete anyone except
-yourself). All writes are guarded by `requireRole('owner')` and reuse the encryption/config
-repositories from Track 2 and the auth/revocation primitives from Track 6.
+The owner-only configuration surface: set the **clan name** shown in the header everywhere,
+set the **CoC API token** (write-only, encrypted at rest — never read back), set the **clan
+tag**, and **manage admin/owner accounts** (delete anyone except yourself). All writes are
+guarded by `requireRole('owner')` and reuse the encryption/config repositories from Track 2
+and the auth/revocation primitives from Track 6.
 
 ## Background
 
 See `conductor/product.md` → Owner view, and `tech-stack.md` → Secrets & encryption. Clan
-name/logo/clanTag are owner-set and (except the token) visible; the token is sacred and
+name/clanTag are owner-set and (except the token) visible; the token is sacred and
 write-only.
 
 ## Functional Requirements
@@ -24,17 +24,7 @@ write-only.
   everywhere reflects the new name after save. Validated (non-empty, length bound).
 - **Priority:** High
 
-### FR-2 — Clan logo upload (explicit Save)
-- **Description:** Upload a **PNG**, **max 600×600**, shown in the header everywhere.
-- **Acceptance criteria:**
-  - Owner-only; accepts PNG only; rejects images larger than 600×600; stored in Cloud
-    Storage at `clan/logo.png`; the public logo URL saved to `publicSettings/config`.
-  - Upload goes through a guarded function (client has no direct Storage write per
-    `storage.rules`).
-  - Header updates after save; sensible feedback on invalid file.
-- **Priority:** High
-
-### FR-3 — CoC API token (write-only, encrypted)
+### FR-2 — CoC API token (write-only, encrypted)
 - **Description:** Set/replace the token; it is never shown or loaded into the UI.
 - **Acceptance criteria:**
   - A single field + Save; on submit the token is sent to a guarded function that stores it
@@ -43,13 +33,13 @@ write-only.
     whether a token is set, never its value.
 - **Priority:** High
 
-### FR-4 — Clan tag (visible, explicit Save)
+### FR-3 — Clan tag (visible, explicit Save)
 - **Description:** Set the clan tag used in API calls; it is shown in the UI.
 - **Acceptance criteria:** owner-only; validated/normalized (Track 2 clan-tag rules);
   persisted via the secrets/config repo; visible value with a Save button.
 - **Priority:** High
 
-### FR-5 — Account management
+### FR-4 — Account management
 - **Description:** List all owner/admin accounts (active and pending) and delete any except
   your own.
 - **Acceptance criteria:**
@@ -62,26 +52,20 @@ write-only.
 ## Non-Functional Requirements
 - **NFR-1 (Security):** Token never leaves the server unencrypted, never reaches the client,
   never logged. All writes guarded by `requireRole('owner')`. Self-deletion impossible.
-- **NFR-2 (Integrity):** Logo constraints (PNG, ≤600×600) enforced server-side, not just in
-  the browser.
-- **NFR-3 (Quality):** ≥80% coverage; pure validation unit-tested; flows emulator-tested.
+- **NFR-2 (Quality):** ≥80% coverage; pure validation unit-tested; flows emulator-tested.
 
 ## User Stories
-- *As the owner,* I brand the app with our clan name and logo, *so that* it feels like ours.
+- *As the owner,* I brand the app with our clan name, *so that* it feels like ours.
 - *As the owner,* I rotate the API token securely without ever seeing it echoed back.
 - *As the owner,* I remove a compromised admin and they're instantly locked out.
 
 ## Technical Considerations
-- Image validation (format + dimensions) should be a server-side check; keep a pure
-  dimension/format validator where the bytes allow, and verify in the function.
 - Reuse Track 2 `SecretsRepository` and Track 6 `revokeAccountSessions` / `requireRole`.
-- The header reads clan name/logo from `publicSettings/config` (already public) — ensure it
+- The header reads clan name from `publicSettings/config` (already public) — ensure it
   reacts to changes.
 
 ## Out of Scope
 - Threshold sliders and admin invites (Track 7). The encryption codec itself (Track 2). War
   Plan (Track 9).
-
-## Open Questions
-- Whether to keep historical logos or overwrite `clan/logo.png` — default: overwrite single
-  canonical path.
+- **Clan logo / image upload** — dropped: a per-clan image only earns its keep once the app
+  tracks multiple clans, which is not planned. The header keeps its generic default crest.

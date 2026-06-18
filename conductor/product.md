@@ -26,7 +26,7 @@ CWL spot and those who haven't.
 |------|-------------|-------|
 | **Clan members (unauthenticated)** | Anyone with the link. No login. | See where they (and others) stand: attack rate, wars participated, whether they're above the CWL line. Read-only. |
 | **Admins** | Trusted clan officers. | Tune the eligibility thresholds, run/adjust the CWL plan, see players who have left, invite other admins. |
-| **Owner** | Clan leader / app owner. | Everything admins can do, plus configure clan identity (name, logo), the CoC API token (secret), the clan tag, and manage admin accounts. |
+| **Owner** | Clan leader / app owner. | Everything admins can do, plus configure clan identity (name), the CoC API token (secret), the clan tag, and manage admin accounts. |
 
 > The public site is **freely browsable and read-only**. Login (email magic link) is only
 > for admins/owners and only unlocks write/admin capabilities.
@@ -42,8 +42,7 @@ CWL spot and those who haven't.
 4. **Authentication & roles** — passwordless magic-link login; Unauthenticated / Admin /
    Owner permission tiers.
 5. **Admin tools** — threshold sliders, admin invitations, registration flow.
-6. **Owner tools** — clan name, clan logo, encrypted CoC API token, clan tag, account
-   management.
+6. **Owner tools** — clan name, encrypted CoC API token, clan tag, account management.
 7. **War Plan (CWL)** *(last to build)* — head-to-head visualization of the seven CWL
    wars, manual player swaps, and an automatic re-planning algorithm.
 

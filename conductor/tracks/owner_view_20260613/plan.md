@@ -5,7 +5,7 @@ Track `owner_view_20260613`. TDD per `conductor/workflow.md`. Reuse Track 2
 `revokeAccountSessions`). Pure validation → `core`; guarded writes → `functions`; UI → Vue.
 
 > Implementer note: the token is write-only — never return it to the client or log it. The
-> owner must never be able to delete themselves. Enforce logo/format limits server-side.
+> owner must never be able to delete themselves.
 
 ## Phase 1: Clan identity (name + clan tag)
 
@@ -17,24 +17,11 @@ Goal: owner-set, header-visible identity.
   (owner-only) writing to `publicSettings/config` / secrets-config. Assert non-owners
   rejected.
 - [ ] Task: Tests + implement the name + clan-tag fields with **explicit Save** buttons and
-  validation feedback; ensure the header reflects the saved name/logo (reads
+  validation feedback; ensure the header reflects the saved name (reads
   `publicSettings/config`).
 - [ ] Verification: changing name/clan tag updates the header everywhere after save. [checkpoint]
 
-## Phase 2: Clan logo upload
-
-Goal: PNG ≤600×600 logo in the header.
-
-- [ ] Task: Tests + implement a pure-ish PNG/dimension validator (reject non-PNG and
-  >600×600). 
-- [ ] Task: Emulator/Storage tests + implement a guarded `uploadClanLogo` function: validate
-  bytes server-side, store at `clan/logo.png` in Cloud Storage, save the public URL to
-  `publicSettings/config`. Assert non-owners rejected and invalid images rejected.
-- [ ] Task: Tests + implement the upload UI (file picker, PNG-only, preview, Save) with
-  error feedback; header updates after save.
-- [ ] Verification: upload a valid logo → header shows it; oversized/non-PNG rejected. [checkpoint]
-
-## Phase 3: CoC API token (write-only)
+## Phase 2: CoC API token (write-only)
 
 Goal: securely set/replace the token.
 
@@ -46,7 +33,7 @@ Goal: securely set/replace the token.
 - [ ] Verification: set a token; confirm encryption at rest and that the UI never receives
   it; the gateway (Track 2) can then authenticate. [checkpoint]
 
-## Phase 4: Account management
+## Phase 3: Account management
 
 Goal: list and delete accounts safely.
 
@@ -62,18 +49,18 @@ Goal: list and delete accounts safely.
 - [ ] Verification: deleting an admin logs them out immediately; self-delete blocked in UI
   and server. [checkpoint]
 
-## Phase 5: Owner view assembly
+## Phase 4: Owner view assembly
 
 Goal: compose behind the owner capability.
 
-- [ ] Task: Tests + implement `OwnerView.vue` composing identity, logo, token, clan tag, and
+- [ ] Task: Tests + implement `OwnerView.vue` composing identity, token, clan tag, and
   account management, visible only when `isOwner`. Non-owners (incl. plain admins) never see
   it.
 - [ ] Verification: manual — full owner flow: brand the app, rotate the token, manage
   accounts. [checkpoint]
 
 ## Done when
-- The owner can set clan name/logo/clan tag (header reflects them), securely set a write-only
+- The owner can set clan name/clan tag (header reflects them), securely set a write-only
   encrypted token that never reaches the client, and manage accounts (deleting anyone but
   themselves, with immediate session revocation) — all owner-guarded and covered by unit +
   emulator tests.

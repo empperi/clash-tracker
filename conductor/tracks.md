@@ -57,9 +57,9 @@ a pending list and revocation, and the registration view with a server-enforced 
 expiry. All writes guarded by `requireRole('admin')`.
 
 ### [ ] Track 8: Owner view [owner_view_20260613]
-Owner-only config: clan name, clan logo (PNG ≤600×600), write-only encrypted CoC API token,
-clan tag, and admin/owner account management (delete anyone but yourself, with immediate
-session revocation). Guarded by `requireRole('owner')`.
+Owner-only config: clan name, write-only encrypted CoC API token, clan tag, and admin/owner
+account management (delete anyone but yourself, with immediate session revocation). Guarded
+by `requireRole('owner')`.
 
 ### [ ] Track 9: War Plan (CWL) — last [war_plan_cwl_20260613]
 CWL-only view: league group + 7-war fetch, in-game-style head-to-head per war, sync status,
