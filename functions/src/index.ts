@@ -101,8 +101,10 @@ export async function handleTriggerIngestNow(
   ingestUseCase?: IngestUseCase,
   recomputeUseCase?: RecomputeUseCase
 ): Promise<{ success: boolean; syncState?: string; error?: string }> {
+  console.log('handleTriggerIngestNow: starting execution...');
   const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
   if (!encKeyStr) {
+    console.error('handleTriggerIngestNow failed: CLASH_TOKEN_ENC_KEY is not configured.');
     throw new HttpsError('failed-precondition', 'CLASH_TOKEN_ENC_KEY is not configured.');
   }
   let encryptionKey: Uint8Array;
@@ -110,22 +112,31 @@ export async function handleTriggerIngestNow(
     encryptionKey = parseEncryptionKey(encKeyStr);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
+    console.error(`handleTriggerIngestNow failed: Invalid encryption key: ${msg}`);
     throw new HttpsError('failed-precondition', `Invalid encryption key: ${msg}`);
   }
   const secretsRepo = new SecretsRepository(db, encryptionKey);
   const tagResult = await secretsRepo.getClanTag();
   if (!tagResult.success) {
+    console.error(`handleTriggerIngestNow failed: Clan tag not configured: ${tagResult.error}`);
     throw new HttpsError('failed-precondition', `Clan tag not configured: ${tagResult.error}`);
   }
   const clanTag = tagResult.value;
+  console.log(`handleTriggerIngestNow: fetched clan tag ${clanTag}, triggering ingestion...`);
   const useCase = ingestUseCase || getIngestUseCase();
   const result = await useCase(clanTag);
   if (!result.success) {
+    console.error(
+      `handleTriggerIngestNow failed: Ingestion failed for clan tag ${clanTag}: ${result.error}`
+    );
     return {
       success: false,
       error: result.error,
     };
   }
+  console.log(
+    `handleTriggerIngestNow: Ingestion succeeded. Summary: ${JSON.stringify(result.value)}`
+  );
 
   // Refresh player aggregates after a successful ingest (failures are logged,
   // not fatal — the ingest itself succeeded).
@@ -133,6 +144,8 @@ export async function handleTriggerIngestNow(
   const recomputeResult = await recompute();
   if (!recomputeResult.success) {
     console.error(`Player stats recompute failed: ${recomputeResult.error}`);
+  } else {
+    console.log(`Player stats recompute succeeded: ${JSON.stringify(recomputeResult.value)}`);
   }
 
   return {
@@ -142,13 +155,18 @@ export async function handleTriggerIngestNow(
 }
 
 export const scheduledIngest = onSchedule('*/20 * * * *', async () => {
+  console.log('scheduledIngest function triggered.');
   await handleScheduledIngest();
 });
 
 export const triggerIngestNow = onCall(async (request) => {
   // TODO(question): Full role-gating lands in Track 6. Restrict to authenticated users for now.
   if (!request.auth) {
+    console.warn('triggerIngestNow: rejected unauthenticated request.');
     throw new HttpsError('unauthenticated', 'User must be authenticated.');
   }
+  console.log(
+    `triggerIngestNow: authenticated request received from user UID: ${request.auth.uid}`
+  );
   return await handleTriggerIngestNow();
 });
