@@ -28,6 +28,7 @@ export class CocApiGateway {
     try {
       const tokenResult = await this.secretsRepository.getDecryptedToken();
       if (!tokenResult.success) {
+        console.error(`[CocApiGateway] getClan: Failed to decrypt API token: ${tokenResult.error}`);
         return err('Unknown');
       }
 
@@ -43,12 +44,16 @@ export class CocApiGateway {
       });
 
       if (response.status !== 200) {
+        console.error(
+          `[CocApiGateway] getClan: HTTP request failed with status ${response.status}. URL: ${url}`
+        );
         return err(classifyCocError(response.status));
       }
 
       const json = await response.json();
       return ok(mapClan(json));
-    } catch {
+    } catch (error: unknown) {
+      console.error('[CocApiGateway] getClan: Fetch exception: ', error);
       return err('Unknown');
     }
   }
@@ -60,6 +65,9 @@ export class CocApiGateway {
     try {
       const tokenResult = await this.secretsRepository.getDecryptedToken();
       if (!tokenResult.success) {
+        console.error(
+          `[CocApiGateway] getCurrentWar: Failed to decrypt API token: ${tokenResult.error}`
+        );
         return err('Unknown');
       }
 
@@ -75,12 +83,16 @@ export class CocApiGateway {
       });
 
       if (response.status !== 200) {
+        console.error(
+          `[CocApiGateway] getCurrentWar: HTTP request failed with status ${response.status}. URL: ${url}`
+        );
         return err(classifyCocError(response.status));
       }
 
       const json = await response.json();
       return ok(mapWar(json));
-    } catch {
+    } catch (error: unknown) {
+      console.error('[CocApiGateway] getCurrentWar: Fetch exception: ', error);
       return err('Unknown');
     }
   }
