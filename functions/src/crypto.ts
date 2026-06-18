@@ -101,3 +101,10 @@ export function parseEncryptionKey(keyStr: string): Uint8Array {
     `Invalid key length: Key must resolve to exactly 32 bytes (64 hex characters, a 44-character base64 string, or a 32-byte UTF-8 string). Provided key resolved to ${bytes.length} bytes.`
   );
 }
+
+/**
+ * Computes a SHA-256 hash of the key bytes for diagnostic matching.
+ */
+export function getKeyHash(key: Uint8Array): string {
+  return crypto.createHash('sha256').update(key).digest('hex');
+}

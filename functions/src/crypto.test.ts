@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encryptToken, decryptToken } from './crypto';
+import { encryptToken, decryptToken, getKeyHash } from './crypto';
 
 describe('crypto codec', () => {
   const dummyKey = new Uint8Array(32).fill(0x01);
@@ -46,5 +46,12 @@ describe('crypto codec', () => {
     const shortKey = new Uint8Array(16).fill(0x01);
     const encryptedResult = encryptToken(testPlaintext, shortKey, dummyIv);
     expect(encryptedResult.success).toBe(false);
+  });
+
+  it('should compute the correct SHA-256 hash of key bytes', () => {
+    const key = new Uint8Array(32).fill(0x01);
+    const hash = getKeyHash(key);
+    // SHA-256 of 32 bytes of 0x01 is 72cd6e8422c407fb6d098690f1130b7ded7ec2f7f5e1d30bd9d521f015363793
+    expect(hash).toBe('72cd6e8422c407fb6d098690f1130b7ded7ec2f7f5e1d30bd9d521f015363793');
   });
 });
