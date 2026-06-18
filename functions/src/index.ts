@@ -12,7 +12,7 @@ import { WarRepository } from './repositories/WarRepository.js';
 import { AttackRepository } from './repositories/AttackRepository.js';
 import { PlayerRepository } from './repositories/PlayerRepository.js';
 import { nodeHttpClient } from './gateway/HttpClient.js';
-import { parseEncryptionKey } from './crypto.js';
+import { parseEncryptionKey, getKeyHash } from './crypto.js';
 
 type IngestUseCase = (clanTag: string) => Promise<Result<IngestSummary, string>>;
 type RecomputeUseCase = () => Promise<Result<RecomputeSummary, string>>;
@@ -71,6 +71,7 @@ export async function handleScheduledIngest(
     console.error(`Cannot run scheduled ingest: Invalid encryption key. ${msg}`);
     return;
   }
+  console.log(`[Diagnostic] Scheduled Ingest: Encryption key loaded. SHA-256: ${getKeyHash(encryptionKey)}`);
   const secretsRepo = new SecretsRepository(db, encryptionKey);
   const tagResult = await secretsRepo.getClanTag();
   if (!tagResult.success) {
@@ -115,6 +116,7 @@ export async function handleTriggerIngestNow(
     console.error(`handleTriggerIngestNow failed: Invalid encryption key: ${msg}`);
     throw new HttpsError('failed-precondition', `Invalid encryption key: ${msg}`);
   }
+  console.log(`[Diagnostic] Trigger Ingest: Encryption key loaded. SHA-256: ${getKeyHash(encryptionKey)}`);
   const secretsRepo = new SecretsRepository(db, encryptionKey);
   const tagResult = await secretsRepo.getClanTag();
   if (!tagResult.success) {

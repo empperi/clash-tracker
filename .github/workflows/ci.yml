@@ -119,7 +119,13 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER }}
 
       - name: Create environment config for functions
-        run: echo "CLASH_TOKEN_ENC_KEY=${{ secrets.CLASH_TOKEN_ENC_KEY }}" > functions/.env
+        run: |
+          echo "CLASH_TOKEN_ENC_KEY=${{ secrets.CLASH_TOKEN_ENC_KEY }}" > functions/.env
+          if [ -n "${{ secrets.COC_API_BASE_URL }}" ]; then
+            echo "COC_API_BASE_URL=${{ secrets.COC_API_BASE_URL }}" >> functions/.env
+          elif [ -n "${{ vars.COC_API_BASE_URL }}" ]; then
+            echo "COC_API_BASE_URL=${{ vars.COC_API_BASE_URL }}" >> functions/.env
+          fi
 
       - name: Deploy Functions to Firebase
         run: npm run deploy --workspace @clash-tracker/functions -- --project militia-clash-tracker
