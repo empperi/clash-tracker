@@ -25,6 +25,11 @@ import { RouterLink } from 'vue-router';
 
 <style scoped>
 .app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   display: flex;
   justify-content: space-around;
   background: linear-gradient(to top, #120a05 0%, #22140b 100%);

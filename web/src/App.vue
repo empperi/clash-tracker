@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, inject } from 'vue';
+import { computed, ref, watch, inject, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useQueryClient } from '@tanstack/vue-query';
 import { useSwipeNav } from './composables/useSwipeNav';
@@ -50,6 +50,18 @@ watch(
   }
 );
 
+// Reset scroll positions of panels when the active view changes
+watch(activeView, () => {
+  nextTick(() => {
+    const panels = viewport.value?.querySelectorAll('.swipe-panel');
+    if (panels) {
+      panels.forEach((panel) => {
+        panel.scrollTop = 0;
+      });
+    }
+  });
+});
+
 const trackStyle = computed(() =>
   isAnimating.value
     ? {
@@ -91,7 +103,9 @@ function handleTransitionEnd(event: TransitionEvent): void {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 .app-viewport {
   flex: 1;
@@ -111,5 +125,6 @@ function handleTransitionEnd(event: TransitionEvent): void {
   min-width: 100%;
   height: 100%;
   overflow-y: auto;
+  padding-bottom: 80px;
 }
 </style>

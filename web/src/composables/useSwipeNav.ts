@@ -84,6 +84,8 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
   let startTime = 0;
   let lastDx = 0;
   let eagerFired = false;
+  let isSwipeIgnored = false;
+  let hasDeterminedDirection = false;
 
   function wrapped(step: number): string {
     const n = order.length;
@@ -109,6 +111,8 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
     lastDx = 0;
     eagerFired = false;
     dragOffset.value = 0;
+    isSwipeIgnored = false;
+    hasDeterminedDirection = false;
   }
 
   function maybeEagerLoad(dx: number): void {
@@ -184,11 +188,47 @@ export function useSwipeNav(options: UseSwipeNavOptions): SwipeNav {
   }
 
   if (options.target) {
-    const { lengthX } = useSwipe(options.target, {
+    const { lengthX, lengthY } = useSwipe(options.target, {
       onSwipeStart: () => onStart(),
-      // VueUse lengthX = startX - currentX, so a leftward drag is positive; negate to our dx.
-      onSwipe: () => onMove(-lengthX.value),
-      onSwipeEnd: () => onEnd(),
+      onSwipe: () => {
+        const dx = -lengthX.value;
+        const dy = -lengthY.value;
+
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+
+        // Determine dominant direction once a threshold of movement is crossed
+        if (!hasDeterminedDirection) {
+          if (absDx > 6 || absDy > 6) {
+            hasDeterminedDirection = true;
+            isSwipeIgnored = absDy > absDx;
+          }
+        }
+
+        // Ignore if vertical swipe was determined to be dominant
+        if (isSwipeIgnored) {
+          dragOffset.value = 0;
+          return;
+        }
+
+        // Apply a threshold (friction/deadzone) for horizontal swipes to avoid tapping wiggles
+        const horizontalThreshold = 10;
+        if (absDx < horizontalThreshold) {
+          dragOffset.value = 0;
+          return;
+        }
+
+        // Subtract threshold for smooth transition starting from 0
+        const adjustedDx = dx > 0 ? dx - horizontalThreshold : dx + horizontalThreshold;
+        onMove(adjustedDx);
+      },
+      onSwipeEnd: () => {
+        const dx = -lengthX.value;
+        if (isSwipeIgnored || Math.abs(dx) < 10) {
+          lastDx = 0;
+        }
+        onEnd();
+      },
     });
   }
 
