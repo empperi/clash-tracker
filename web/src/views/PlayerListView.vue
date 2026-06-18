@@ -8,22 +8,17 @@ import PlayerRow from '../components/PlayerRow.vue';
 import QualificationLine from '../components/QualificationLine.vue';
 import PastPlayersSection from '../components/PastPlayersSection.vue';
 import BasePanel from '../components/BasePanel.vue';
+import type { Player, ClanRole } from '@clash-tracker/core';
 
 const api = inject(PLAYERS_API, EMPTY_PLAYERS_API);
 const canViewPastPlayers = inject(CAN_VIEW_PAST_PLAYERS, ref(false));
 const { players: rawPlayers, thresholds, isLoading, isError } = usePlayers(api);
 
-// Generate 35 dummy players for testing when database is empty
-const dummyPlayers = Array.from({ length: 35 }, (_, i) => ({
+const roles = ['leader', 'coLeader', 'elder', 'member'] as const;
+const dummyPlayers: Player[] = Array.from({ length: 35 }, (_, i) => ({
   tag: `#DUMMY${i}`,
   name: `Clasher ${i + 1}`,
-  role: (i % 4 === 0
-    ? 'leader'
-    : i % 4 === 1
-      ? 'coLeader'
-      : i % 4 === 2
-        ? 'elder'
-        : 'member') as any,
+  role: roles[i % 4] as ClanRole,
   thLevel: 12 + (i % 5),
   inClan: true,
   stats: {
