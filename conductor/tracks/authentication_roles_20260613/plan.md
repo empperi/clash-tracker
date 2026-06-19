@@ -16,7 +16,7 @@ Goal: a single source of truth for what each role can do.
   Owner is a superset of admin. Cover both roles and "unauthenticated" (all false).
 - [x] Verification: capability mapping matches `product.md` permission tables. [checkpoint]
 
-## Phase 2: Session cookie & logout (emulator)
+## Phase 2: Session cookie & logout (emulator) [checkpoint: 8cacc55]
 
 Goal: secure session lifecycle.
 
