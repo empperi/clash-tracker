@@ -18,7 +18,7 @@ export function setupFirebase(
   // Use the emulators when explicitly requested, or by default in dev mode. The Firebase
   // web config (incl. apiKey) is NOT secret, but it must be a non-empty, well-formed value
   // or the Auth SDK throws `auth/invalid-api-key`. Against the emulators the values are
-  // never sent to Google, so safe demo placeholders let local dev run with zero setup and
+  // never sent to Google, so safe placeholders let local dev run with zero setup and
   // no chance of touching production. Production builds must supply the real VITE_FIREBASE_*
   // values at build time (they are public, so plain build-time vars are fine).
   const useEmulators =
