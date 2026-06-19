@@ -20,12 +20,12 @@ Goal: a single source of truth for what each role can do.
 
 Goal: secure session lifecycle.
 
-- [ ] Task: Emulator tests + implement a `sessionLogin` function exchanging a verified
+- [x] 8c0f9f6 Task: Emulator tests + implement a `sessionLogin` function exchanging a verified
   Firebase ID token for a **session cookie** (HTTP-only, Secure, SameSite). Assert cookie
   attributes and that a subsequent request authenticates.
-- [ ] Task: Emulator tests + implement `sessionLogout` clearing/revoking the cookie; assert
+- [x] 8c0f9f6 Task: Emulator tests + implement `sessionLogout` clearing/revoking the cookie; assert
   the next request is unauthenticated.
-- [ ] Verification: login sets a valid HTTP-only cookie; logout clears it. [checkpoint]
+- [~] Verification: login sets a valid HTTP-only cookie; logout clears it. [checkpoint]
 
 ## Phase 3: Magic-link login UI + account lookup
 
