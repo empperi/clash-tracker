@@ -39,7 +39,7 @@ Goal: passwordless sign-in for known accounts only.
   the Auth emulator. UI states: sent / invalid-or-expired / success.
 - [x] da1ac20 Task: Tests + implement header login/logout UI: shows a login entry when logged out;
   shows username + logout when logged in (driven by the session composable).
-- [ ] Verification: a seeded admin can request a link, sign in, and see their username. [checkpoint]
+- [x] Verification: a seeded admin can request a link, sign in, and see their username. [checkpoint]
 
 ## Phase 4: Custom claims & server-side guard
 
