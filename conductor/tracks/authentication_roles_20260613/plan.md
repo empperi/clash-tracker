@@ -27,7 +27,7 @@ Goal: secure session lifecycle.
   the next request is unauthenticated.
 - [x] Verification: login sets a valid HTTP-only cookie; logout clears it. [checkpoint]
 
-## Phase 3: Magic-link login UI + account lookup
+## Phase 3: Magic-link login UI + account lookup [checkpoint: fe15518]
 
 Goal: passwordless sign-in for known accounts only.
 
