@@ -20,15 +20,15 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "format:check": "prettier --check .",
     "dev": "npm run dev --workspace web",
-    "emulators": "firebase emulators:start",
-    "emulators:seed": "firebase emulators:start --import=./.seed --export-on-exit=./.seed"
+    "emulators": "firebase emulators:start --project demo-clash-tracker",
+    "emulators:seed": "firebase emulators:start --project demo-clash-tracker --import=./.seed --export-on-exit=./.seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.9.2",
-    "firebase-tools": "^13.0.0",
+    "firebase-tools": "^15.22.0",
     "prettier": "^3.8.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",

@@ -2,6 +2,11 @@ import { onRequest, onCall, HttpsError, Request } from 'firebase-functions/v2/ht
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
+// Region is set per-function (not via setGlobalOptions) because this module is evaluated
+// before index.ts's setGlobalOptions runs, and calling setGlobalOptions twice is undefined
+// behavior. The web client calls these in europe-west1 (see web/src/firebase-setup.ts).
+const REGION = 'europe-west1';
+
 /**
  * Parses cookies from the Cookie header.
  */
@@ -39,7 +44,7 @@ export async function verifyRequestSession(req: Request) {
 /**
  * HTTP endpoint to sign in. Exchanges Firebase ID token for an HTTP-only session cookie.
  */
-export const sessionLogin = onRequest(async (req, res) => {
+export const sessionLogin = onRequest({ region: REGION }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
@@ -85,7 +90,7 @@ export const sessionLogin = onRequest(async (req, res) => {
 /**
  * HTTP endpoint to sign out. Clears the session cookie and revokes the user's session tokens.
  */
-export const sessionLogout = onRequest(async (req, res) => {
+export const sessionLogout = onRequest({ region: REGION }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
@@ -189,7 +194,7 @@ export async function handleFindAccountForLogin(
  * Resolves a username or email, generates a sign-in link server-side if found,
  * and sends it via the configured mailer. Returns an opaque { status: 'ok' } response.
  */
-export const findAccountForLogin = onCall(async (request) => {
+export const findAccountForLogin = onCall({ region: REGION }, async (request) => {
   const usernameOrEmail = request.data?.usernameOrEmail;
   const origin = request.rawRequest?.headers?.origin || 'http://localhost:5000';
 
