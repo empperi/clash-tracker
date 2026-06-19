@@ -54,6 +54,17 @@ export const sessionLogin = onRequest(async (req, res) => {
   const expiresIn = 1000 * 60 * 60 * 24 * 5;
 
   try {
+    // Verify ID token first (checkRevoked = true)
+    const decodedIdToken = await getAuth().verifyIdToken(idToken, true);
+
+    // Enforce that authentication happened within the last 5 minutes.
+    const authTime = decodedIdToken.auth_time;
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (nowSeconds - authTime > 5 * 60) {
+      res.status(401).send('Recent sign-in required');
+      return;
+    }
+
     const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn });
     const maxAgeSeconds = expiresIn / 1000;
 

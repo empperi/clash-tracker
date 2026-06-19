@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { Request, Response } from 'firebase-functions/v2/https';
@@ -93,7 +93,7 @@ describe('Session Authentication lifecycle', () => {
 
   it('sessionLogin exchanges ID token for session cookie and sets cookie header', async () => {
     const idToken = await getIdTokenForUid(testUid);
-    const { req, res, status, headers } = createMockReqRes({ body: { idToken } });
+    const context = createMockReqRes({ body: { idToken } });
 
     // sessionLogin is an HTTPS v2 function handler.
     // For standard onRequest, the direct function is exported.
@@ -101,14 +101,14 @@ describe('Session Authentication lifecycle', () => {
     const handler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
       ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
       : sessionLogin;
-    await handler(req, res);
+    await handler(context.req, context.res);
 
-    expect(status).toBe(200);
-    expect(headers['set-cookie']).toBeDefined();
-    expect(headers['set-cookie']).toContain('__session=');
-    expect(headers['set-cookie']).toContain('HttpOnly');
-    expect(headers['set-cookie']).toContain('Secure');
-    expect(headers['set-cookie']).toContain('SameSite=Strict');
+    expect(context.status).toBe(200);
+    expect(context.headers['set-cookie']).toBeDefined();
+    expect(context.headers['set-cookie']).toContain('__session=');
+    expect(context.headers['set-cookie']).toContain('HttpOnly');
+    expect(context.headers['set-cookie']).toContain('Secure');
+    expect(context.headers['set-cookie']).toContain('SameSite=Strict');
   });
 
   it('authenticates subsequent request carrying the session cookie', async () => {
@@ -148,19 +148,19 @@ describe('Session Authentication lifecycle', () => {
     // Wait 1 second so that the revocation timestamp is strictly after the cookie's auth_time.
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const { req: logoutReq, res: logoutRes, status: logoutStatus, headers: logoutHeaders } = createMockReqRes({
+    const logoutContext = createMockReqRes({
       headers: { cookie: cookieValue },
     });
 
     const logoutHandler = typeof (sessionLogout as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
       ? (sessionLogout as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
       : sessionLogout;
-    await logoutHandler(logoutReq, logoutRes);
+    await logoutHandler(logoutContext.req, logoutContext.res);
 
-    expect(logoutStatus).toBe(200);
-    expect(logoutHeaders['set-cookie']).toBeDefined();
+    expect(logoutContext.status).toBe(200);
+    expect(logoutContext.headers['set-cookie']).toBeDefined();
     // Max-Age=0 or Expires in past to clear the cookie
-    expect(logoutHeaders['set-cookie']).toContain('Max-Age=0');
+    expect(logoutContext.headers['set-cookie']).toContain('Max-Age=0');
 
     // Subsequent verification must fail/return null
     const reqAfterLogout = {
@@ -190,5 +190,26 @@ describe('Session Authentication lifecycle', () => {
       : sessionLogout;
     await logoutHandler(logoutReq, logoutMockRes.res);
     expect(logoutMockRes.status).toBe(405);
+  });
+
+  it('sessionLogin rejects ID tokens authenticated more than 5 minutes ago', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.now());
+
+    const idToken = await getIdTokenForUid(testUid);
+
+    // Advance time by 6 minutes (360,000 ms)
+    vi.setSystemTime(Date.now() + 6 * 60 * 1000);
+
+    const context = createMockReqRes({ body: { idToken } });
+    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
+      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+      : sessionLogin;
+    await loginHandler(context.req, context.res);
+
+    expect(context.status).toBe(401);
+    expect(context.body).toContain('Recent sign-in required');
+
+    vi.useRealTimers();
   });
 });
