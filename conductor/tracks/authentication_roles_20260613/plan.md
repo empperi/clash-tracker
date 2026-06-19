@@ -31,10 +31,10 @@ Goal: secure session lifecycle.
 
 Goal: passwordless sign-in for known accounts only.
 
-- [ ] Task: Tests + implement a non-enumerating `findAccountForLogin(usernameOrEmail)` that
+- [x] 5d26458 Task: Tests + implement a non-enumerating `findAccountForLogin(usernameOrEmail)` that
   resolves to an account email only if it exists; returns a uniform response either way
   (no leak). Unit-test the non-enumeration.
-- [ ] Task: Tests + implement the email-link send + completion flow (Firebase Auth email
+- [~] Task: Tests + implement the email-link send + completion flow (Firebase Auth email
   link) wired to the lookup; on completion call `sessionLogin`. Component/flow tests with
   the Auth emulator. UI states: sent / invalid-or-expired / success.
 - [ ] Task: Tests + implement header login/logout UI: shows a login entry when logged out;
