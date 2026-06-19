@@ -7,7 +7,7 @@ and guard logic → `core`/`functions` pure helpers (unit-tested); flows → emu
 > Implementer note: security-critical. Verify cookie attributes (HTTP-only/Secure/SameSite)
 > and that revocation actually blocks the next request. No account enumeration.
 
-## Phase 1: Roles → capabilities (pure)
+## Phase 1: Roles → capabilities (pure) [checkpoint: 9b486cd]
 
 Goal: a single source of truth for what each role can do.
 
