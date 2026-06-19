@@ -127,8 +127,23 @@ async function main(): Promise<void> {
     await db.doc(`players/${player.tag}`).set(player, { merge: true });
   }
 
+  // Seed mock admin and owner accounts for login testing
+  await db.doc('accounts/mock-admin-uid').set({
+    username: 'ChiefAdmin',
+    email: 'admin@example.internal',
+    role: 'admin',
+    playerTag: '#CO1',
+  }, { merge: true });
+
+  await db.doc('accounts/mock-owner-uid').set({
+    username: 'ChiefOwner',
+    email: 'owner@example.internal',
+    role: 'owner',
+    playerTag: '#LEADER',
+  }, { merge: true });
+
   console.log(
-    `Seeded ${CURRENT.length} current + ${PAST.length} past players and thresholds (70% / 5 wars) into demo-clash-tracker.`
+    `Seeded ${CURRENT.length} current + ${PAST.length} past players, thresholds (70% / 5 wars), and mock accounts (ChiefAdmin, ChiefOwner) into demo-clash-tracker.`
   );
 }
 
