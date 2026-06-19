@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Request, Response } from 'firebase-functions/v2/https';
-import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin } from './auth';
+import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting } from './auth';
 
 // Ensure emulator hosts are configured
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -215,8 +215,20 @@ describe('Session Authentication lifecycle', () => {
   });
 });
 
+type FindAccountHandler = (req: {
+  data: { usernameOrEmail: string };
+  rawRequest?: { headers: { origin?: string } };
+}) => Promise<{ status: string }>;
+
 describe('findAccountForLogin callable', () => {
   const db = getFirestore(app);
+
+  const sentEmails: { email: string; link: string }[] = [];
+  const testMailer = {
+    async sendSignInLink(email: string, link: string) {
+      sentEmails.push({ email, link });
+    },
+  };
 
   beforeAll(async () => {
     // Seed test account
@@ -233,57 +245,73 @@ describe('findAccountForLogin callable', () => {
     await db.collection('accounts').doc('john-doe-uid').delete();
   });
 
+  beforeEach(() => {
+    sentEmails.length = 0;
+    setMailerForTesting(testMailer);
+  });
+
   it('finds existing account by username (exact match)', async () => {
-    const handler = typeof (findAccountForLogin as any).run === 'function'
-      ? (findAccountForLogin as any).run
-      : findAccountForLogin;
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
-    expect(result).toEqual({ email: 'john.doe@example.com' });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0].email).toBe('john.doe@example.com');
+    expect(sentEmails[0].link).toContain('%2Flogin');
   });
 
   it('finds existing account by username (case insensitive)', async () => {
-    const handler = typeof (findAccountForLogin as any).run === 'function'
-      ? (findAccountForLogin as any).run
-      : findAccountForLogin;
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'JOHN_DOE' } });
-    expect(result).toEqual({ email: 'john.doe@example.com' });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0].email).toBe('john.doe@example.com');
   });
 
   it('finds existing account by email (exact match)', async () => {
-    const handler = typeof (findAccountForLogin as any).run === 'function'
-      ? (findAccountForLogin as any).run
-      : findAccountForLogin;
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'john.doe@example.com' } });
-    expect(result).toEqual({ email: 'john.doe@example.com' });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0].email).toBe('john.doe@example.com');
   });
 
   it('finds existing account by email (case insensitive)', async () => {
-    const handler = typeof (findAccountForLogin as any).run === 'function'
-      ? (findAccountForLogin as any).run
-      : findAccountForLogin;
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'JOHN.DOE@EXAMPLE.COM' } });
-    expect(result).toEqual({ email: 'john.doe@example.com' });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0].email).toBe('john.doe@example.com');
   });
 
-  it('returns non-enumerating email for unknown username', async () => {
-    const handler = typeof (findAccountForLogin as any).run === 'function'
-      ? (findAccountForLogin as any).run
-      : findAccountForLogin;
+  it('returns opaque response and does NOT send link for unknown username', async () => {
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'nonexistent_user' } });
-    expect(result).toEqual({ email: 'nonexistent_user@clash-tracker.invalid' });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(0);
   });
 
-  it('returns non-enumerating email for unknown email', async () => {
-    const handler = typeof (findAccountForLogin as any).run === 'function'
-      ? (findAccountForLogin as any).run
-      : findAccountForLogin;
+  it('returns opaque response and does NOT send link for unknown email', async () => {
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'unknown@example.com' } });
-    expect(result).toEqual({ email: 'unknown@example.com' });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(0);
   });
 });

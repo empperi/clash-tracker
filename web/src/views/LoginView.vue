@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { auth, functions } from '../firebase';
-import { isSignInWithEmailLink, signInWithEmailLink, sendSignInLinkToEmail } from 'firebase/auth';
+import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
 import BasePanel from '../components/BasePanel.vue';
 import BaseButton from '../components/BaseButton.vue';
 
-const route = useRoute();
 const router = useRouter();
 
 const usernameOrEmail = ref('');
 const status = ref<'idle' | 'loading' | 'sent' | 'error' | 'verifying' | 'success'>('idle');
 const errorMessage = ref('');
-const emailTarget = ref('');
 const needsEmailConfirmation = ref(false);
 
 onMounted(async () => {
@@ -53,9 +51,9 @@ async function completeSignIn(email: string) {
     setTimeout(() => {
       router.push('/');
     }, 1500);
-  } catch (err: any) {
+  } catch (err: unknown) {
     status.value = 'error';
-    errorMessage.value = err.message || 'Verification failed. The link may have expired or already been used.';
+    errorMessage.value = err instanceof Error ? err.message : 'Verification failed. The link may have expired or already been used.';
   }
 }
 
@@ -69,27 +67,23 @@ async function handleSendLink() {
   errorMessage.value = '';
 
   try {
-    // 1. Call findAccountForLogin callable
-    const findAccount = httpsCallable<{ usernameOrEmail: string }, { email: string }>(functions, 'findAccountForLogin');
-    const result = await findAccount({ usernameOrEmail: usernameOrEmail.value });
-    const email = result.data.email;
-    emailTarget.value = email;
+    // Call findAccountForLogin callable (now generates and sends magic link server-side if account exists)
+    const findAccount = httpsCallable<{ usernameOrEmail: string }, { status: string }>(functions, 'findAccountForLogin');
+    await findAccount({ usernameOrEmail: usernameOrEmail.value });
 
-    // 2. Send email link
-    const actionCodeSettings = {
-      url: window.location.origin + '/login',
-      handleCodeInApp: true,
-    };
-
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-
-    // Save email locally for completion flow
-    window.localStorage.setItem('emailForSignIn', email);
+    // If input was an email, save it locally to speed up completion flow on the same device.
+    // If it was a username, we don't save it because we don't know the email (preserving non-enumeration).
+    const trimmedInput = usernameOrEmail.value.trim();
+    if (trimmedInput.includes('@')) {
+      window.localStorage.setItem('emailForSignIn', trimmedInput.toLowerCase());
+    } else {
+      window.localStorage.removeItem('emailForSignIn');
+    }
 
     status.value = 'sent';
-  } catch (err: any) {
+  } catch (err: unknown) {
     status.value = 'error';
-    errorMessage.value = err.message || 'Failed to send login link. Please try again.';
+    errorMessage.value = err instanceof Error ? err.message : 'Failed to send login link. Please try again.';
   }
 }
 </script>

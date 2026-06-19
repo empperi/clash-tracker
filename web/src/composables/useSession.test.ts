@@ -12,9 +12,9 @@ vi.stubGlobal('fetch', fetchMock);
 vi.mock('firebase/auth', () => {
   return {
     getAuth: vi.fn(),
-    onAuthStateChanged: vi.fn((auth: any, cb: any) => {
+    onAuthStateChanged: vi.fn((auth: unknown, cb: (user: unknown) => void) => {
       // We attach the callback to the mock function so tests can retrieve it
-      (onAuthStateChanged as any)._callback = cb;
+      (onAuthStateChanged as unknown as { _callback: (user: unknown) => void })._callback = cb;
       // invoke immediately with null for initial load
       cb(null);
       return vi.fn();
@@ -56,7 +56,7 @@ describe('useSession', () => {
       }),
     };
 
-    const callback = (onAuthStateChanged as any)._callback;
+    const callback = (onAuthStateChanged as unknown as { _callback?: (user: unknown) => void })._callback;
     if (callback) {
       await callback(mockUser);
     }

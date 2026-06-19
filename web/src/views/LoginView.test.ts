@@ -38,7 +38,6 @@ const fetchMock = vi.fn().mockResolvedValue({
 vi.stubGlobal('fetch', fetchMock);
 
 // Mock firebase
-const mockSendSignInLink = vi.fn().mockResolvedValue(undefined);
 const mockSignInWithLink = vi.fn().mockResolvedValue({
   user: {
     getIdToken: vi.fn().mockResolvedValue('mock-id-token'),
@@ -49,13 +48,12 @@ vi.mock('firebase/auth', () => {
   return {
     getAuth: vi.fn(),
     isSignInWithEmailLink: vi.fn().mockReturnValue(false),
-    signInWithEmailLink: (...args: any[]) => mockSignInWithLink(...args),
-    sendSignInLinkToEmail: (...args: any[]) => mockSendSignInLink(...args),
+    signInWithEmailLink: (...args: unknown[]) => mockSignInWithLink(...args),
   };
 });
 
 const mockFindAccount = vi.fn().mockResolvedValue({
-  data: { email: 'john.doe@example.com' },
+  data: { status: 'ok' },
 });
 
 vi.mock('firebase/functions', () => {
@@ -87,7 +85,7 @@ describe('LoginView.vue', () => {
     expect(wrapper.find('input[type="text"]').exists()).toBe(true);
   });
 
-  it('submitting send link calls findAccountForLogin and sendSignInLinkToEmail', async () => {
+  it('submitting send link calls findAccountForLogin and shows sent status', async () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [router],
@@ -102,14 +100,6 @@ describe('LoginView.vue', () => {
     await flushPromises();
 
     expect(mockFindAccount).toHaveBeenCalledWith({ usernameOrEmail: 'john_doe' });
-    expect(mockSendSignInLink).toHaveBeenCalledWith(
-      expect.anything(),
-      'john.doe@example.com',
-      expect.objectContaining({
-        url: expect.stringContaining('/login'),
-        handleCodeInApp: true,
-      })
-    );
     expect(wrapper.text()).toContain('Magic Link Sent!');
   });
 });

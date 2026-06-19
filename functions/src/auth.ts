@@ -112,12 +112,33 @@ export const sessionLogout = onRequest(async (req, res) => {
   res.status(200).json({ status: 'success' });
 });
 
-/**
- * Resolves a username or email to an account email to proceed with email link sign-in.
- * Mimics success for non-existent users by returning a mock email to prevent account enumeration.
- */
-export const findAccountForLogin = onCall(async (request) => {
-  const usernameOrEmail = request.data?.usernameOrEmail;
+export interface Mailer {
+  sendSignInLink(email: string, link: string): Promise<void>;
+}
+
+export const consoleMailer: Mailer = {
+  async sendSignInLink(email: string, link: string) {
+    console.log(`[MAILER] Sent sign-in link to ${email}: ${link}`);
+  },
+};
+
+export let currentMailer: Mailer = consoleMailer;
+
+export function setMailerForTesting(newMailer: Mailer) {
+  currentMailer = newMailer;
+}
+
+export async function handleFindAccountForLogin(
+  usernameOrEmail: string,
+  origin: string,
+  deps: {
+    db: FirebaseFirestore.Firestore;
+    auth: {
+      generateSignInWithEmailLink(email: string, settings: { url: string; handleCodeInApp: boolean }): Promise<string>;
+    };
+    mailer: Mailer;
+  }
+): Promise<{ status: string }> {
   if (!usernameOrEmail || typeof usernameOrEmail !== 'string') {
     throw new HttpsError('invalid-argument', 'The function must be called with a string "usernameOrEmail".');
   }
@@ -125,8 +146,7 @@ export const findAccountForLogin = onCall(async (request) => {
   const cleanInput = usernameOrEmail.trim();
   const lowerInput = cleanInput.toLowerCase();
 
-  const db = getFirestore();
-  const accountsRef = db.collection('accounts');
+  const accountsRef = deps.db.collection('accounts');
 
   // 1. Try username exact match
   let snapshot = await accountsRef.where('username', '==', cleanInput).get();
@@ -146,18 +166,36 @@ export const findAccountForLogin = onCall(async (request) => {
     snapshot = await accountsRef.where('email', '==', lowerInput).get();
   }
 
-  // If found, return the real email
   const doc = snapshot.docs[0];
   if (doc) {
     const data = doc.data();
-    return { email: data.email as string };
+    const email = data.email as string;
+
+    const actionCodeSettings = {
+      url: `${origin}/login`,
+      handleCodeInApp: true,
+    };
+
+    const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
+    await deps.mailer.sendSignInLink(email, link);
+  } else {
+    console.log(`[Auth] No account found for "${cleanInput}". Link not sent.`);
   }
 
-  // If not found, return a uniform payload response mimicking a successful lookup,
-  // but containing a mock email target to prevent account enumeration.
-  if (cleanInput.includes('@')) {
-    return { email: cleanInput };
-  } else {
-    return { email: `${lowerInput}@clash-tracker.invalid` };
-  }
+  return { status: 'ok' };
+}
+
+/**
+ * Resolves a username or email, generates a sign-in link server-side if found,
+ * and sends it via the configured mailer. Returns an opaque { status: 'ok' } response.
+ */
+export const findAccountForLogin = onCall(async (request) => {
+  const usernameOrEmail = request.data?.usernameOrEmail;
+  const origin = request.rawRequest?.headers?.origin || 'http://localhost:5000';
+
+  return await handleFindAccountForLogin(usernameOrEmail, origin, {
+    db: getFirestore(),
+    auth: getAuth(),
+    mailer: currentMailer,
+  });
 });

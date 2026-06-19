@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
-import { rolesToCapabilities, type UserRole, type UserCapabilities } from '@clash-tracker/core';
+import { rolesToCapabilities, type UserRole } from '@clash-tracker/core';
 
 // Global state so that all callers share it
 const currentUser = ref<User | null>(null);
