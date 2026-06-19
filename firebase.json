@@ -18,6 +18,14 @@
     ],
     "rewrites": [
       {
+        "source": "/api/sessionLogin",
+        "function": "sessionLogin"
+      },
+      {
+        "source": "/api/sessionLogout",
+        "function": "sessionLogout"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
