@@ -11,10 +11,10 @@ and guard logic → `core`/`functions` pure helpers (unit-tested); flows → emu
 
 Goal: a single source of truth for what each role can do.
 
-- [ ] Task: Tests + implement `rolesToCapabilities(role)` in `core` → `{ canEditThresholds,
+- [x] f1f8753 Task: Tests + implement `rolesToCapabilities(role)` in `core` → `{ canEditThresholds,
   canViewPastPlayers, canManageAccounts, canEditClanIdentity, canSetToken, isOwner, ... }`.
   Owner is a superset of admin. Cover both roles and "unauthenticated" (all false).
-- [ ] Verification: capability mapping matches `product.md` permission tables. [checkpoint]
+- [x] Verification: capability mapping matches `product.md` permission tables. [checkpoint]
 
 ## Phase 2: Session cookie & logout (emulator)
 

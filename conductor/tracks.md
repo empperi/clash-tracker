@@ -46,7 +46,7 @@ The flagship public view: two ranked lists with an unmistakable qualification li
 per-player stats, mobile-first layout, and an admin-only lazy infinite-scroll past-players
 section. Reads precomputed aggregates; reuses Track 4's pure functions.
 
-### [ ] Track 6: Authentication & roles [authentication_roles_20260613]
+### [~] Track 6: Authentication & roles [authentication_roles_20260613]
 Passwordless magic-link login, secure HTTP-only session cookie, Owner/Admin custom claims,
 a reusable server-side `requireRole` guard, capability mapping for the UI, and prompt
 session revocation. Public site stays read-only browsable.
