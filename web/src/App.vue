@@ -18,7 +18,10 @@ const eagerLoad = createEagerLoader(useQueryClient(), inject(PLAYERS_API, EMPTY_
 const prefersReducedMotion = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const initialView = route.name ? String(route.name) : (VIEW_ORDER[0] ?? 'player-list');
+const initialView =
+  route.name && VIEW_ORDER.includes(String(route.name))
+    ? String(route.name)
+    : 'player-list';
 
 const {
   activeView,
@@ -46,7 +49,9 @@ const {
 watch(
   () => route.name,
   (name) => {
-    if (name && String(name) !== activeView.value) setActiveView(String(name));
+    if (name && VIEW_ORDER.includes(String(name)) && String(name) !== activeView.value) {
+      setActiveView(String(name));
+    }
   }
 );
 
@@ -83,7 +88,10 @@ function handleTransitionEnd(event: TransitionEvent): void {
   <div class="app-container">
     <AppHeader />
     <main ref="viewport" class="app-viewport">
-      <div class="swipe-track" :style="trackStyle" @transitionend="handleTransitionEnd">
+      <div v-if="route.name === 'login'" class="login-container">
+        <router-view />
+      </div>
+      <div v-else class="swipe-track" :style="trackStyle" @transitionend="handleTransitionEnd">
         <section class="swipe-panel" aria-hidden="true">
           <component :is="componentForView(prevView)" :key="`prev-${prevView}`" />
         </section>
@@ -95,7 +103,7 @@ function handleTransitionEnd(event: TransitionEvent): void {
         </section>
       </div>
     </main>
-    <AppNav />
+    <AppNav v-if="route.name !== 'login'" />
   </div>
 </template>
 

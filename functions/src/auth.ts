@@ -147,9 +147,10 @@ export const findAccountForLogin = onCall(async (request) => {
   }
 
   // If found, return the real email
-  if (!snapshot.empty) {
-    const data = snapshot.docs[0].data();
-    return { email: data.email };
+  const doc = snapshot.docs[0];
+  if (doc) {
+    const data = doc.data();
+    return { email: data.email as string };
   }
 
   // If not found, return a uniform payload response mimicking a successful lookup,

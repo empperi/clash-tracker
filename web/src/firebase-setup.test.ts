@@ -7,6 +7,8 @@ test('initializes firebase with config', () => {
   const connectFirestoreEmulator = vi.fn();
   const getAuth = vi.fn().mockReturnValue('mock-auth');
   const connectAuthEmulator = vi.fn();
+  const getFunctions = vi.fn().mockReturnValue('mock-functions');
+  const connectFunctionsEmulator = vi.fn();
 
   const env = {
     VITE_FIREBASE_API_KEY: 'test-key',
@@ -19,6 +21,8 @@ test('initializes firebase with config', () => {
     connectFirestoreEmulator,
     getAuth,
     connectAuthEmulator,
+    getFunctions,
+    connectFunctionsEmulator,
   });
 
   expect(initializeApp).toHaveBeenCalledWith({
@@ -31,8 +35,10 @@ test('initializes firebase with config', () => {
   });
   expect(getFirestore).toHaveBeenCalledWith('mock-app');
   expect(getAuth).toHaveBeenCalledWith('mock-app');
+  expect(getFunctions).toHaveBeenCalledWith('mock-app', 'europe-west1');
   expect(connectFirestoreEmulator).not.toHaveBeenCalled();
   expect(connectAuthEmulator).not.toHaveBeenCalled();
+  expect(connectFunctionsEmulator).not.toHaveBeenCalled();
 });
 
 test('connects to emulators when VITE_USE_EMULATORS is true', () => {
@@ -41,6 +47,8 @@ test('connects to emulators when VITE_USE_EMULATORS is true', () => {
   const connectFirestoreEmulator = vi.fn();
   const getAuth = vi.fn().mockReturnValue('mock-auth');
   const connectAuthEmulator = vi.fn();
+  const getFunctions = vi.fn().mockReturnValue('mock-functions');
+  const connectFunctionsEmulator = vi.fn();
 
   const env = {
     VITE_USE_EMULATORS: 'true',
@@ -53,12 +61,15 @@ test('connects to emulators when VITE_USE_EMULATORS is true', () => {
     connectFirestoreEmulator,
     getAuth,
     connectAuthEmulator,
+    getFunctions,
+    connectFunctionsEmulator,
   });
 
   expect(connectFirestoreEmulator).toHaveBeenCalledWith('mock-db', 'localhost', 8080);
   expect(connectAuthEmulator).toHaveBeenCalledWith('mock-auth', 'http://localhost:9099', {
     disableWarnings: true,
   });
+  expect(connectFunctionsEmulator).toHaveBeenCalledWith('mock-functions', 'localhost', 5001);
 });
 
 test('uses safe demo placeholders when running against emulators with no config', () => {
@@ -67,10 +78,20 @@ test('uses safe demo placeholders when running against emulators with no config'
   const connectFirestoreEmulator = vi.fn();
   const getAuth = vi.fn().mockReturnValue('mock-auth');
   const connectAuthEmulator = vi.fn();
+  const getFunctions = vi.fn().mockReturnValue('mock-functions');
+  const connectFunctionsEmulator = vi.fn();
 
   setupFirebase(
     { VITE_USE_EMULATORS: 'true' },
-    { initializeApp, getFirestore, connectFirestoreEmulator, getAuth, connectAuthEmulator }
+    {
+      initializeApp,
+      getFirestore,
+      connectFirestoreEmulator,
+      getAuth,
+      connectAuthEmulator,
+      getFunctions,
+      connectFunctionsEmulator,
+    }
   );
 
   // A non-empty apiKey avoids auth/invalid-api-key; demo values never reach Google.
@@ -85,6 +106,7 @@ test('uses safe demo placeholders when running against emulators with no config'
 test('defaults to emulators in development mode', () => {
   const connectFirestoreEmulator = vi.fn();
   const connectAuthEmulator = vi.fn();
+  const connectFunctionsEmulator = vi.fn();
 
   setupFirebase(
     { MODE: 'development' },
@@ -94,17 +116,21 @@ test('defaults to emulators in development mode', () => {
       connectFirestoreEmulator,
       getAuth: vi.fn().mockReturnValue('mock-auth'),
       connectAuthEmulator,
+      getFunctions: vi.fn().mockReturnValue('mock-functions'),
+      connectFunctionsEmulator,
     }
   );
 
   expect(connectFirestoreEmulator).toHaveBeenCalled();
   expect(connectAuthEmulator).toHaveBeenCalled();
+  expect(connectFunctionsEmulator).toHaveBeenCalled();
 });
 
 test('does not use emulators or demo keys in production mode', () => {
   const initializeApp = vi.fn().mockReturnValue('mock-app');
   const connectFirestoreEmulator = vi.fn();
   const connectAuthEmulator = vi.fn();
+  const connectFunctionsEmulator = vi.fn();
 
   setupFirebase(
     {
@@ -118,6 +144,8 @@ test('does not use emulators or demo keys in production mode', () => {
       connectFirestoreEmulator,
       getAuth: vi.fn().mockReturnValue('mock-auth'),
       connectAuthEmulator,
+      getFunctions: vi.fn().mockReturnValue('mock-functions'),
+      connectFunctionsEmulator,
     }
   );
 
@@ -126,4 +154,5 @@ test('does not use emulators or demo keys in production mode', () => {
   );
   expect(connectFirestoreEmulator).not.toHaveBeenCalled();
   expect(connectAuthEmulator).not.toHaveBeenCalled();
+  expect(connectFunctionsEmulator).not.toHaveBeenCalled();
 });

@@ -1,6 +1,7 @@
 import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
 import type { Firestore } from 'firebase/firestore';
 import type { Auth } from 'firebase/auth';
+import type { Functions } from 'firebase/functions';
 
 export function setupFirebase(
   env: Record<string, string | undefined>,
@@ -10,6 +11,8 @@ export function setupFirebase(
     connectFirestoreEmulator: (db: Firestore, host: string, port: number) => void;
     getAuth: (app: FirebaseApp) => Auth;
     connectAuthEmulator: (auth: Auth, url: string, options?: { disableWarnings: boolean }) => void;
+    getFunctions: (app: FirebaseApp, region?: string) => Functions;
+    connectFunctionsEmulator: (functions: Functions, host: string, port: number) => void;
   }
 ) {
   // Use the emulators when explicitly requested, or by default in dev mode. The Firebase
@@ -21,7 +24,7 @@ export function setupFirebase(
   const useEmulators =
     env.VITE_USE_EMULATORS !== undefined
       ? env.VITE_USE_EMULATORS === 'true'
-      : env.MODE === 'development';
+      : env.MODE === 'development' || env.MODE === 'test';
 
   const firebaseConfig = {
     apiKey: env.VITE_FIREBASE_API_KEY || (useEmulators ? 'demo-api-key' : undefined),
@@ -35,6 +38,7 @@ export function setupFirebase(
   const app = deps.initializeApp(firebaseConfig);
   const db = deps.getFirestore(app);
   const auth = deps.getAuth(app);
+  const functions = deps.getFunctions(app, 'europe-west1');
 
   if (useEmulators) {
     const host =
@@ -43,7 +47,8 @@ export function setupFirebase(
         : 'localhost';
     deps.connectFirestoreEmulator(db, host, 8080);
     deps.connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
+    deps.connectFunctionsEmulator(functions, host, 5001);
   }
 
-  return { app, db, auth };
+  return { app, db, auth, functions };
 }

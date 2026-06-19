@@ -1,0 +1,306 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { auth, functions } from '../firebase';
+import { isSignInWithEmailLink, signInWithEmailLink, sendSignInLinkToEmail } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
+import BasePanel from '../components/BasePanel.vue';
+import BaseButton from '../components/BaseButton.vue';
+
+const route = useRoute();
+const router = useRouter();
+
+const usernameOrEmail = ref('');
+const status = ref<'idle' | 'loading' | 'sent' | 'error' | 'verifying' | 'success'>('idle');
+const errorMessage = ref('');
+const emailTarget = ref('');
+const needsEmailConfirmation = ref(false);
+
+onMounted(async () => {
+  if (isSignInWithEmailLink(auth, window.location.href)) {
+    status.value = 'verifying';
+    const email = window.localStorage.getItem('emailForSignIn');
+    if (!email) {
+      needsEmailConfirmation.value = true;
+      status.value = 'idle';
+      usernameOrEmail.value = '';
+      return;
+    }
+    await completeSignIn(email);
+  }
+});
+
+async function completeSignIn(email: string) {
+  status.value = 'verifying';
+  errorMessage.value = '';
+  try {
+    const userCredential = await signInWithEmailLink(auth, email, window.location.href);
+    window.localStorage.removeItem('emailForSignIn');
+
+    // Exchange ID Token for session cookie
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch('/api/sessionLogin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    status.value = 'success';
+    setTimeout(() => {
+      router.push('/');
+    }, 1500);
+  } catch (err: any) {
+    status.value = 'error';
+    errorMessage.value = err.message || 'Verification failed. The link may have expired or already been used.';
+  }
+}
+
+async function handleSendLink() {
+  if (!usernameOrEmail.value.trim()) {
+    errorMessage.value = 'Please enter your username or email.';
+    return;
+  }
+
+  status.value = 'loading';
+  errorMessage.value = '';
+
+  try {
+    // 1. Call findAccountForLogin callable
+    const findAccount = httpsCallable<{ usernameOrEmail: string }, { email: string }>(functions, 'findAccountForLogin');
+    const result = await findAccount({ usernameOrEmail: usernameOrEmail.value });
+    const email = result.data.email;
+    emailTarget.value = email;
+
+    // 2. Send email link
+    const actionCodeSettings = {
+      url: window.location.origin + '/login',
+      handleCodeInApp: true,
+    };
+
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+
+    // Save email locally for completion flow
+    window.localStorage.setItem('emailForSignIn', email);
+
+    status.value = 'sent';
+  } catch (err: any) {
+    status.value = 'error';
+    errorMessage.value = err.message || 'Failed to send login link. Please try again.';
+  }
+}
+</script>
+
+<template>
+  <div class="login-view">
+    <div class="login-card-wrapper">
+      <BasePanel title="ADMIN LOGIN">
+        <div v-if="status === 'verifying'" class="status-container verifying">
+          <div class="spinner"></div>
+          <p class="status-msg">Verifying magic link...</p>
+        </div>
+
+        <div v-else-if="status === 'success'" class="status-container success">
+          <div class="success-icon">✓</div>
+          <h4 class="status-title">Successfully Signed In!</h4>
+          <p class="status-msg">Redirecting to home page...</p>
+        </div>
+
+        <div v-else-if="needsEmailConfirmation" class="form-container">
+          <p class="intro-text">
+            To complete sign in, please re-confirm your email address.
+          </p>
+          <div class="input-group">
+            <label for="confirm-email">Email Address</label>
+            <input
+              id="confirm-email"
+              v-model="usernameOrEmail"
+              type="email"
+              placeholder="e.g. chief@example.com"
+              class="ct-input"
+              @keyup.enter="completeSignIn(usernameOrEmail)"
+            />
+          </div>
+          <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
+          <BaseButton variant="primary" :disabled="status === 'loading'" @click="completeSignIn(usernameOrEmail)">
+            Confirm and Sign In
+          </BaseButton>
+        </div>
+
+        <div v-else-if="status === 'sent'" class="status-container sent">
+          <div class="sent-icon">✉</div>
+          <h4 class="status-title">Magic Link Sent!</h4>
+          <p class="status-msg">
+            We have sent a sign-in link to the email associated with your account.
+            Please check your inbox (and spam folder) and click the link to log in.
+          </p>
+          <BaseButton variant="secondary" @click="status = 'idle'; needsEmailConfirmation = false; errorMessage = ''">
+            Back to Sign In
+          </BaseButton>
+        </div>
+
+        <div v-else class="form-container">
+          <p class="intro-text">
+            Enter your username or email address below. We'll send a passwordless magic sign-in link to your registered email.
+          </p>
+
+          <div class="input-group">
+            <label for="login-input">Username or Email</label>
+            <input
+              id="login-input"
+              v-model="usernameOrEmail"
+              type="text"
+              placeholder="e.g. chief_barbarian"
+              class="ct-input"
+              :disabled="status === 'loading'"
+              @keyup.enter="handleSendLink"
+            />
+          </div>
+
+          <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
+
+          <div class="actions">
+            <BaseButton
+              variant="primary"
+              :disabled="status === 'loading'"
+              @click="handleSendLink"
+            >
+              {{ status === 'loading' ? 'Sending...' : 'Send Magic Link' }}
+            </BaseButton>
+          </div>
+        </div>
+      </BasePanel>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.login-view {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 120px);
+  padding: var(--ct-spacing-md);
+}
+
+.login-card-wrapper {
+  width: 100%;
+  max-width: 420px;
+}
+
+.intro-text {
+  color: var(--ct-color-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: var(--ct-spacing-lg);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-spacing-xs);
+  margin-bottom: var(--ct-spacing-lg);
+}
+
+.input-group label {
+  font-family: var(--ct-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ct-color-gold-text);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ct-input {
+  background-color: var(--ct-color-surface-well);
+  border: 2px solid var(--ct-color-border);
+  border-radius: var(--ct-radius-md);
+  color: var(--ct-color-text-primary);
+  font-family: var(--ct-font-body);
+  font-size: 16px;
+  padding: 12px var(--ct-spacing-md);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 48px; /* High accessibility touch target */
+}
+
+.ct-input:focus {
+  outline: none;
+  border-color: var(--ct-color-border-focus);
+  box-shadow: var(--ct-focus-ring);
+}
+
+.ct-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  background-color: var(--ct-color-red-light);
+  border: 1px solid var(--ct-color-red);
+  color: #ff8080;
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  border-radius: var(--ct-radius-md);
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: var(--ct-spacing-lg);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--ct-spacing-lg) 0;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--ct-color-border);
+  border-top-color: var(--ct-color-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--ct-spacing-md);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.success-icon {
+  font-size: 48px;
+  color: var(--ct-color-green);
+  margin-bottom: var(--ct-spacing-md);
+  line-height: 1;
+}
+
+.sent-icon {
+  font-size: 48px;
+  color: var(--ct-color-gold);
+  margin-bottom: var(--ct-spacing-md);
+  line-height: 1;
+}
+
+.status-title {
+  font-size: 20px;
+  margin-bottom: var(--ct-spacing-sm);
+}
+
+.status-msg {
+  color: var(--ct-color-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 320px;
+  margin-bottom: var(--ct-spacing-lg);
+}
+</style>

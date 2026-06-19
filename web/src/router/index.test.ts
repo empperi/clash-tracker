@@ -13,4 +13,7 @@ test('router matches routes and defaults to Player List', async () => {
 
   await router.push('/owner');
   expect(router.currentRoute.value.name).toBe('owner');
+
+  await router.push('/login');
+  expect(router.currentRoute.value.name).toBe('login');
 });
