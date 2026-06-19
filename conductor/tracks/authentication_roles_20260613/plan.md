@@ -37,7 +37,7 @@ Goal: passwordless sign-in for known accounts only.
 - [x] 4b25f5f Task: Tests + implement the email-link send + completion flow (Firebase Auth email
   link) wired to the lookup; on completion call `sessionLogin`. Component/flow tests with
   the Auth emulator. UI states: sent / invalid-or-expired / success.
-- [~] Task: Tests + implement header login/logout UI: shows a login entry when logged out;
+- [x] da1ac20 Task: Tests + implement header login/logout UI: shows a login entry when logged out;
   shows username + logout when logged in (driven by the session composable).
 - [ ] Verification: a seeded admin can request a link, sign in, and see their username. [checkpoint]
 
