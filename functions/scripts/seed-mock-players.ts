@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 /**
  * Seeds mock players + thresholds into the LOCAL Firestore emulator so the
@@ -18,6 +19,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
   process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+}
+if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 }
 
 interface MockPlayer {
@@ -127,6 +131,8 @@ async function main(): Promise<void> {
     await db.doc(`players/${player.tag}`).set(player, { merge: true });
   }
 
+  const auth = getAuth(app);
+
   // Seed mock admin and owner accounts for login testing
   await db.doc('accounts/mock-admin-uid').set({
     username: 'ChiefAdmin',
@@ -142,8 +148,41 @@ async function main(): Promise<void> {
     playerTag: '#LEADER',
   }, { merge: true });
 
+  // Pre-create the users in Firebase Auth Emulator so they show in the UI immediately
+  const mockUsers = [
+    {
+      uid: 'mock-admin-uid',
+      email: 'admin@example.internal',
+      displayName: 'ChiefAdmin',
+    },
+    {
+      uid: 'mock-owner-uid',
+      email: 'owner@example.internal',
+      displayName: 'ChiefOwner',
+    },
+  ];
+
+  for (const user of mockUsers) {
+    // Delete any conflicting user by UID first
+    try {
+      await auth.deleteUser(user.uid);
+    } catch {
+      // ignore
+    }
+
+    // Delete any conflicting user by Email next
+    try {
+      const existing = await auth.getUserByEmail(user.email);
+      await auth.deleteUser(existing.uid);
+    } catch {
+      // ignore
+    }
+
+    await auth.createUser(user);
+  }
+
   console.log(
-    `Seeded ${CURRENT.length} current + ${PAST.length} past players, thresholds (70% / 5 wars), and mock accounts (ChiefAdmin, ChiefOwner) into demo-clash-tracker.`
+    `Seeded ${CURRENT.length} current + ${PAST.length} past players, thresholds (70% / 5 wars), mock accounts, and Auth users (ChiefAdmin, ChiefOwner) into demo-clash-tracker.`
   );
 }
 
