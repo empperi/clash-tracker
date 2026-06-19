@@ -96,7 +96,7 @@ test('uses safe demo placeholders when running against emulators with no config'
 
   // A non-empty apiKey avoids auth/invalid-api-key; demo values never reach Google.
   expect(initializeApp).toHaveBeenCalledWith(
-    expect.objectContaining({ apiKey: 'demo-api-key', projectId: 'demo-clash-tracker' })
+    expect.objectContaining({ apiKey: 'fake-api-key', projectId: 'demo-clash-tracker' })
   );
   expect(connectAuthEmulator).toHaveBeenCalledWith('mock-auth', 'http://localhost:9099', {
     disableWarnings: true,

@@ -27,7 +27,7 @@ export function setupFirebase(
       : env.MODE === 'development' || env.MODE === 'test';
 
   const firebaseConfig = {
-    apiKey: env.VITE_FIREBASE_API_KEY || (useEmulators ? 'demo-api-key' : undefined),
+    apiKey: env.VITE_FIREBASE_API_KEY || (useEmulators ? 'fake-api-key' : undefined),
     authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: env.VITE_FIREBASE_PROJECT_ID || (useEmulators ? 'demo-clash-tracker' : undefined),
     storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,

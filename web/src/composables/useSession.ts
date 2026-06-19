@@ -14,11 +14,13 @@ export function useSession() {
   if (!authListenerInitialized && typeof window !== 'undefined') {
     authListenerInitialized = true;
     onAuthStateChanged(auth, async (user) => {
+      console.log('[useSession] onAuthStateChanged fired. User:', user);
       currentUser.value = user;
       if (user) {
         // Refresh token to get latest claims
         try {
           const tokenResult = await user.getIdTokenResult(true);
+          console.log('[useSession] tokenResult claims:', tokenResult.claims);
           const claimRole = tokenResult.claims.role as UserRole | undefined;
           userRole.value = claimRole || null;
         } catch (e) {
@@ -29,6 +31,7 @@ export function useSession() {
         userRole.value = null;
       }
       loading.value = false;
+      console.log('[useSession] Finished state update. currentUser:', currentUser.value, 'userRole:', userRole.value, 'loading:', loading.value);
     });
   }
 

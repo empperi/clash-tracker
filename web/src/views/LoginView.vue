@@ -29,29 +29,35 @@ onMounted(async () => {
 });
 
 async function completeSignIn(email: string) {
+  console.log('[completeSignIn] Starting completeSignIn with email:', email);
   status.value = 'verifying';
   errorMessage.value = '';
   try {
     const userCredential = await signInWithEmailLink(auth, email, window.location.href);
+    console.log('[completeSignIn] signInWithEmailLink success. User:', userCredential.user);
     window.localStorage.removeItem('emailForSignIn');
 
     // Exchange ID Token for session cookie
     const idToken = await userCredential.user.getIdToken();
+    console.log('[completeSignIn] Exchanging ID Token for session cookie. Token length:', idToken.length);
     const response = await fetch('/api/sessionLogin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken }),
     });
 
+    console.log('[completeSignIn] sessionLogin response status:', response.status);
     if (!response.ok) {
       throw new Error(await response.text());
     }
 
     status.value = 'success';
+    console.log('[completeSignIn] Redirecting to home page in 1.5s...');
     setTimeout(() => {
       router.push('/');
     }, 1500);
   } catch (err: unknown) {
+    console.error('[completeSignIn] Error during completeSignIn:', err);
     status.value = 'error';
     errorMessage.value = err instanceof Error ? err.message : 'Verification failed. The link may have expired or already been used.';
   }
