@@ -25,7 +25,7 @@ Goal: secure session lifecycle.
   attributes and that a subsequent request authenticates.
 - [x] 8c0f9f6 Task: Emulator tests + implement `sessionLogout` clearing/revoking the cookie; assert
   the next request is unauthenticated.
-- [~] Verification: login sets a valid HTTP-only cookie; logout clears it. [checkpoint]
+- [x] Verification: login sets a valid HTTP-only cookie; logout clears it. [checkpoint]
 
 ## Phase 3: Magic-link login UI + account lookup
 
