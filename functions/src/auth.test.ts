@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 import { Request, Response } from 'firebase-functions/v2/https';
-import { sessionLogin, sessionLogout, verifyRequestSession } from './auth';
+import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin } from './auth';
 
 // Ensure emulator hosts are configured
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -211,5 +212,78 @@ describe('Session Authentication lifecycle', () => {
     expect(context.body).toContain('Recent sign-in required');
 
     vi.useRealTimers();
+  });
+});
+
+describe('findAccountForLogin callable', () => {
+  const db = getFirestore(app);
+
+  beforeAll(async () => {
+    // Seed test account
+    await db.collection('accounts').doc('john-doe-uid').set({
+      email: 'john.doe@example.com',
+      username: 'john_doe',
+      role: 'admin',
+      playerTag: '#12345',
+    });
+  });
+
+  afterAll(async () => {
+    // Clean up
+    await db.collection('accounts').doc('john-doe-uid').delete();
+  });
+
+  it('finds existing account by username (exact match)', async () => {
+    const handler = typeof (findAccountForLogin as any).run === 'function'
+      ? (findAccountForLogin as any).run
+      : findAccountForLogin;
+
+    const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
+    expect(result).toEqual({ email: 'john.doe@example.com' });
+  });
+
+  it('finds existing account by username (case insensitive)', async () => {
+    const handler = typeof (findAccountForLogin as any).run === 'function'
+      ? (findAccountForLogin as any).run
+      : findAccountForLogin;
+
+    const result = await handler({ data: { usernameOrEmail: 'JOHN_DOE' } });
+    expect(result).toEqual({ email: 'john.doe@example.com' });
+  });
+
+  it('finds existing account by email (exact match)', async () => {
+    const handler = typeof (findAccountForLogin as any).run === 'function'
+      ? (findAccountForLogin as any).run
+      : findAccountForLogin;
+
+    const result = await handler({ data: { usernameOrEmail: 'john.doe@example.com' } });
+    expect(result).toEqual({ email: 'john.doe@example.com' });
+  });
+
+  it('finds existing account by email (case insensitive)', async () => {
+    const handler = typeof (findAccountForLogin as any).run === 'function'
+      ? (findAccountForLogin as any).run
+      : findAccountForLogin;
+
+    const result = await handler({ data: { usernameOrEmail: 'JOHN.DOE@EXAMPLE.COM' } });
+    expect(result).toEqual({ email: 'john.doe@example.com' });
+  });
+
+  it('returns non-enumerating email for unknown username', async () => {
+    const handler = typeof (findAccountForLogin as any).run === 'function'
+      ? (findAccountForLogin as any).run
+      : findAccountForLogin;
+
+    const result = await handler({ data: { usernameOrEmail: 'nonexistent_user' } });
+    expect(result).toEqual({ email: 'nonexistent_user@clash-tracker.invalid' });
+  });
+
+  it('returns non-enumerating email for unknown email', async () => {
+    const handler = typeof (findAccountForLogin as any).run === 'function'
+      ? (findAccountForLogin as any).run
+      : findAccountForLogin;
+
+    const result = await handler({ data: { usernameOrEmail: 'unknown@example.com' } });
+    expect(result).toEqual({ email: 'unknown@example.com' });
   });
 });

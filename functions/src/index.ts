@@ -171,4 +171,4 @@ export const triggerIngestNow = onCall(async (request) => {
   return await handleTriggerIngestNow();
 });
 
-export { sessionLogin, sessionLogout } from './auth.js';
+export { sessionLogin, sessionLogout, findAccountForLogin } from './auth.js';
