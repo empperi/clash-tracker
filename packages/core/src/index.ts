@@ -1,4 +1,5 @@
 export * from './result.js';
+export * from './auth.js';
 export * from './domain.js';
 export * from './swipe.js';
 export * from './tag.js';
