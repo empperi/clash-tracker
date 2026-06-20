@@ -244,9 +244,13 @@ describe('Cloud Function handlers delegation', () => {
         playerTag: '#TEST1',
       });
 
-      // Cast role to any since 'member' is not a privileged UserRole ('admin' | 'owner')
-      // but is used here to test custom claim absence/rejection.
-      await setAccountRole(uid, role as any);
+      if (role === 'member') {
+        // Set the custom claim directly to 'member' to test negative access role gating,
+        // avoiding typescript compiler errors for unprivileged roles.
+        await auth.setCustomUserClaims(uid, { role: 'member' });
+      } else {
+        await setAccountRole(uid, role);
+      }
 
       const customToken = await auth.createCustomToken(uid);
       const url = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=mock-key`;
