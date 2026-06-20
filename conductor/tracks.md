@@ -54,7 +54,7 @@ a reusable server-side `requireRole` guard, capability mapping for the UI, and p
 session revocation. Public site stays read-only browsable.
 
 ### [ ] Track 7: Email delivery & one-time-code sign-in [email_delivery_20260620]
-Production-ready passwordless sign-in. A SendGrid-backed `Mailer` behind Track 6's `Mailer`
+Production-ready passwordless sign-in. A Resend-backed `Mailer` behind Track 6's `Mailer`
 interface (API key held as a Firebase secret, never logged or sent to the client) finally
 delivers email. Every sign-in email now carries a **prominent 6-digit one-time code** (the
 preferred path) with the magic link below as a fallback: the user types the code back into the

@@ -2,9 +2,9 @@
 
 Track `email_delivery_20260620`. TDD per `conductor/workflow.md`. Inject all side-effecting deps
 (randomness, clock, HTTP transport, repositories) so everything is testable with **no live
-SendGrid calls and no mocking libraries** — pass fakes / in-memory / the emulator. Delivery and
+Resend calls and no mocking libraries** — pass fakes / in-memory / the emulator. Delivery and
 the OTP run on top of Track 6's non-enumerating lookup and `sessionLogin`, which are unchanged.
-Guard the secrets: the SendGrid key, the OTP pepper, and the OTP itself are never logged or sent
+Guard the secrets: the Resend key, the OTP pepper, and the OTP itself are never logged or sent
 to the client.
 
 > Implementer note: the `Mailer` interface, `consoleMailer`, `currentMailer`,
@@ -62,20 +62,20 @@ Goal: a correct code signs the user in through the existing cookie path; failure
 - [ ] Verification: right code ⇒ session cookie; every wrong/expired/over-limit/unknown case ⇒
   same opaque error, no session, attempts capped. [checkpoint]
 
-## Phase 4: SendGrid mailer, email content & secrets
+## Phase 4: Resend mailer, email content & secrets
 
 Goal: real delivery in production with an OTP-forward email; console in dev; secrets guarded.
 
 - [ ] Task: Tests + implement a pure sign-in-email builder → subject + body with the **OTP
   prominent and labelled preferred** (single-use, expires in 10 min) and the **magic link below**
   as an alternative; friendly tone; no secrets beyond code + link.
-- [ ] Task: Tests + implement `makeSendGridMailer({ httpClient, apiKey, sender })` returning a
-  `Mailer`. With a fake `httpClient`, assert the request targets the SendGrid send endpoint with a
-  `Bearer` header and a payload whose `to` = recipient, `from` = sender, carrying the built
+- [ ] Task: Tests + implement `makeResendMailer({ httpClient, apiKey, sender })` returning a
+  `Mailer`. With a fake `httpClient`, assert the request targets the Resend send endpoint with a
+  `Bearer` header and a payload whose `to` = [recipient], `from` = sender, carrying the built
   subject/body (code + link). Assert a non-2xx/transport failure becomes a typed error and that
   the key and OTP are never logged.
-- [ ] Task: Tests + define `SENDGRID_API_KEY`, `OTP_PEPPER`, and the sender param as secrets;
-  implement mailer selection (configured ⇒ SendGrid with `nodeHttpClient`, unconfigured ⇒
+- [ ] Task: Tests + define `RESEND_API_KEY`, `OTP_PEPPER`, and the sender param as secrets;
+  implement mailer selection (configured ⇒ Resend with `nodeHttpClient`, unconfigured ⇒
   `consoleMailer`) and bind the secrets to `findAccountForLogin` and `verifyLoginOtp`. Assert
   selection both ways and that nothing secret is logged. Missing key ⇒ loud send error.
 - [ ] Verification: fake transport ⇒ correct OTP-forward request; selection works both ways; dev
@@ -113,7 +113,7 @@ Goal: installed PWAs on supporting platforms open the magic link in-app.
 ## Done when
 - A sign-in request in production delivers an email with a **prominent single-use OTP** and the
   magic link below; entering the code **in the PWA** signs the user in via the existing
-  session-cookie path (custom token → `sessionLogin`); the SendGrid key and OTP pepper live only
+  session-cookie path (custom token → `sessionLogin`); the Resend key and OTP pepper live only
   in Secret Manager (never logged, never in the client); `pendingLogins` is server-only; the OTP
   is hashed, short-lived, attempt-capped, and single-use; non-enumeration holds end-to-end;
   supporting PWAs can open the link in-app; dev/emulator still logs code + link — all covered by

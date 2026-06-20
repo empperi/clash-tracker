@@ -89,6 +89,6 @@ no account enumeration. Roles are **never** trusted from the client.
 - Authorized domains must include the OAuth redirect/continue origin.
 
 ## Out of Scope
-- **Email delivery / SendGrid** — separate track (`email_delivery_20260620`).
+- **Email delivery / Resend** — separate track (`email_delivery_20260620`).
 - Other social providers (Apple, GitHub, …).
 - Self-service public signup — membership stays closed (invitation/account only).
