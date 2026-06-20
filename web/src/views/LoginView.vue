@@ -57,6 +57,15 @@ async function completeSignIn(email: string) {
   }
 }
 
+function backToLogin() {
+  needsEmailConfirmation.value = false;
+  status.value = 'idle';
+  errorMessage.value = '';
+  usernameOrEmail.value = '';
+  // Drop the magic-link params so a refresh doesn't drop the user back into this step.
+  router.replace({ path: '/login', query: {} });
+}
+
 async function handleSendLink() {
   if (!usernameOrEmail.value.trim()) {
     errorMessage.value = 'Please enter your username or email.';
@@ -103,9 +112,13 @@ async function handleSendLink() {
           <p class="status-msg">Redirecting to home page...</p>
         </div>
 
-        <div v-else-if="needsEmailConfirmation" class="form-container">
-          <p class="intro-text">
-            To complete sign in, please re-confirm your email address.
+        <div v-else-if="needsEmailConfirmation" class="form-container confirm-step">
+          <div class="confirm-header">
+            <div class="confirm-icon">🔑</div>
+            <h4 class="status-title">One last step</h4>
+          </div>
+          <p class="confirm-callout">
+            Your sign-in link is valid. Enter your account email to finish signing in.
           </p>
           <div class="input-group">
             <label for="confirm-email">Email Address</label>
@@ -119,9 +132,14 @@ async function handleSendLink() {
             />
           </div>
           <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
-          <BaseButton variant="primary" :disabled="status === 'loading'" @click="completeSignIn(usernameOrEmail)">
-            Confirm and Sign In
-          </BaseButton>
+          <div class="confirm-actions">
+            <BaseButton variant="primary" :disabled="status === 'loading'" @click="completeSignIn(usernameOrEmail)">
+              Confirm and Sign In
+            </BaseButton>
+            <BaseButton variant="secondary" @click="backToLogin">
+              ← Back to login
+            </BaseButton>
+          </div>
         </div>
 
         <div v-else-if="status === 'sent'" class="status-container sent">
@@ -283,6 +301,36 @@ async function handleSendLink() {
   color: var(--ct-color-gold);
   margin-bottom: var(--ct-spacing-md);
   line-height: 1;
+}
+
+/* Email-confirmation step: a distinct "status screen" header so users immediately
+   recognise it is a different part of the flow, not the initial login form. */
+.confirm-header {
+  text-align: center;
+  margin-bottom: var(--ct-spacing-md);
+}
+
+.confirm-icon {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: var(--ct-spacing-sm);
+}
+
+.confirm-callout {
+  background-color: var(--ct-color-surface-well);
+  border-left: 4px solid var(--ct-color-gold);
+  border-radius: var(--ct-radius-md);
+  color: var(--ct-color-text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  margin-bottom: var(--ct-spacing-lg);
+}
+
+.confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-spacing-sm);
 }
 
 .status-title {

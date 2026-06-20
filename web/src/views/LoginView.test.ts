@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createRouter, createWebHistory } from 'vue-router';
+import { isSignInWithEmailLink } from 'firebase/auth';
 import LoginView from './LoginView.vue';
 
 // Mock Router
@@ -101,5 +102,29 @@ describe('LoginView.vue', () => {
 
     expect(mockFindAccount).toHaveBeenCalledWith({ usernameOrEmail: 'john_doe' });
     expect(wrapper.text()).toContain('Magic Link Sent!');
+  });
+
+  it('shows a visually distinct email-confirmation step, not a clone of the login form', async () => {
+    // Arrive via a magic link, but with no email stored locally (e.g. signed in with a
+    // username, or opened the link on another device).
+    localStorageMock.clear();
+    vi.mocked(isSignInWithEmailLink).mockReturnValueOnce(true);
+
+    const wrapper = mount(LoginView, {
+      global: {
+        plugins: [router],
+      },
+    });
+    await flushPromises();
+
+    const text = wrapper.text();
+    // Distinct heading + callout make it obvious this is a different step.
+    expect(text).toContain('One last step');
+    expect(text).toContain('Email Address');
+    expect(wrapper.find('input[type="email"]').exists()).toBe(true);
+    // A way back out of the step.
+    expect(text).toContain('Back to login');
+    // Crucially, it must NOT look like the initial username/email entry form.
+    expect(text).not.toContain('Username or Email');
   });
 });
