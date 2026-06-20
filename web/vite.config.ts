@@ -9,9 +9,15 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
+      // The service worker is intentionally disabled in dev. A dev SW adds nothing while
+      // building features, but its caching/registration (and classic-vs-module worker
+      // conflicts on re-registration) repeatedly broke local testing — e.g. stale shells
+      // and `importScripts` workbox load failures that block the login flow. PWA/offline
+      // behaviour is validated against a production build (`npm run build && npm run
+      // preview`), where the real generateSW output runs. Flip `enabled` to true only when
+      // you specifically need to exercise the SW in dev.
       devOptions: {
-        enabled: true,
-        type: 'module',
+        enabled: false,
       },
       manifest: manifestConfig,
     }),
