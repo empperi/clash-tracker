@@ -1,5 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { requireRole } from './auth.js';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -159,16 +160,20 @@ export const scheduledIngest = onSchedule('*/20 * * * *', async () => {
   await handleScheduledIngest();
 });
 
-export const triggerIngestNow = onCall(async (request) => {
-  // TODO(question): Full role-gating lands in Track 6. Restrict to authenticated users for now.
-  if (!request.auth) {
-    console.warn('triggerIngestNow: rejected unauthenticated request.');
-    throw new HttpsError('unauthenticated', 'User must be authenticated.');
-  }
-  console.log(
-    `triggerIngestNow: authenticated request received from user UID: ${request.auth.uid}`
-  );
-  return await handleTriggerIngestNow();
-});
+export let overrideIngestUseCase: IngestUseCase | undefined;
+export let overrideRecomputeUseCase: RecomputeUseCase | undefined;
+
+export function setIngestUseCaseForTesting(useCase: IngestUseCase | undefined) {
+  overrideIngestUseCase = useCase;
+}
+export function setRecomputeUseCaseForTesting(useCase: RecomputeUseCase | undefined) {
+  overrideRecomputeUseCase = useCase;
+}
+
+export const triggerIngestNow = onCall(
+  requireRole('admin')(async () => {
+    return await handleTriggerIngestNow(overrideIngestUseCase, overrideRecomputeUseCase);
+  })
+);
 
 export { sessionLogin, sessionLogout, findAccountForLogin } from './auth.js';

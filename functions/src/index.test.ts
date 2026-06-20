@@ -6,6 +6,23 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { SecretsRepository } from './repositories/SecretsRepository';
 import { parseEncryptionKey } from './crypto';
+import { CallableRequest } from 'firebase-functions/v2/https';
+
+vi.mock('firebase-admin/auth', () => {
+  return {
+    getAuth: () => ({
+      verifySessionCookie: async (cookie: string) => {
+        if (cookie === 'admin-cookie') {
+          return { uid: 'admin-123', role: 'admin' };
+        }
+        if (cookie === 'user-cookie') {
+          return { uid: 'user-123', role: 'member' };
+        }
+        throw new Error('Invalid cookie');
+      },
+    }),
+  };
+});
 
 type IngestUseCase = (clanTag: string) => Promise<Result<IngestSummary, string>>;
 type RecomputeUseCase = () => Promise<Result<RecomputeSummary, string>>;
@@ -43,12 +60,13 @@ describe('Cloud Function handlers delegation', () => {
     recomputeUseCase?: RecomputeUseCase
   ) => Promise<{ success: boolean; syncState?: string; error?: string }>;
   let triggerIngestNow: {
-    (request: { auth: undefined }): Promise<unknown>;
-    run?: (request: { auth: undefined }) => Promise<unknown>;
+    (request: unknown): Promise<unknown>;
+    run?: (request: unknown) => Promise<unknown>;
   };
+  let mod: typeof import('./index');
 
   beforeAll(async () => {
-    const mod = await import('./index');
+    mod = await import('./index');
     handleScheduledIngest = mod.handleScheduledIngest;
     handleTriggerIngestNow = mod.handleTriggerIngestNow;
     triggerIngestNow = mod.triggerIngestNow;
@@ -200,14 +218,68 @@ describe('Cloud Function handlers delegation', () => {
     );
   });
 
-  it('triggerIngestNow should reject unauthenticated requests', async () => {
-    const handler =
-      typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
-    await expect(handler({ auth: undefined })).rejects.toThrowError(
-      expect.objectContaining({
-        code: 'unauthenticated',
-        message: 'User must be authenticated.',
-      })
-    );
+  describe('triggerIngestNow role gating', () => {
+    it('rejects if cookie is missing', async () => {
+      const handler =
+        typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
+      await expect(
+        handler({
+          rawRequest: {
+            headers: {},
+          },
+        } as unknown as CallableRequest<unknown>)
+      ).rejects.toThrowError(
+        expect.objectContaining({
+          code: 'unauthenticated',
+          message: 'Session cookie missing.',
+        })
+      );
+    });
+
+    it('rejects if role is insufficient', async () => {
+      const handler =
+        typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
+      await expect(
+        handler({
+          rawRequest: {
+            headers: {
+              cookie: '__session=user-cookie',
+            },
+          },
+        } as unknown as CallableRequest<unknown>)
+      ).rejects.toThrowError(
+        expect.objectContaining({
+          code: 'permission-denied',
+          message: 'Unauthorized role.',
+        })
+      );
+    });
+
+    it('allows request if role is admin', async () => {
+      const handler =
+        typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
+      
+      const mockIngest = async (): Promise<Result<IngestSummary, string>> => {
+        return ok({ status: 'synced', warId: 'war123', attacksAdded: 1 });
+      };
+      const recompute = recomputeSpy();
+
+      mod.setIngestUseCaseForTesting(mockIngest);
+      mod.setRecomputeUseCaseForTesting(recompute.fn);
+
+      const res = await handler({
+        rawRequest: {
+          headers: {
+            cookie: '__session=admin-cookie',
+          },
+        },
+      } as unknown as CallableRequest<unknown>);
+
+      expect(res).toEqual({ success: true, syncState: 'synced' });
+      expect(recompute.state.called).toBe(true);
+
+      mod.setIngestUseCaseForTesting(undefined);
+      mod.setRecomputeUseCaseForTesting(undefined);
+    });
   });
 });
