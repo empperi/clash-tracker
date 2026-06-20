@@ -1,29 +1,19 @@
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
 import { Result, ok } from '@clash-tracker/core';
 import { IngestSummary } from './use-cases/ingestCurrentWar';
 import { RecomputeSummary } from './use-cases/recomputePlayerStats';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
+import { setAccountRole } from './auth.js';
 import { SecretsRepository } from './repositories/SecretsRepository';
 import { parseEncryptionKey } from './crypto';
 import { Request } from 'firebase-functions/v2/https';
 import { Response } from 'express';
 
-vi.mock('firebase-admin/auth', () => {
-  return {
-    getAuth: () => ({
-      verifySessionCookie: async (cookie: string) => {
-        if (cookie === 'admin-cookie') {
-          return { uid: 'admin-123', role: 'admin' };
-        }
-        if (cookie === 'user-cookie') {
-          return { uid: 'user-123', role: 'member' };
-        }
-        throw new Error('Invalid cookie');
-      },
-    }),
-  };
-});
+if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+}
 
 type IngestUseCase = (clanTag: string) => Promise<Result<IngestSummary, string>>;
 type RecomputeUseCase = () => Promise<Result<RecomputeSummary, string>>;
@@ -44,8 +34,9 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
   process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
 }
 
-const app = getApps().length === 0 ? initializeApp({ projectId: 'demo-index-cf' }) : getApp();
+const app = getApps().length === 0 ? initializeApp({ projectId: 'militia-clash-tracker' }) : getApp();
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 describe('Cloud Function handlers delegation', () => {
   const encKeyStr = '0123456789abcdef0123456789abcdef'; // 32 bytes UTF-8
@@ -220,8 +211,65 @@ describe('Cloud Function handlers delegation', () => {
   });
 
   describe('triggerIngestNow role gating', () => {
-    function createMockReqRes(reqData: { headers?: Record<string, string> }) {
+    const testAdminUid = 'test-admin-ingest';
+    const testMemberUid = 'test-member-ingest';
+
+    afterAll(async () => {
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch {
+        // Ignored
+      }
+      try {
+        await auth.deleteUser(testMemberUid);
+      } catch {
+        // Ignored
+      }
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('accounts').doc(testMemberUid).delete();
+    });
+
+    async function getSessionCookieForUser(uid: string, role: 'admin' | 'member' | null): Promise<string> {
+      try {
+        await auth.deleteUser(uid);
+      } catch {
+        // Ignored
+      }
+      await auth.createUser({ uid, email: `${uid}@example.com` });
+
+      await db.collection('accounts').doc(uid).set({
+        username: `${uid}_user`,
+        email: `${uid}@example.com`,
+        role: null,
+        playerTag: '#TEST1',
+      });
+
+      // Cast role to any since 'member' is not a privileged UserRole ('admin' | 'owner')
+      // but is used here to test custom claim absence/rejection.
+      await setAccountRole(uid, role as any);
+
+      const customToken = await auth.createCustomToken(uid);
+      const url = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=mock-key`;
+      const res = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ token: customToken, returnSecureToken: true }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to exchange custom token: ${await res.text()}`);
+      }
+      const data = (await res.json()) as { idToken: string };
+      const idToken = data.idToken;
+
+      const sessionCookie = await auth.createSessionCookie(idToken, {
+        expiresIn: 1000 * 60 * 60 * 24 * 5,
+      });
+      return sessionCookie;
+    }
+
+    function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string }) {
       const req = {
+        method: reqData.method || 'POST',
         headers: reqData.headers || {},
       } as unknown as Request;
 
@@ -253,6 +301,21 @@ describe('Cloud Function handlers delegation', () => {
       };
     }
 
+    it('rejects non-POST requests with 405 Method Not Allowed', async () => {
+      const handler =
+        typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
+      const context = createMockReqRes({
+        method: 'GET',
+        headers: {
+          cookie: '__session=admin-cookie',
+        },
+      });
+      await handler(context.req, context.res);
+
+      expect(context.status).toBe(405);
+      expect(context.body).toContain('Method Not Allowed');
+    });
+
     it('rejects if cookie is missing', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
@@ -263,12 +326,29 @@ describe('Cloud Function handlers delegation', () => {
       expect(context.body).toContain('Session cookie missing.');
     });
 
-    it('rejects if role is insufficient', async () => {
+    it('rejects if cookie is invalid', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
       const context = createMockReqRes({
         headers: {
-          cookie: '__session=user-cookie',
+          cookie: '__session=invalid-cookie-value',
+        },
+      });
+      await handler(context.req, context.res);
+
+      expect(context.status).toBe(401);
+      expect(context.body).toContain('Invalid or expired session');
+    });
+
+    it('rejects if role is insufficient', async () => {
+      const handler =
+        typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
+      
+      const cookie = await getSessionCookieForUser(testMemberUid, 'member');
+
+      const context = createMockReqRes({
+        headers: {
+          cookie: `__session=${cookie}`,
         },
       });
       await handler(context.req, context.res);
@@ -289,9 +369,11 @@ describe('Cloud Function handlers delegation', () => {
       mod.setIngestUseCaseForTesting(mockIngest);
       mod.setRecomputeUseCaseForTesting(recompute.fn);
 
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+
       const context = createMockReqRes({
         headers: {
-          cookie: '__session=admin-cookie',
+          cookie: `__session=${cookie}`,
         },
       });
       await handler(context.req, context.res);

@@ -170,8 +170,12 @@ export function setRecomputeUseCaseForTesting(useCase: RecomputeUseCase | undefi
   overrideRecomputeUseCase = useCase;
 }
 
-export const triggerIngestNow = onRequest(
-  requireRole('admin')(async (req, res) => {
+export const triggerIngestNow = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('admin')(async (req, res) => {
     try {
       const result = await handleTriggerIngestNow(overrideIngestUseCase, overrideRecomputeUseCase);
       res.status(200).json(result);
@@ -179,7 +183,7 @@ export const triggerIngestNow = onRequest(
       const msg = err instanceof Error ? err.message : String(err);
       res.status(500).send(msg);
     }
-  })
-);
+  })(req, res);
+});
 
 export { sessionLogin, sessionLogout, findAccountForLogin } from './auth.js';

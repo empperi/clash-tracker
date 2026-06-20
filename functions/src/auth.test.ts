@@ -441,6 +441,10 @@ describe('requireRole higher-order guard', () => {
     expect(context.status).toBe(200);
     expect(context.body).toEqual({ result: 'success' });
     expect(mockHandler).toHaveBeenCalled();
+    const passedReq = mockHandler.mock.calls[0][0];
+    expect(passedReq.auth).toBeDefined();
+    expect(passedReq.auth.uid).toBe('user123');
+    expect(passedReq.auth.token.role).toBe('admin');
   });
 
   it('allows owner if admin is required', async () => {

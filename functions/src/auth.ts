@@ -230,6 +230,13 @@ export async function setAccountRole(
   await deps.auth.setCustomUserClaims(uid, role ? { role } : null);
 }
 
+export interface AuthRequest extends Request {
+  auth?: {
+    uid: string;
+    token: DecodedIdToken;
+  };
+}
+
 /**
  * A reusable higher-order guard wrapper for Cloud Functions (onRequest HTTP endpoints)
  * that verifies the session cookie and matches its role claim against the expected role.
@@ -243,7 +250,7 @@ export function requireRole(
     verifySessionCookie: (cookie: string, checkRevoked?: boolean) => getAuth().verifySessionCookie(cookie, checkRevoked),
   }
 ) {
-  return (handler: (req: Request, res: Response) => void | Promise<void>) => {
+  return (handler: (req: AuthRequest, res: Response) => void | Promise<void>) => {
     return async (req: Request, res: Response): Promise<void> => {
       const cookies = parseCookies(req.headers?.cookie);
       const sessionCookie = cookies['__session'];
@@ -267,8 +274,14 @@ export function requireRole(
           return;
         }
 
+        const authReq = req as AuthRequest;
+        authReq.auth = {
+          uid: decodedToken.uid,
+          token: decodedToken,
+        };
+
         // Proceed to the handler
-        await handler(req, res);
+        await handler(authReq, res);
       } catch (error) {
         console.error('requireRole authentication failed:', error);
         res.status(401).send('Unauthorized: Invalid or expired session.');
