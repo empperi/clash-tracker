@@ -53,7 +53,7 @@ Goal: enforce roles on the server.
   verifier so unit tests need no live Auth. Reused by Tracks 3/7/8.
 - [x] 4b25f5f Task: Tests + implement a `useSession()` composable exposing `{ user, role,
   capabilities }` from the session, and wire it to the Track 5 `canViewPastPlayers` flag.
-- [ ] Verification: guarded function rejects non-admins, accepts admins; UI capabilities
+- [x] Verification: guarded function rejects non-admins, accepts admins; UI capabilities
   reflect role. [checkpoint]
 
 ## Phase 5: Revocation & consistency
