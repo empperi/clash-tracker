@@ -1,5 +1,5 @@
-import { onRequest, onCall, HttpsError, Request } from 'firebase-functions/v2/https';
-import { getAuth } from 'firebase-admin/auth';
+import { onRequest, onCall, HttpsError, Request, CallableRequest } from 'firebase-functions/v2/https';
+import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { UserRole } from '@clash-tracker/core';
 
@@ -227,4 +227,60 @@ export async function setAccountRole(
 
   // Update Auth Custom Claims
   await deps.auth.setCustomUserClaims(uid, role ? { role } : null);
+}
+
+/**
+ * A reusable higher-order guard wrapper for Cloud Functions (onCall callable endpoints)
+ * that verifies the session cookie and matches its role claim against the expected role.
+ * If unauthorized, throws HttpsError with unauthenticated (401) or permission-denied (403).
+ */
+export function requireRole(
+  role: UserRole,
+  deps: {
+    verifySessionCookie: (cookie: string, checkRevoked?: boolean) => Promise<DecodedIdToken>;
+  } = {
+    verifySessionCookie: (cookie: string, checkRevoked?: boolean) => getAuth().verifySessionCookie(cookie, checkRevoked),
+  }
+) {
+  return (handler: (request: CallableRequest<unknown>) => unknown) => {
+    return async (request: CallableRequest<unknown>) => {
+      const cookies = parseCookies(request.rawRequest?.headers?.cookie);
+      const sessionCookie = cookies['__session'];
+
+      if (!sessionCookie) {
+        throw new HttpsError('unauthenticated', 'Session cookie missing.');
+      }
+
+      try {
+        const decodedToken = await deps.verifySessionCookie(sessionCookie, true);
+        const claimRole = decodedToken.role as string | undefined;
+
+        const isAllowed =
+          role === 'admin'
+            ? claimRole === 'admin' || claimRole === 'owner'
+            : claimRole === 'owner';
+
+        if (!isAllowed) {
+          throw new HttpsError('permission-denied', 'Unauthorized role.');
+        }
+
+        // Attach auth context to request object so downstream handlers have access to user info.
+        const requestWithAuth: CallableRequest<unknown> = {
+          ...request,
+          auth: {
+            uid: decodedToken.uid,
+            token: decodedToken,
+            rawToken: sessionCookie,
+          },
+        };
+
+        return await handler(requestWithAuth);
+      } catch (error) {
+        if (error instanceof HttpsError) {
+          throw error;
+        }
+        throw new HttpsError('unauthenticated', 'Invalid or expired session.');
+      }
+    };
+  };
 }
