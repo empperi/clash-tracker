@@ -412,6 +412,23 @@ describe('findAccountForLogin callable', () => {
 
     await db.collection('accounts').doc(inconsistentUid).delete();
   });
+
+  it('returns opaque response and does NOT throw if email link generation/sending fails', async () => {
+    const failingMailer = {
+      async sendSignInLink() {
+        throw new Error('Mailer connection failed');
+      },
+    };
+    setMailerForTesting(failingMailer);
+
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
+
+    const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(0);
+  });
 });
 
 describe('setAccountRole primitive', () => {

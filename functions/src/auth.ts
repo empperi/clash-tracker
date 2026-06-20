@@ -203,13 +203,17 @@ export async function handleFindAccountForLogin(
     }
 
     if (userExistsInAuth) {
-      const actionCodeSettings = {
-        url: `${origin}/login`,
-        handleCodeInApp: true,
-      };
+      try {
+        const actionCodeSettings = {
+          url: `${origin}/login`,
+          handleCodeInApp: true,
+        };
 
-      const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
-      await deps.mailer.sendSignInLink(email, link);
+        const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
+        await deps.mailer.sendSignInLink(email, link);
+      } catch (err) {
+        console.error(`[Auth] Failed to generate or send sign-in link for ${email}:`, err);
+      }
     }
   } else {
     console.log(`[Auth] No account found for "${cleanInput}". Link not sent.`);
