@@ -65,7 +65,7 @@ Goal: deleting/invalidating an account ends access immediately.
 - [x] 2b77d81 Task: Tests + implement middleware that, when a session cookie no longer matches a
   valid account, **clears the cookie** and signals a redirect to the front page. Cover the
   stale-cookie case.
-- [ ] Verification: revoked/deleted account is locked out on the next request and redirected. [checkpoint]
+- [x] Verification: revoked/deleted account is locked out on the next request and redirected. [checkpoint]
 
 ## Phase 6: Firestore rules hardening
 
