@@ -3,7 +3,7 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Request, Response } from 'firebase-functions/v2/https';
-import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting, setAccountRole, requireRole } from './auth';
+import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting, setAccountRole, requireRole, revokeAccountSessions } from './auth';
 
 // Ensure emulator hosts are configured
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -13,7 +13,8 @@ if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
   process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 }
 
-const app = getApps().length === 0 ? initializeApp({ projectId: 'militia-clash-tracker' }) : getApp();
+const projectId = process.env.GCLOUD_PROJECT || 'militia-clash-tracker';
+const app = getApps().length === 0 ? initializeApp({ projectId }) : getApp();
 const auth = getAuth(app);
 
 // Helper to exchange custom token for ID token via Auth emulator REST API
@@ -58,6 +59,15 @@ function createMockReqRes(reqData: { body?: unknown; headers?: Record<string, st
     },
     json(body: unknown) {
       resBody = body;
+    },
+    redirect(statusOrUrl: number | string, maybeUrl?: string) {
+      if (typeof statusOrUrl === 'number') {
+        resStatus = statusOrUrl;
+        resHeaders['location'] = maybeUrl || '';
+      } else {
+        resStatus = 302;
+        resHeaders['location'] = statusOrUrl;
+      }
     },
     on() {
       return this;
@@ -372,11 +382,19 @@ describe('setAccountRole primitive', () => {
 });
 
 describe('requireRole higher-order guard', () => {
+  const mockDbOk = {
+    collection: () => ({
+      doc: () => ({
+        get: async () => ({ exists: true }),
+      }),
+    }),
+  } as unknown as FirebaseFirestore.Firestore;
+
   it('rejects with unauthenticated (401) if cookie is missing', async () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn();
     
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
     
     const context = createMockReqRes({ headers: {} });
     await guarded(context.req, context.res);
@@ -390,7 +408,7 @@ describe('requireRole higher-order guard', () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn().mockRejectedValue(new Error('Invalid token'));
     
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
     
     const context = createMockReqRes({
       headers: {
@@ -409,7 +427,7 @@ describe('requireRole higher-order guard', () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: undefined } as unknown as DecodedIdToken);
     
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
     
     const context = createMockReqRes({
       headers: {
@@ -429,7 +447,7 @@ describe('requireRole higher-order guard', () => {
     });
     const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
     
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
     
     const context = createMockReqRes({
       headers: {
@@ -453,7 +471,7 @@ describe('requireRole higher-order guard', () => {
     });
     const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'owner' } as unknown as DecodedIdToken);
     
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
     
     const context = createMockReqRes({
       headers: {
@@ -471,7 +489,7 @@ describe('requireRole higher-order guard', () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
     
-    const guarded = requireRole('owner', { verifySessionCookie: mockVerify })(mockHandler);
+    const guarded = requireRole('owner', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
     
     const context = createMockReqRes({
       headers: {
@@ -483,5 +501,46 @@ describe('requireRole higher-order guard', () => {
     expect(context.status).toBe(403);
     expect(context.body).toContain('Insufficient permissions');
     expect(mockHandler).not.toHaveBeenCalled();
+  });
+
+  it('clears session cookie and redirects if user account document does not exist in Firestore', async () => {
+    const mockHandler = vi.fn();
+    const mockVerify = vi.fn().mockResolvedValue({ uid: 'deleted-uid', role: 'admin' } as unknown as DecodedIdToken);
+    
+    const mockDbMissing = {
+      collection: () => ({
+        doc: () => ({
+          get: async () => ({ exists: false }),
+        }),
+      }),
+    } as unknown as FirebaseFirestore.Firestore;
+
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbMissing })(mockHandler);
+
+    const context = createMockReqRes({
+      headers: {
+        cookie: '__session=valid-but-deleted-cookie',
+      },
+    });
+
+    await guarded(context.req, context.res);
+
+    expect(context.status).toBe(302);
+    expect(context.headers['location']).toBe('/');
+    expect(context.headers['set-cookie']).toContain('__session=; Max-Age=0');
+    expect(mockHandler).not.toHaveBeenCalled();
+  });
+});
+
+describe('revokeAccountSessions helper', () => {
+  it('calls auth.revokeRefreshTokens with the user uid', async () => {
+    const mockRevoke = vi.fn().mockResolvedValue(undefined);
+    const mockAuth = {
+      revokeRefreshTokens: mockRevoke,
+    };
+
+    await revokeAccountSessions('user-to-revoke', { auth: mockAuth });
+
+    expect(mockRevoke).toHaveBeenCalledWith('user-to-revoke');
   });
 });

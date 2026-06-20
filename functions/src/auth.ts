@@ -230,6 +230,22 @@ export async function setAccountRole(
   await deps.auth.setCustomUserClaims(uid, role ? { role } : null);
 }
 
+/**
+ * Revokes refresh tokens and active sessions for a user account.
+ */
+export async function revokeAccountSessions(
+  uid: string,
+  deps: {
+    auth: {
+      revokeRefreshTokens(uid: string): Promise<void>;
+    };
+  } = {
+    auth: getAuth(),
+  }
+): Promise<void> {
+  await deps.auth.revokeRefreshTokens(uid);
+}
+
 export interface AuthRequest extends Request {
   auth?: {
     uid: string;
@@ -241,13 +257,16 @@ export interface AuthRequest extends Request {
  * A reusable higher-order guard wrapper for Cloud Functions (onRequest HTTP endpoints)
  * that verifies the session cookie and matches its role claim against the expected role.
  * If unauthorized, rejects the request with HTTP 401 or 403.
+ * If the user's document no longer exists in Firestore, clears the cookie and redirects to /.
  */
 export function requireRole(
   role: UserRole,
   deps: {
     verifySessionCookie: (cookie: string, checkRevoked?: boolean) => Promise<DecodedIdToken>;
+    db?: FirebaseFirestore.Firestore;
   } = {
     verifySessionCookie: (cookie: string, checkRevoked?: boolean) => getAuth().verifySessionCookie(cookie, checkRevoked),
+    db: getFirestore(),
   }
 ) {
   return (handler: (req: AuthRequest, res: Response) => void | Promise<void>) => {
@@ -262,6 +281,21 @@ export function requireRole(
 
       try {
         const decodedToken = await deps.verifySessionCookie(sessionCookie, true);
+
+        // Session consistency: verify that the user still has an active Firestore account document
+        const db = deps.db || getFirestore();
+        const accountDoc = await db.collection('accounts').doc(decodedToken.uid).get();
+
+        if (!accountDoc.exists) {
+          // Clear session cookie and redirect to front page
+          res.setHeader(
+            'Set-Cookie',
+            '__session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict'
+          );
+          res.redirect(302, '/');
+          return;
+        }
+
         const claimRole = decodedToken.role as string | undefined;
 
         const isAllowed =
@@ -284,6 +318,11 @@ export function requireRole(
         await handler(authReq, res);
       } catch (error) {
         console.error('requireRole authentication failed:', error);
+        // Clear session cookie if authentication failed
+        res.setHeader(
+          'Set-Cookie',
+          '__session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict'
+        );
         res.status(401).send('Unauthorized: Invalid or expired session.');
       }
     };

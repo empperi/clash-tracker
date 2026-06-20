@@ -34,7 +34,8 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
   process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
 }
 
-const app = getApps().length === 0 ? initializeApp({ projectId: 'militia-clash-tracker' }) : getApp();
+const projectId = process.env.GCLOUD_PROJECT || 'militia-clash-tracker';
+const app = getApps().length === 0 ? initializeApp({ projectId }) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -278,11 +279,16 @@ describe('Cloud Function handlers delegation', () => {
       } as unknown as Request;
 
       let resStatus = 200;
+      const resHeaders: Record<string, string> = {};
       let resBody: unknown = null;
 
       const res = {
         status(code: number) {
           resStatus = code;
+          return this;
+        },
+        setHeader(name: string, value: string) {
+          resHeaders[name.toLowerCase()] = value;
           return this;
         },
         send(body: unknown) {
@@ -291,6 +297,15 @@ describe('Cloud Function handlers delegation', () => {
         json(body: unknown) {
           resBody = body;
         },
+        redirect(statusOrUrl: number | string, maybeUrl?: string) {
+          if (typeof statusOrUrl === 'number') {
+            resStatus = statusOrUrl;
+            resHeaders['location'] = maybeUrl || '';
+          } else {
+            resStatus = 302;
+            resHeaders['location'] = statusOrUrl;
+          }
+        },
       } as unknown as Response;
 
       return {
@@ -298,6 +313,9 @@ describe('Cloud Function handlers delegation', () => {
         res,
         get status() {
           return resStatus;
+        },
+        get headers() {
+          return resHeaders;
         },
         get body() {
           return resBody;
