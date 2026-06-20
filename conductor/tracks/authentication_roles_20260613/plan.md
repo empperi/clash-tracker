@@ -56,7 +56,7 @@ Goal: enforce roles on the server.
 - [x] Verification: guarded function rejects non-admins, accepts admins; UI capabilities
   reflect role. [checkpoint]
 
-## Phase 5: Revocation & consistency
+## Phase 5: Revocation & consistency [checkpoint: bbf0a11]
 
 Goal: deleting/invalidating an account ends access immediately.
 
