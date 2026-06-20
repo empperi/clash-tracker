@@ -179,6 +179,13 @@ async function main(): Promise<void> {
     }
 
     await auth.createUser(user);
+    // give the seeded account a working role claim (admin for ChiefAdmin, owner for ChiefOwner)
+    await auth.setCustomUserClaims(user.uid, {
+      role: user.uid === 'mock-owner-uid' ? 'owner' : 'admin',
+    });
+    // Verify custom claims are set
+    const updatedUser = await auth.getUser(user.uid);
+    console.log(`Verified custom claims for ${user.displayName}:`, updatedUser.customClaims);
   }
 
   console.log(
