@@ -41,7 +41,7 @@ Goal: passwordless sign-in for known accounts only.
   shows username + logout when logged in (driven by the session composable).
 - [x] Verification: a seeded admin can request a link, sign in, and see their username. [checkpoint]
 
-## Phase 4: Custom claims & server-side guard
+## Phase 4: Custom claims & server-side guard [checkpoint: 54b2213]
 
 Goal: enforce roles on the server.
 
