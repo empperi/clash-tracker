@@ -18,7 +18,7 @@ Each track lives in `conductor/tracks/<id>/` with `spec.md`, `plan.md`, and `met
 | 4 | Player stats & ranking domain | 3 |
 | 5 | Player List view | 4 |
 | 6 | Authentication & roles | 1 |
-| 7 | Email delivery (SendGrid magic-link mailer) | 6 |
+| 7 | Email delivery & one-time-code sign-in | 6 |
 | 8 | Admin view | 5, 6 |
 | 9 | Google sign-in (strict allowlist) | 6, 8 |
 | 10 | Owner view | 6 (and 2 for token/clan tag) |
@@ -53,11 +53,16 @@ Passwordless magic-link login, secure HTTP-only session cookie, Owner/Admin cust
 a reusable server-side `requireRole` guard, capability mapping for the UI, and prompt
 session revocation. Public site stays read-only browsable.
 
-### [ ] Track 7: Email delivery (SendGrid magic-link mailer) [email_delivery_20260620]
-Production delivery for passwordless sign-in: a SendGrid-backed `Mailer` behind Track 6's
-`Mailer` interface, with the API key held as a Firebase secret (never logged, never sent to
-the client), so magic-link login actually works in production. Dev/emulator keep the console
-mailer. Unblocks login in prod.
+### [ ] Track 7: Email delivery & one-time-code sign-in [email_delivery_20260620]
+Production-ready passwordless sign-in. A SendGrid-backed `Mailer` behind Track 6's `Mailer`
+interface (API key held as a Firebase secret, never logged or sent to the client) finally
+delivers email. Every sign-in email now carries a **prominent 6-digit one-time code** (the
+preferred path) with the magic link below as a fallback: the user types the code back into the
+**same PWA**, which converges on `sessionLogin` via a server-minted custom token — sidestepping
+the cross-browser/PWA cookie gap the magic link alone can't close. The code is hashed,
+short-lived, single-use, and attempt-capped; non-enumeration is preserved. Adds opportunistic
+PWA manifest link-handling so supporting devices can open the link in-app. Dev/emulator keep the
+console mailer (logging code + link). Unblocks reliable login in prod.
 
 ### [ ] Track 8: Admin view [admin_view_20260613]
 Instant-save threshold sliders (acceptance %, min war participation), admin invitations with

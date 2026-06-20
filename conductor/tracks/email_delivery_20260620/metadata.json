@@ -1,6 +1,6 @@
 {
   "id": "email_delivery_20260620",
-  "description": "Production email delivery for passwordless sign-in: a SendGrid-backed Mailer behind Track 6's Mailer interface, API key held as a Firebase secret, so magic-link login works in production",
+  "description": "Production passwordless sign-in: a SendGrid-backed Mailer (API key held as a Firebase secret) plus a prominent 6-digit one-time code typed back into the PWA (converging on sessionLogin via a custom token) so login is reliable from the installed app, with the magic link kept as a fallback and opportunistic PWA manifest link-handling",
   "type": "feature",
   "created_at": "2026-06-20T00:00:00Z",
   "status": "pending",
