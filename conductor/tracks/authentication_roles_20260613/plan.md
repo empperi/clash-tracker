@@ -67,7 +67,7 @@ Goal: deleting/invalidating an account ends access immediately.
   stale-cookie case.
 - [x] Verification: revoked/deleted account is locked out on the next request and redirected. [checkpoint]
 
-## Phase 6: Firestore rules hardening
+## Phase 6: Firestore rules hardening [checkpoint: 024d2da]
 
 Goal: rules consistent with the role model.
 
