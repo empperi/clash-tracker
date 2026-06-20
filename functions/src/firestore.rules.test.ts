@@ -53,6 +53,11 @@ describe('Firestore security rules', () => {
 
     // Write should fail
     await expect(setDoc(docRef, { clanTag: '#TAG' })).rejects.toThrow();
+
+    // Test subcollections under wars
+    const subDocRef = doc(unauthenticatedDb, 'wars/war123/attacks/attack123');
+    await expect(getDoc(subDocRef)).resolves.toBeDefined();
+    await expect(setDoc(subDocRef, { attacker: 'Player' })).rejects.toThrow();
   });
 
   it('allows public read but denies public write on publicSettings', async () => {
@@ -90,5 +95,19 @@ describe('Firestore security rules', () => {
 
     await expect(getDoc(doc(authenticatedDb, 'pendingAccounts/email'))).rejects.toThrow();
     await expect(setDoc(doc(authenticatedDb, 'pendingAccounts/email'), { email: 'x@x.com' })).rejects.toThrow();
+  });
+
+  it('denies read and write on arbitrary collections (default deny catch-all)', async () => {
+    const unauthenticatedDb = testEnv.unauthenticatedContext().firestore();
+    const authenticatedDb = testEnv.authenticatedContext('user123').firestore();
+
+    const randomDocUnauth = doc(unauthenticatedDb, 'randomCollection/randomDoc');
+    const randomDocAuth = doc(authenticatedDb, 'randomCollection/randomDoc');
+
+    await expect(getDoc(randomDocUnauth)).rejects.toThrow();
+    await expect(setDoc(randomDocUnauth, { data: 'test' })).rejects.toThrow();
+
+    await expect(getDoc(randomDocAuth)).rejects.toThrow();
+    await expect(setDoc(randomDocAuth, { data: 'test' })).rejects.toThrow();
   });
 });

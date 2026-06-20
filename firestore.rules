@@ -19,7 +19,7 @@ service cloud.firestore {
     match /wars/{warId}              { allow read: if true;  allow write: if false; }
     match /wars/{warId}/{sub=**}     { allow read: if true;  allow write: if false; }
 
-    // Public-safe slice of clan settings (clan name, logo URL, thresholds).
+    // Public-safe slice of clan settings (clan name, thresholds).
     // The CoC API token is NOT stored here and is never client-readable.
     match /publicSettings/{docId}    { allow read: if true;  allow write: if false; }
 

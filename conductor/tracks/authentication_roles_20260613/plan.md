@@ -71,11 +71,11 @@ Goal: deleting/invalidating an account ends access immediately.
 
 Goal: rules consistent with the role model.
 
-- [ ] Task: Update `firestore.rules` so `accounts`/`pendingAccounts`/`secrets` stay
+- [x] 4db1d3f Task: Update `firestore.rules` so `accounts`/`pendingAccounts`/`secrets` stay
   server-only and the public read collections remain read-only; add rules tests (emulator
   `@firebase/rules-unit-testing`) proving unauthenticated and admin clients cannot write
   protected docs directly (writes go through functions).
-- [ ] Verification: rules tests green; no client write path to protected data. [checkpoint]
+- [x] Verification: rules tests green; no client write path to protected data. [checkpoint]
 
 ## Done when
 - Admins/owners log in via magic link, persist via a secure session cookie, log out cleanly;

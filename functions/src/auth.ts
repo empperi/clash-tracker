@@ -193,10 +193,16 @@ export async function handleFindAccountForLogin(
     const data = doc.data();
     const email = data.email as string;
 
+    let userExistsInAuth = false;
     try {
       // Check if user exists in Firebase Auth
       await deps.auth.getUser(doc.id);
+      userExistsInAuth = true;
+    } catch (err) {
+      console.warn(`[Auth] User document found in Firestore (${doc.id}) but user does not exist in Firebase Auth:`, err);
+    }
 
+    if (userExistsInAuth) {
       const actionCodeSettings = {
         url: `${origin}/login`,
         handleCodeInApp: true,
@@ -204,8 +210,6 @@ export async function handleFindAccountForLogin(
 
       const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
       await deps.mailer.sendSignInLink(email, link);
-    } catch (err) {
-      console.warn(`[Auth] User document found in Firestore (${doc.id}) but user does not exist in Firebase Auth:`, err);
     }
   } else {
     console.log(`[Auth] No account found for "${cleanInput}". Link not sent.`);
@@ -301,6 +305,8 @@ export function requireRole(
         return;
       }
 
+      let authReq: AuthRequest | undefined;
+
       try {
         const decodedToken = await deps.verifySessionCookie(sessionCookie, true);
 
@@ -330,14 +336,11 @@ export function requireRole(
           return;
         }
 
-        const authReq = req as AuthRequest;
+        authReq = req as AuthRequest;
         authReq.auth = {
           uid: decodedToken.uid,
           token: decodedToken,
         };
-
-        // Proceed to the handler
-        await handler(authReq, res);
       } catch (error) {
         console.error('requireRole authentication failed:', error);
         // Clear session cookie if authentication failed
@@ -346,7 +349,11 @@ export function requireRole(
           '__session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict'
         );
         res.status(401).send('Unauthorized: Invalid or expired session.');
+        return;
       }
+
+      // Proceed to the handler (errors here won't nuke the session cookie)
+      await handler(authReq, res);
     };
   };
 }
