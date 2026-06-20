@@ -134,19 +134,25 @@ async function main(): Promise<void> {
   const auth = getAuth(app);
 
   // Seed mock admin and owner accounts for login testing
-  await db.doc('accounts/mock-admin-uid').set({
-    username: 'ChiefAdmin',
-    email: 'admin@example.internal',
-    role: 'admin',
-    playerTag: '#CO1',
-  }, { merge: true });
+  await db.doc('accounts/mock-admin-uid').set(
+    {
+      username: 'ChiefAdmin',
+      email: 'admin@example.internal',
+      role: 'admin',
+      playerTag: '#CO1',
+    },
+    { merge: true }
+  );
 
-  await db.doc('accounts/mock-owner-uid').set({
-    username: 'ChiefOwner',
-    email: 'owner@example.internal',
-    role: 'owner',
-    playerTag: '#LEADER',
-  }, { merge: true });
+  await db.doc('accounts/mock-owner-uid').set(
+    {
+      username: 'ChiefOwner',
+      email: 'owner@example.internal',
+      role: 'owner',
+      playerTag: '#LEADER',
+    },
+    { merge: true }
+  );
 
   // Pre-create the users in Firebase Auth Emulator so they show in the UI immediately
   const mockUsers = [

@@ -56,7 +56,8 @@ describe('useSession', () => {
       }),
     };
 
-    const callback = (onAuthStateChanged as unknown as { _callback?: (user: unknown) => void })._callback;
+    const callback = (onAuthStateChanged as unknown as { _callback?: (user: unknown) => void })
+      ._callback;
     if (callback) {
       await callback(mockUser);
     }

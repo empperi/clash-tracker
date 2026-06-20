@@ -126,10 +126,7 @@ export const sessionLogout = onRequest({ region: REGION }, async (req, res) => {
   }
 
   // Clear cookie using Max-Age=0
-  res.setHeader(
-    'Set-Cookie',
-    '__session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict'
-  );
+  res.setHeader('Set-Cookie', '__session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict');
   res.status(200).json({ status: 'success' });
 });
 
@@ -155,14 +152,20 @@ export async function handleFindAccountForLogin(
   deps: {
     db: FirebaseFirestore.Firestore;
     auth: {
-      generateSignInWithEmailLink(email: string, settings: { url: string; handleCodeInApp: boolean }): Promise<string>;
+      generateSignInWithEmailLink(
+        email: string,
+        settings: { url: string; handleCodeInApp: boolean }
+      ): Promise<string>;
       getUser(uid: string): Promise<{ uid: string }>;
     };
     mailer: Mailer;
   }
 ): Promise<{ status: string }> {
   if (!usernameOrEmail || typeof usernameOrEmail !== 'string') {
-    throw new HttpsError('invalid-argument', 'The function must be called with a string "usernameOrEmail".');
+    throw new HttpsError(
+      'invalid-argument',
+      'The function must be called with a string "usernameOrEmail".'
+    );
   }
 
   const cleanInput = usernameOrEmail.trim();
@@ -199,7 +202,10 @@ export async function handleFindAccountForLogin(
       await deps.auth.getUser(doc.id);
       userExistsInAuth = true;
     } catch (err) {
-      console.warn(`[Auth] User document found in Firestore (${doc.id}) but user does not exist in Firebase Auth:`, err);
+      console.warn(
+        `[Auth] User document found in Firestore (${doc.id}) but user does not exist in Firebase Auth:`,
+        err
+      );
     }
 
     if (userExistsInAuth) {
@@ -295,7 +301,8 @@ export function requireRole(
     verifySessionCookie: (cookie: string, checkRevoked?: boolean) => Promise<DecodedIdToken>;
     db?: FirebaseFirestore.Firestore;
   } = {
-    verifySessionCookie: (cookie: string, checkRevoked?: boolean) => getAuth().verifySessionCookie(cookie, checkRevoked),
+    verifySessionCookie: (cookie: string, checkRevoked?: boolean) =>
+      getAuth().verifySessionCookie(cookie, checkRevoked),
     db: getFirestore(),
   }
 ) {
@@ -331,9 +338,7 @@ export function requireRole(
         const claimRole = decodedToken.role as string | undefined;
 
         const isAllowed =
-          role === 'admin'
-            ? claimRole === 'admin' || claimRole === 'owner'
-            : claimRole === 'owner';
+          role === 'admin' ? claimRole === 'admin' || claimRole === 'owner' : claimRole === 'owner';
 
         if (!isAllowed) {
           res.status(403).send('Forbidden: Insufficient permissions.');

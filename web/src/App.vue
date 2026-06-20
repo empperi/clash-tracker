@@ -19,9 +19,7 @@ const prefersReducedMotion = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const initialView =
-  route.name && VIEW_ORDER.includes(String(route.name))
-    ? String(route.name)
-    : 'player-list';
+  route.name && VIEW_ORDER.includes(String(route.name)) ? String(route.name) : 'player-list';
 
 const {
   activeView,

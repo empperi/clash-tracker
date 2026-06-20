@@ -45,9 +45,7 @@ const logoSrc = computed(() => props.clanLogo || defaultLogo);
         <span class="username" :title="username">{{ username }}</span>
         <button class="logout-btn" @click="handleLogout">Logout</button>
       </div>
-      <router-link v-else to="/login" class="login-link">
-        Login
-      </router-link>
+      <router-link v-else to="/login" class="login-link"> Login </router-link>
     </div>
   </header>
 </template>

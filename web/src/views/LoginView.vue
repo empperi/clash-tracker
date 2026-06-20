@@ -53,7 +53,10 @@ async function completeSignIn(email: string) {
     }, 1500);
   } catch (err: unknown) {
     status.value = 'error';
-    errorMessage.value = err instanceof Error ? err.message : 'Verification failed. The link may have expired or already been used.';
+    errorMessage.value =
+      err instanceof Error
+        ? err.message
+        : 'Verification failed. The link may have expired or already been used.';
   }
 }
 
@@ -77,7 +80,10 @@ async function handleSendLink() {
 
   try {
     // Call findAccountForLogin callable (now generates and sends magic link server-side if account exists)
-    const findAccount = httpsCallable<{ usernameOrEmail: string }, { status: string }>(functions, 'findAccountForLogin');
+    const findAccount = httpsCallable<{ usernameOrEmail: string }, { status: string }>(
+      functions,
+      'findAccountForLogin'
+    );
     await findAccount({ usernameOrEmail: usernameOrEmail.value });
 
     // If input was an email, save it locally to speed up completion flow on the same device.
@@ -92,7 +98,8 @@ async function handleSendLink() {
     status.value = 'sent';
   } catch (err: unknown) {
     status.value = 'error';
-    errorMessage.value = err instanceof Error ? err.message : 'Failed to send login link. Please try again.';
+    errorMessage.value =
+      err instanceof Error ? err.message : 'Failed to send login link. Please try again.';
   }
 }
 </script>
@@ -133,12 +140,14 @@ async function handleSendLink() {
           </div>
           <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
           <div class="confirm-actions">
-            <BaseButton variant="primary" :disabled="status === 'loading'" @click="completeSignIn(usernameOrEmail)">
+            <BaseButton
+              variant="primary"
+              :disabled="status === 'loading'"
+              @click="completeSignIn(usernameOrEmail)"
+            >
               Confirm and Sign In
             </BaseButton>
-            <BaseButton variant="secondary" @click="backToLogin">
-              ← Back to login
-            </BaseButton>
+            <BaseButton variant="secondary" @click="backToLogin"> ← Back to login </BaseButton>
           </div>
         </div>
 
@@ -146,17 +155,25 @@ async function handleSendLink() {
           <div class="sent-icon">✉</div>
           <h4 class="status-title">Magic Link Sent!</h4>
           <p class="status-msg">
-            We have sent a sign-in link to the email associated with your account.
-            Please check your inbox (and spam folder) and click the link to log in.
+            We have sent a sign-in link to the email associated with your account. Please check your
+            inbox (and spam folder) and click the link to log in.
           </p>
-          <BaseButton variant="secondary" @click="status = 'idle'; needsEmailConfirmation = false; errorMessage = ''">
+          <BaseButton
+            variant="secondary"
+            @click="
+              status = 'idle';
+              needsEmailConfirmation = false;
+              errorMessage = '';
+            "
+          >
             Back to Sign In
           </BaseButton>
         </div>
 
         <div v-else class="form-container">
           <p class="intro-text">
-            Enter your username or email address below. We'll send a passwordless magic sign-in link to your registered email.
+            Enter your username or email address below. We'll send a passwordless magic sign-in link
+            to your registered email.
           </p>
 
           <div class="input-group">
@@ -175,11 +192,7 @@ async function handleSendLink() {
           <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
 
           <div class="actions">
-            <BaseButton
-              variant="primary"
-              :disabled="status === 'loading'"
-              @click="handleSendLink"
-            >
+            <BaseButton variant="primary" :disabled="status === 'loading'" @click="handleSendLink">
               {{ status === 'loading' ? 'Sending...' : 'Send Magic Link' }}
             </BaseButton>
           </div>
@@ -234,7 +247,9 @@ async function handleSendLink() {
   font-family: var(--ct-font-body);
   font-size: 16px;
   padding: 12px var(--ct-spacing-md);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   min-height: 48px; /* High accessibility touch target */
 }
 

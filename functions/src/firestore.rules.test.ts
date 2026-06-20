@@ -78,14 +78,20 @@ describe('Firestore security rules', () => {
     await expect(setDoc(doc(unauthenticatedDb, 'secrets/key'), { val: '123' })).rejects.toThrow();
 
     await expect(getDoc(doc(unauthenticatedDb, 'accounts/uid'))).rejects.toThrow();
-    await expect(setDoc(doc(unauthenticatedDb, 'accounts/uid'), { role: 'admin' })).rejects.toThrow();
+    await expect(
+      setDoc(doc(unauthenticatedDb, 'accounts/uid'), { role: 'admin' })
+    ).rejects.toThrow();
 
     await expect(getDoc(doc(unauthenticatedDb, 'pendingAccounts/email'))).rejects.toThrow();
-    await expect(setDoc(doc(unauthenticatedDb, 'pendingAccounts/email'), { email: 'x@x.com' })).rejects.toThrow();
+    await expect(
+      setDoc(doc(unauthenticatedDb, 'pendingAccounts/email'), { email: 'x@x.com' })
+    ).rejects.toThrow();
   });
 
   it('denies read and write on secrets, accounts, and pendingAccounts for authenticated users (even with admin claim)', async () => {
-    const authenticatedDb = testEnv.authenticatedContext('some-user-uid', { role: 'admin' }).firestore();
+    const authenticatedDb = testEnv
+      .authenticatedContext('some-user-uid', { role: 'admin' })
+      .firestore();
 
     await expect(getDoc(doc(authenticatedDb, 'secrets/key'))).rejects.toThrow();
     await expect(setDoc(doc(authenticatedDb, 'secrets/key'), { val: '123' })).rejects.toThrow();
@@ -94,7 +100,9 @@ describe('Firestore security rules', () => {
     await expect(setDoc(doc(authenticatedDb, 'accounts/uid'), { role: 'admin' })).rejects.toThrow();
 
     await expect(getDoc(doc(authenticatedDb, 'pendingAccounts/email'))).rejects.toThrow();
-    await expect(setDoc(doc(authenticatedDb, 'pendingAccounts/email'), { email: 'x@x.com' })).rejects.toThrow();
+    await expect(
+      setDoc(doc(authenticatedDb, 'pendingAccounts/email'), { email: 'x@x.com' })
+    ).rejects.toThrow();
   });
 
   it('denies read and write on arbitrary collections (default deny catch-all)', async () => {

@@ -3,7 +3,16 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Request, Response } from 'firebase-functions/v2/https';
-import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting, setAccountRole, requireRole, revokeAccountSessions } from './auth';
+import {
+  sessionLogin,
+  sessionLogout,
+  verifyRequestSession,
+  findAccountForLogin,
+  setMailerForTesting,
+  setAccountRole,
+  requireRole,
+  revokeAccountSessions,
+} from './auth';
 
 // Ensure emulator hosts are configured
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -124,9 +133,11 @@ describe('Session Authentication lifecycle', () => {
     // sessionLogin is an HTTPS v2 function handler.
     // For standard onRequest, the direct function is exported.
     // We get the handler under the hood.
-    const handler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogin;
+    const handler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
     await handler(context.req, context.res);
 
     expect(context.status).toBe(200);
@@ -140,9 +151,11 @@ describe('Session Authentication lifecycle', () => {
   it('authenticates subsequent request carrying the session cookie', async () => {
     const idToken = await getIdTokenForUid(testUid);
     const mockContext = createMockReqRes({ body: { idToken } });
-    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogin;
+    const loginHandler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
     await loginHandler(mockContext.req, mockContext.res);
 
     const setCookieHeader = mockContext.headers['set-cookie'];
@@ -163,9 +176,11 @@ describe('Session Authentication lifecycle', () => {
   it('sessionLogout clears cookie and revokes/invalidates session', async () => {
     const idToken = await getIdTokenForUid(testUid);
     const mockContext = createMockReqRes({ body: { idToken } });
-    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogin;
+    const loginHandler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
     await loginHandler(mockContext.req, mockContext.res);
 
     const setCookieHeader = mockContext.headers['set-cookie'];
@@ -178,9 +193,11 @@ describe('Session Authentication lifecycle', () => {
       headers: { cookie: cookieValue },
     });
 
-    const logoutHandler = typeof (sessionLogout as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogout as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogout;
+    const logoutHandler =
+      typeof (sessionLogout as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogout as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogout;
     await logoutHandler(logoutContext.req, logoutContext.res);
 
     expect(logoutContext.status).toBe(200);
@@ -202,18 +219,22 @@ describe('Session Authentication lifecycle', () => {
     // Test login
     const loginReq = { method: 'GET' } as unknown as Request;
     const loginMockRes = createMockReqRes({});
-    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogin;
+    const loginHandler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
     await loginHandler(loginReq, loginMockRes.res);
     expect(loginMockRes.status).toBe(405);
 
     // Test logout
     const logoutReq = { method: 'GET' } as unknown as Request;
     const logoutMockRes = createMockReqRes({});
-    const logoutHandler = typeof (sessionLogout as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogout as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogout;
+    const logoutHandler =
+      typeof (sessionLogout as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogout as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogout;
     await logoutHandler(logoutReq, logoutMockRes.res);
     expect(logoutMockRes.status).toBe(405);
   });
@@ -228,9 +249,11 @@ describe('Session Authentication lifecycle', () => {
     vi.setSystemTime(Date.now() + 6 * 60 * 1000);
 
     const context = createMockReqRes({ body: { idToken } });
-    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogin;
+    const loginHandler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
     await loginHandler(context.req, context.res);
 
     expect(context.status).toBe(401);
@@ -259,9 +282,11 @@ describe('Session Authentication lifecycle', () => {
 
     // Call sessionLogin (should fail because no Firestore account exists)
     const context = createMockReqRes({ body: { idToken } });
-    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
-      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
-      : sessionLogin;
+    const loginHandler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
 
     await loginHandler(context.req, context.res);
 
@@ -323,9 +348,10 @@ describe('findAccountForLogin callable', () => {
   });
 
   it('finds existing account by username (exact match)', async () => {
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
     expect(result).toEqual({ status: 'ok' });
@@ -335,9 +361,10 @@ describe('findAccountForLogin callable', () => {
   });
 
   it('finds existing account by username (case insensitive)', async () => {
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'JOHN_DOE' } });
     expect(result).toEqual({ status: 'ok' });
@@ -346,9 +373,10 @@ describe('findAccountForLogin callable', () => {
   });
 
   it('finds existing account by email (exact match)', async () => {
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'john.doe@example.com' } });
     expect(result).toEqual({ status: 'ok' });
@@ -357,9 +385,10 @@ describe('findAccountForLogin callable', () => {
   });
 
   it('finds existing account by email (case insensitive)', async () => {
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'JOHN.DOE@EXAMPLE.COM' } });
     expect(result).toEqual({ status: 'ok' });
@@ -368,9 +397,10 @@ describe('findAccountForLogin callable', () => {
   });
 
   it('returns opaque response and does NOT send link for unknown username', async () => {
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'nonexistent_user' } });
     expect(result).toEqual({ status: 'ok' });
@@ -378,9 +408,10 @@ describe('findAccountForLogin callable', () => {
   });
 
   it('returns opaque response and does NOT send link for unknown email', async () => {
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'unknown@example.com' } });
     expect(result).toEqual({ status: 'ok' });
@@ -402,9 +433,10 @@ describe('findAccountForLogin callable', () => {
       // Ignored
     }
 
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'inconsistent_user' } });
     expect(result).toEqual({ status: 'ok' });
@@ -421,9 +453,10 @@ describe('findAccountForLogin callable', () => {
     };
     setMailerForTesting(failingMailer);
 
-    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
-      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
-      : (findAccountForLogin as unknown as FindAccountHandler);
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
 
     const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
     expect(result).toEqual({ status: 'ok' });
@@ -498,9 +531,11 @@ describe('requireRole higher-order guard', () => {
   it('rejects with unauthenticated (401) if cookie is missing', async () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn();
-    
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
-    
+
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(
+      mockHandler
+    );
+
     const context = createMockReqRes({ headers: {} });
     await guarded(context.req, context.res);
 
@@ -512,9 +547,11 @@ describe('requireRole higher-order guard', () => {
   it('rejects with unauthenticated (401) if verifySessionCookie fails', async () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn().mockRejectedValue(new Error('Invalid token'));
-    
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
-    
+
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(
+      mockHandler
+    );
+
     const context = createMockReqRes({
       headers: {
         cookie: '__session=bad-cookie',
@@ -530,10 +567,14 @@ describe('requireRole higher-order guard', () => {
 
   it('rejects with forbidden (403) if role claim is missing or insufficient', async () => {
     const mockHandler = vi.fn();
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: undefined } as unknown as DecodedIdToken);
-    
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
-    
+    const mockVerify = vi
+      .fn()
+      .mockResolvedValue({ uid: 'user123', role: undefined } as unknown as DecodedIdToken);
+
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(
+      mockHandler
+    );
+
     const context = createMockReqRes({
       headers: {
         cookie: '__session=good-cookie',
@@ -550,10 +591,14 @@ describe('requireRole higher-order guard', () => {
     const mockHandler = vi.fn().mockImplementation(async (req, res) => {
       res.status(200).json({ result: 'success' });
     });
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
-    
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
-    
+    const mockVerify = vi
+      .fn()
+      .mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
+
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(
+      mockHandler
+    );
+
     const context = createMockReqRes({
       headers: {
         cookie: '__session=admin-cookie',
@@ -574,10 +619,14 @@ describe('requireRole higher-order guard', () => {
     const mockHandler = vi.fn().mockImplementation(async (req, res) => {
       res.status(200).json({ result: 'success' });
     });
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'owner' } as unknown as DecodedIdToken);
-    
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
-    
+    const mockVerify = vi
+      .fn()
+      .mockResolvedValue({ uid: 'user123', role: 'owner' } as unknown as DecodedIdToken);
+
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbOk })(
+      mockHandler
+    );
+
     const context = createMockReqRes({
       headers: {
         cookie: '__session=owner-cookie',
@@ -592,10 +641,14 @@ describe('requireRole higher-order guard', () => {
 
   it('rejects admin if owner is required', async () => {
     const mockHandler = vi.fn();
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
-    
-    const guarded = requireRole('owner', { verifySessionCookie: mockVerify, db: mockDbOk })(mockHandler);
-    
+    const mockVerify = vi
+      .fn()
+      .mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
+
+    const guarded = requireRole('owner', { verifySessionCookie: mockVerify, db: mockDbOk })(
+      mockHandler
+    );
+
     const context = createMockReqRes({
       headers: {
         cookie: '__session=admin-cookie',
@@ -610,8 +663,10 @@ describe('requireRole higher-order guard', () => {
 
   it('clears session cookie and redirects if user account document does not exist in Firestore', async () => {
     const mockHandler = vi.fn();
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'deleted-uid', role: 'admin' } as unknown as DecodedIdToken);
-    
+    const mockVerify = vi
+      .fn()
+      .mockResolvedValue({ uid: 'deleted-uid', role: 'admin' } as unknown as DecodedIdToken);
+
     const mockDbMissing = {
       collection: () => ({
         doc: () => ({
@@ -620,7 +675,9 @@ describe('requireRole higher-order guard', () => {
       }),
     } as unknown as FirebaseFirestore.Firestore;
 
-    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbMissing })(mockHandler);
+    const guarded = requireRole('admin', { verifySessionCookie: mockVerify, db: mockDbMissing })(
+      mockHandler
+    );
 
     const context = createMockReqRes({
       headers: {

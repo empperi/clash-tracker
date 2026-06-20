@@ -230,7 +230,10 @@ describe('Cloud Function handlers delegation', () => {
       await db.collection('accounts').doc(testMemberUid).delete();
     });
 
-    async function getSessionCookieForUser(uid: string, role: 'admin' | 'member' | null): Promise<string> {
+    async function getSessionCookieForUser(
+      uid: string,
+      role: 'admin' | 'member' | null
+    ): Promise<string> {
       try {
         await auth.deleteUser(uid);
       } catch {
@@ -238,12 +241,15 @@ describe('Cloud Function handlers delegation', () => {
       }
       await auth.createUser({ uid, email: `${uid}@example.com` });
 
-      await db.collection('accounts').doc(uid).set({
-        username: `${uid}_user`,
-        email: `${uid}@example.com`,
-        role: null,
-        playerTag: '#TEST1',
-      });
+      await db
+        .collection('accounts')
+        .doc(uid)
+        .set({
+          username: `${uid}_user`,
+          email: `${uid}@example.com`,
+          role: null,
+          playerTag: '#TEST1',
+        });
 
       if (role === 'member') {
         // Set the custom claim directly to 'member' to test negative access role gating,
@@ -365,7 +371,7 @@ describe('Cloud Function handlers delegation', () => {
     it('rejects if role is insufficient', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
-      
+
       const cookie = await getSessionCookieForUser(testMemberUid, 'member');
 
       const context = createMockReqRes({
@@ -382,7 +388,7 @@ describe('Cloud Function handlers delegation', () => {
     it('allows request if role is admin', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
-      
+
       const mockIngest = async (): Promise<Result<IngestSummary, string>> => {
         return ok({ status: 'synced', warId: 'war123', attacksAdded: 1 });
       };
