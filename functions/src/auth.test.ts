@@ -16,6 +16,7 @@ if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
 const projectId = process.env.GCLOUD_PROJECT || 'militia-clash-tracker';
 const app = getApps().length === 0 ? initializeApp({ projectId }) : getApp();
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Helper to exchange custom token for ID token via Auth emulator REST API
 async function getIdTokenForUid(uid: string): Promise<string> {
@@ -100,6 +101,20 @@ describe('Session Authentication lifecycle', () => {
       // Ignored if user doesn't exist
     }
     await auth.createUser({ uid: testUid, email: 'test@example.com' });
+    await db.collection('accounts').doc(testUid).set({
+      username: 'session_tester',
+      email: 'test@example.com',
+      role: 'admin',
+    });
+  });
+
+  afterAll(async () => {
+    try {
+      await auth.deleteUser(testUid);
+    } catch {
+      // Ignored
+    }
+    await db.collection('accounts').doc(testUid).delete();
   });
 
   it('sessionLogin exchanges ID token for session cookie and sets cookie header', async () => {
@@ -223,6 +238,39 @@ describe('Session Authentication lifecycle', () => {
 
     vi.useRealTimers();
   });
+
+  it('sessionLogin rejects ID token if user has no Firestore account document and deletes the dangling Auth user', async () => {
+    const danglingUid = 'dangling-test-user';
+    try {
+      await auth.deleteUser(danglingUid);
+    } catch {
+      // Ignored
+    }
+
+    // Create user in Auth
+    await auth.createUser({ uid: danglingUid, email: 'dangling@example.com' });
+
+    // Verify user exists in Auth
+    const initialUser = await auth.getUser(danglingUid);
+    expect(initialUser.uid).toBe(danglingUid);
+
+    // Swap ID token
+    const idToken = await getIdTokenForUid(danglingUid);
+
+    // Call sessionLogin (should fail because no Firestore account exists)
+    const context = createMockReqRes({ body: { idToken } });
+    const loginHandler = typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> }).run === 'function'
+      ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+      : sessionLogin;
+
+    await loginHandler(context.req, context.res);
+
+    expect(context.status).toBe(401);
+    expect(context.body).toContain('Unauthorized: No associated account.');
+
+    // Verify user was cleaned up from Auth
+    await expect(auth.getUser(danglingUid)).rejects.toThrow();
+  });
 });
 
 type FindAccountHandler = (req: {
@@ -248,11 +296,25 @@ describe('findAccountForLogin callable', () => {
       role: 'admin',
       playerTag: '#12345',
     });
+    try {
+      await auth.deleteUser('john-doe-uid');
+    } catch {
+      // Ignored
+    }
+    await auth.createUser({
+      uid: 'john-doe-uid',
+      email: 'john.doe@example.com',
+    });
   });
 
   afterAll(async () => {
     // Clean up
     await db.collection('accounts').doc('john-doe-uid').delete();
+    try {
+      await auth.deleteUser('john-doe-uid');
+    } catch {
+      // Ignored
+    }
   });
 
   beforeEach(() => {
@@ -323,6 +385,32 @@ describe('findAccountForLogin callable', () => {
     const result = await handler({ data: { usernameOrEmail: 'unknown@example.com' } });
     expect(result).toEqual({ status: 'ok' });
     expect(sentEmails).toHaveLength(0);
+  });
+
+  it('does NOT send link if user exists in Firestore but has been deleted from Auth', async () => {
+    const inconsistentUid = 'inconsistent-test-uid';
+    await db.collection('accounts').doc(inconsistentUid).set({
+      email: 'inconsistent@example.com',
+      username: 'inconsistent_user',
+      role: 'admin',
+      playerTag: '#999',
+    });
+
+    try {
+      await auth.deleteUser(inconsistentUid);
+    } catch {
+      // Ignored
+    }
+
+    const handler = typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+      ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+      : (findAccountForLogin as unknown as FindAccountHandler);
+
+    const result = await handler({ data: { usernameOrEmail: 'inconsistent_user' } });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(0);
+
+    await db.collection('accounts').doc(inconsistentUid).delete();
   });
 });
 

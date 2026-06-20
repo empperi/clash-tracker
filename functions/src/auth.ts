@@ -73,6 +73,20 @@ export const sessionLogin = onRequest({ region: REGION }, async (req, res) => {
       return;
     }
 
+    // Verify that the user still has an active Firestore account document under their UID
+    const db = getFirestore();
+    const accountDoc = await db.collection('accounts').doc(decodedIdToken.uid).get();
+    if (!accountDoc.exists) {
+      // Clean up the created Auth user if it doesn't have a Firestore account document
+      try {
+        await getAuth().deleteUser(decodedIdToken.uid);
+      } catch (err) {
+        console.warn('Failed to delete dangling Auth user:', err);
+      }
+      res.status(401).send('Unauthorized: No associated account.');
+      return;
+    }
+
     const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn });
     const maxAgeSeconds = expiresIn / 1000;
 
@@ -142,6 +156,7 @@ export async function handleFindAccountForLogin(
     db: FirebaseFirestore.Firestore;
     auth: {
       generateSignInWithEmailLink(email: string, settings: { url: string; handleCodeInApp: boolean }): Promise<string>;
+      getUser(uid: string): Promise<{ uid: string }>;
     };
     mailer: Mailer;
   }
@@ -178,13 +193,20 @@ export async function handleFindAccountForLogin(
     const data = doc.data();
     const email = data.email as string;
 
-    const actionCodeSettings = {
-      url: `${origin}/login`,
-      handleCodeInApp: true,
-    };
+    try {
+      // Check if user exists in Firebase Auth
+      await deps.auth.getUser(doc.id);
 
-    const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
-    await deps.mailer.sendSignInLink(email, link);
+      const actionCodeSettings = {
+        url: `${origin}/login`,
+        handleCodeInApp: true,
+      };
+
+      const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
+      await deps.mailer.sendSignInLink(email, link);
+    } catch (err) {
+      console.warn(`[Auth] User document found in Firestore (${doc.id}) but user does not exist in Firebase Auth:`, err);
+    }
   } else {
     console.log(`[Auth] No account found for "${cleanInput}". Link not sent.`);
   }
