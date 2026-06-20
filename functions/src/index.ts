@@ -1,5 +1,5 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { requireRole } from './auth.js';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
@@ -170,9 +170,15 @@ export function setRecomputeUseCaseForTesting(useCase: RecomputeUseCase | undefi
   overrideRecomputeUseCase = useCase;
 }
 
-export const triggerIngestNow = onCall(
-  requireRole('admin')(async () => {
-    return await handleTriggerIngestNow(overrideIngestUseCase, overrideRecomputeUseCase);
+export const triggerIngestNow = onRequest(
+  requireRole('admin')(async (req, res) => {
+    try {
+      const result = await handleTriggerIngestNow(overrideIngestUseCase, overrideRecomputeUseCase);
+      res.status(200).json(result);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
   })
 );
 

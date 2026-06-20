@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { Request, Response, CallableRequest } from 'firebase-functions/v2/https';
+import { Request, Response } from 'firebase-functions/v2/https';
 import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting, setAccountRole, requireRole } from './auth';
 
 // Ensure emulator hosts are configured
@@ -372,137 +372,112 @@ describe('setAccountRole primitive', () => {
 });
 
 describe('requireRole higher-order guard', () => {
-  it('rejects with unauthenticated if cookie is missing', async () => {
+  it('rejects with unauthenticated (401) if cookie is missing', async () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn();
     
     const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
     
-    const req = {
-      rawRequest: {
-        headers: {},
-      },
-    } as unknown as CallableRequest<unknown>;
+    const context = createMockReqRes({ headers: {} });
+    await guarded(context.req, context.res);
 
-    await expect(guarded(req)).rejects.toThrowError(
-      expect.objectContaining({
-        code: 'unauthenticated',
-        message: 'Session cookie missing.',
-      })
-    );
+    expect(context.status).toBe(401);
+    expect(context.body).toContain('Session cookie missing');
     expect(mockHandler).not.toHaveBeenCalled();
   });
 
-  it('rejects with unauthenticated if verifySessionCookie fails', async () => {
+  it('rejects with unauthenticated (401) if verifySessionCookie fails', async () => {
     const mockHandler = vi.fn();
     const mockVerify = vi.fn().mockRejectedValue(new Error('Invalid token'));
     
     const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
     
-    const req = {
-      rawRequest: {
-        headers: {
-          cookie: '__session=bad-cookie',
-        },
+    const context = createMockReqRes({
+      headers: {
+        cookie: '__session=bad-cookie',
       },
-    } as unknown as CallableRequest<unknown>;
+    });
+    await guarded(context.req, context.res);
 
-    await expect(guarded(req)).rejects.toThrowError(
-      expect.objectContaining({
-        code: 'unauthenticated',
-        message: 'Invalid or expired session.',
-      })
-    );
+    expect(context.status).toBe(401);
+    expect(context.body).toContain('Invalid or expired session');
     expect(mockVerify).toHaveBeenCalledWith('bad-cookie', true);
     expect(mockHandler).not.toHaveBeenCalled();
   });
 
-  it('rejects with permission-denied if role claim is missing or insufficient', async () => {
+  it('rejects with forbidden (403) if role claim is missing or insufficient', async () => {
     const mockHandler = vi.fn();
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: undefined });
+    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: undefined } as unknown as DecodedIdToken);
     
     const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
     
-    const req = {
-      rawRequest: {
-        headers: {
-          cookie: '__session=good-cookie',
-        },
+    const context = createMockReqRes({
+      headers: {
+        cookie: '__session=good-cookie',
       },
-    } as unknown as CallableRequest<unknown>;
+    });
+    await guarded(context.req, context.res);
 
-    await expect(guarded(req)).rejects.toThrowError(
-      expect.objectContaining({
-        code: 'permission-denied',
-        message: 'Unauthorized role.',
-      })
-    );
+    expect(context.status).toBe(403);
+    expect(context.body).toContain('Insufficient permissions');
     expect(mockHandler).not.toHaveBeenCalled();
   });
 
   it('allows request if role matches exactly', async () => {
-    const mockHandler = vi.fn().mockResolvedValue({ result: 'success' });
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' });
+    const mockHandler = vi.fn().mockImplementation(async (req, res) => {
+      res.status(200).json({ result: 'success' });
+    });
+    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
     
     const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
     
-    const req = {
-      rawRequest: {
-        headers: {
-          cookie: '__session=admin-cookie',
-        },
+    const context = createMockReqRes({
+      headers: {
+        cookie: '__session=admin-cookie',
       },
-    } as unknown as CallableRequest<unknown>;
+    });
+    await guarded(context.req, context.res);
 
-    const res = await guarded(req);
-    expect(res).toEqual({ result: 'success' });
+    expect(context.status).toBe(200);
+    expect(context.body).toEqual({ result: 'success' });
     expect(mockHandler).toHaveBeenCalled();
-    
-    const passedReq = mockHandler.mock.calls[0][0];
-    expect(passedReq.auth).toBeDefined();
-    expect(passedReq.auth.uid).toBe('user123');
-    expect(passedReq.auth.token.role).toBe('admin');
   });
 
   it('allows owner if admin is required', async () => {
-    const mockHandler = vi.fn().mockResolvedValue({ result: 'success' });
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'owner' });
+    const mockHandler = vi.fn().mockImplementation(async (req, res) => {
+      res.status(200).json({ result: 'success' });
+    });
+    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'owner' } as unknown as DecodedIdToken);
     
     const guarded = requireRole('admin', { verifySessionCookie: mockVerify })(mockHandler);
     
-    const req = {
-      rawRequest: {
-        headers: {
-          cookie: '__session=owner-cookie',
-        },
+    const context = createMockReqRes({
+      headers: {
+        cookie: '__session=owner-cookie',
       },
-    } as unknown as CallableRequest<unknown>;
+    });
+    await guarded(context.req, context.res);
 
-    const res = await guarded(req);
-    expect(res).toEqual({ result: 'success' });
+    expect(context.status).toBe(200);
+    expect(context.body).toEqual({ result: 'success' });
     expect(mockHandler).toHaveBeenCalled();
   });
 
   it('rejects admin if owner is required', async () => {
     const mockHandler = vi.fn();
-    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' });
+    const mockVerify = vi.fn().mockResolvedValue({ uid: 'user123', role: 'admin' } as unknown as DecodedIdToken);
     
     const guarded = requireRole('owner', { verifySessionCookie: mockVerify })(mockHandler);
     
-    const req = {
-      rawRequest: {
-        headers: {
-          cookie: '__session=admin-cookie',
-        },
+    const context = createMockReqRes({
+      headers: {
+        cookie: '__session=admin-cookie',
       },
-    } as unknown as CallableRequest<unknown>;
+    });
+    await guarded(context.req, context.res);
 
-    await expect(guarded(req)).rejects.toThrowError(
-      expect.objectContaining({
-        code: 'permission-denied',
-        message: 'Unauthorized role.',
-      })
-    );
+    expect(context.status).toBe(403);
+    expect(context.body).toContain('Insufficient permissions');
     expect(mockHandler).not.toHaveBeenCalled();
   });
 });

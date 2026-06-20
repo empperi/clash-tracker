@@ -1,4 +1,5 @@
-import { onRequest, onCall, HttpsError, Request, CallableRequest } from 'firebase-functions/v2/https';
+import { onRequest, onCall, HttpsError, Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { UserRole } from '@clash-tracker/core';
@@ -230,9 +231,9 @@ export async function setAccountRole(
 }
 
 /**
- * A reusable higher-order guard wrapper for Cloud Functions (onCall callable endpoints)
+ * A reusable higher-order guard wrapper for Cloud Functions (onRequest HTTP endpoints)
  * that verifies the session cookie and matches its role claim against the expected role.
- * If unauthorized, throws HttpsError with unauthenticated (401) or permission-denied (403).
+ * If unauthorized, rejects the request with HTTP 401 or 403.
  */
 export function requireRole(
   role: UserRole,
@@ -242,13 +243,14 @@ export function requireRole(
     verifySessionCookie: (cookie: string, checkRevoked?: boolean) => getAuth().verifySessionCookie(cookie, checkRevoked),
   }
 ) {
-  return (handler: (request: CallableRequest<unknown>) => unknown) => {
-    return async (request: CallableRequest<unknown>) => {
-      const cookies = parseCookies(request.rawRequest?.headers?.cookie);
+  return (handler: (req: Request, res: Response) => void | Promise<void>) => {
+    return async (req: Request, res: Response): Promise<void> => {
+      const cookies = parseCookies(req.headers?.cookie);
       const sessionCookie = cookies['__session'];
 
       if (!sessionCookie) {
-        throw new HttpsError('unauthenticated', 'Session cookie missing.');
+        res.status(401).send('Unauthorized: Session cookie missing.');
+        return;
       }
 
       try {
@@ -261,25 +263,15 @@ export function requireRole(
             : claimRole === 'owner';
 
         if (!isAllowed) {
-          throw new HttpsError('permission-denied', 'Unauthorized role.');
+          res.status(403).send('Forbidden: Insufficient permissions.');
+          return;
         }
 
-        // Attach auth context to request object so downstream handlers have access to user info.
-        const requestWithAuth: CallableRequest<unknown> = {
-          ...request,
-          auth: {
-            uid: decodedToken.uid,
-            token: decodedToken,
-            rawToken: sessionCookie,
-          },
-        };
-
-        return await handler(requestWithAuth);
+        // Proceed to the handler
+        await handler(req, res);
       } catch (error) {
-        if (error instanceof HttpsError) {
-          throw error;
-        }
-        throw new HttpsError('unauthenticated', 'Invalid or expired session.');
+        console.error('requireRole authentication failed:', error);
+        res.status(401).send('Unauthorized: Invalid or expired session.');
       }
     };
   };

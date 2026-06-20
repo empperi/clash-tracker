@@ -6,7 +6,8 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { SecretsRepository } from './repositories/SecretsRepository';
 import { parseEncryptionKey } from './crypto';
-import { CallableRequest } from 'firebase-functions/v2/https';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
 
 vi.mock('firebase-admin/auth', () => {
   return {
@@ -219,40 +220,61 @@ describe('Cloud Function handlers delegation', () => {
   });
 
   describe('triggerIngestNow role gating', () => {
+    function createMockReqRes(reqData: { headers?: Record<string, string> }) {
+      const req = {
+        headers: reqData.headers || {},
+      } as unknown as Request;
+
+      let resStatus = 200;
+      let resBody: unknown = null;
+
+      const res = {
+        status(code: number) {
+          resStatus = code;
+          return this;
+        },
+        send(body: unknown) {
+          resBody = body;
+        },
+        json(body: unknown) {
+          resBody = body;
+        },
+      } as unknown as Response;
+
+      return {
+        req,
+        res,
+        get status() {
+          return resStatus;
+        },
+        get body() {
+          return resBody;
+        },
+      };
+    }
+
     it('rejects if cookie is missing', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
-      await expect(
-        handler({
-          rawRequest: {
-            headers: {},
-          },
-        } as unknown as CallableRequest<unknown>)
-      ).rejects.toThrowError(
-        expect.objectContaining({
-          code: 'unauthenticated',
-          message: 'Session cookie missing.',
-        })
-      );
+      const context = createMockReqRes({ headers: {} });
+      await handler(context.req, context.res);
+
+      expect(context.status).toBe(401);
+      expect(context.body).toContain('Session cookie missing.');
     });
 
     it('rejects if role is insufficient', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
-      await expect(
-        handler({
-          rawRequest: {
-            headers: {
-              cookie: '__session=user-cookie',
-            },
-          },
-        } as unknown as CallableRequest<unknown>)
-      ).rejects.toThrowError(
-        expect.objectContaining({
-          code: 'permission-denied',
-          message: 'Unauthorized role.',
-        })
-      );
+      const context = createMockReqRes({
+        headers: {
+          cookie: '__session=user-cookie',
+        },
+      });
+      await handler(context.req, context.res);
+
+      expect(context.status).toBe(403);
+      expect(context.body).toContain('Insufficient permissions.');
     });
 
     it('allows request if role is admin', async () => {
@@ -267,15 +289,15 @@ describe('Cloud Function handlers delegation', () => {
       mod.setIngestUseCaseForTesting(mockIngest);
       mod.setRecomputeUseCaseForTesting(recompute.fn);
 
-      const res = await handler({
-        rawRequest: {
-          headers: {
-            cookie: '__session=admin-cookie',
-          },
+      const context = createMockReqRes({
+        headers: {
+          cookie: '__session=admin-cookie',
         },
-      } as unknown as CallableRequest<unknown>);
+      });
+      await handler(context.req, context.res);
 
-      expect(res).toEqual({ success: true, syncState: 'synced' });
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ success: true, syncState: 'synced' });
       expect(recompute.state.called).toBe(true);
 
       mod.setIngestUseCaseForTesting(undefined);
