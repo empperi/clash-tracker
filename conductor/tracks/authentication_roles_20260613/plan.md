@@ -45,7 +45,7 @@ Goal: passwordless sign-in for known accounts only.
 
 Goal: enforce roles on the server.
 
-- [ ] Task: Tests + implement claim syncing: when an account's role is set, mirror it to a
+- [x] 9b0acff Task: Tests + implement claim syncing: when an account's role is set, mirror it to a
   Firebase **custom claim**. (Account creation itself is Track 7; here provide the
   `setAccountRole` primitive + test.)
 - [ ] Task: Tests + implement `requireRole(role)(handler)` higher-order guard: verifies the
