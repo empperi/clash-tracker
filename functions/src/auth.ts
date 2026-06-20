@@ -1,6 +1,7 @@
 import { onRequest, onCall, HttpsError, Request } from 'firebase-functions/v2/https';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { UserRole } from '@clash-tracker/core';
 
 // Region is set per-function (not via setGlobalOptions) because this module is evaluated
 // before index.ts's setGlobalOptions runs, and calling setGlobalOptions twice is undefined
@@ -204,3 +205,26 @@ export const findAccountForLogin = onCall({ region: REGION }, async (request) =>
     mailer: currentMailer,
   });
 });
+
+/**
+ * Sets the role for an account in Firestore and mirrors it to custom claims in Auth.
+ */
+export async function setAccountRole(
+  uid: string,
+  role: UserRole | null,
+  deps: {
+    db: FirebaseFirestore.Firestore;
+    auth: {
+      setCustomUserClaims(uid: string, customUserClaims: object | null): Promise<void>;
+    };
+  } = {
+    db: getFirestore(),
+    auth: getAuth(),
+  }
+): Promise<void> {
+  // Update Firestore accounts collection
+  await deps.db.collection('accounts').doc(uid).update({ role });
+
+  // Update Auth Custom Claims
+  await deps.auth.setCustomUserClaims(uid, role ? { role } : null);
+}

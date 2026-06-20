@@ -3,7 +3,7 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Request, Response } from 'firebase-functions/v2/https';
-import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting } from './auth';
+import { sessionLogin, sessionLogout, verifyRequestSession, findAccountForLogin, setMailerForTesting, setAccountRole } from './auth';
 
 // Ensure emulator hosts are configured
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -313,5 +313,60 @@ describe('findAccountForLogin callable', () => {
     const result = await handler({ data: { usernameOrEmail: 'unknown@example.com' } });
     expect(result).toEqual({ status: 'ok' });
     expect(sentEmails).toHaveLength(0);
+  });
+});
+
+describe('setAccountRole primitive', () => {
+  const db = getFirestore(app);
+  const testUid = 'role-sync-test-uid';
+
+  beforeAll(async () => {
+    try {
+      await auth.deleteUser(testUid);
+    } catch {
+      // Ignored
+    }
+    await auth.createUser({ uid: testUid, email: 'role-test@example.com' });
+  });
+
+  afterAll(async () => {
+    try {
+      await auth.deleteUser(testUid);
+    } catch {
+      // Ignored
+    }
+    await db.collection('accounts').doc(testUid).delete();
+  });
+
+  it('updates the role in Firestore and sets custom user claim in Auth', async () => {
+    // 1. Seed initial document
+    await db.collection('accounts').doc(testUid).set({
+      username: 'role_tester',
+      email: 'role-test@example.com',
+      role: null,
+      playerTag: '#TEST1',
+    });
+
+    // 2. Call setAccountRole
+    await setAccountRole(testUid, 'admin');
+
+    // 3. Assert Firestore was updated
+    const doc = await db.collection('accounts').doc(testUid).get();
+    expect(doc.data()?.role).toBe('admin');
+
+    // 4. Assert custom claim was set in Auth
+    const userRecord = await auth.getUser(testUid);
+    expect(userRecord.customClaims).toEqual({ role: 'admin' });
+
+    // 5. Call setAccountRole with null to clear
+    await setAccountRole(testUid, null);
+
+    // 6. Assert Firestore is updated to null
+    const docNull = await db.collection('accounts').doc(testUid).get();
+    expect(docNull.data()?.role).toBeNull();
+
+    // 7. Assert custom claims are cleared
+    const userRecordNull = await auth.getUser(testUid);
+    expect(userRecordNull.customClaims || {}).toEqual({});
   });
 });
