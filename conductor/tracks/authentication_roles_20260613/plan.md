@@ -51,7 +51,7 @@ Goal: enforce roles on the server.
 - [x] d5f0618 Task: Tests + implement `requireRole(role)(handler)` higher-order guard: verifies the
   session cookie + claim, rejecting unauthorized callers with 401/403. Inject the token
   verifier so unit tests need no live Auth. Reused by Tracks 3/7/8.
-- [x] da1ac20 Task: Tests + implement a `useSession()` composable exposing `{ user, role,
+- [x] 4b25f5f Task: Tests + implement a `useSession()` composable exposing `{ user, role,
   capabilities }` from the session, and wire it to the Track 5 `canViewPastPlayers` flag.
 - [ ] Verification: guarded function rejects non-admins, accepts admins; UI capabilities
   reflect role. [checkpoint]
