@@ -18,9 +18,11 @@ Each track lives in `conductor/tracks/<id>/` with `spec.md`, `plan.md`, and `met
 | 4 | Player stats & ranking domain | 3 |
 | 5 | Player List view | 4 |
 | 6 | Authentication & roles | 1 |
-| 7 | Admin view | 5, 6 |
-| 8 | Owner view | 6 (and 2 for token/clan tag) |
-| 9 | War Plan (CWL) — last | 5, 7 |
+| 7 | Email delivery (SendGrid magic-link mailer) | 6 |
+| 8 | Admin view | 5, 6 |
+| 9 | Google sign-in (strict allowlist) | 6, 8 |
+| 10 | Owner view | 6 (and 2 for token/clan tag) |
+| 11 | War Plan (CWL) — last | 5, 8 |
 
 ## Tracks
 
@@ -51,17 +53,29 @@ Passwordless magic-link login, secure HTTP-only session cookie, Owner/Admin cust
 a reusable server-side `requireRole` guard, capability mapping for the UI, and prompt
 session revocation. Public site stays read-only browsable.
 
-### [ ] Track 7: Admin view [admin_view_20260613]
+### [ ] Track 7: Email delivery (SendGrid magic-link mailer) [email_delivery_20260620]
+Production delivery for passwordless sign-in: a SendGrid-backed `Mailer` behind Track 6's
+`Mailer` interface, with the API key held as a Firebase secret (never logged, never sent to
+the client), so magic-link login actually works in production. Dev/emulator keep the console
+mailer. Unblocks login in prod.
+
+### [ ] Track 8: Admin view [admin_view_20260613]
 Instant-save threshold sliders (acceptance %, min war participation), admin invitations with
 a pending list and revocation, and the registration view with a server-enforced 30-minute
 expiry. All writes guarded by `requireRole('admin')`.
 
-### [ ] Track 8: Owner view [owner_view_20260613]
+### [ ] Track 9: Google sign-in (strict allowlist) [google_sign_in_20260620]
+Google OAuth as an alternative to the magic link, so email delivery is not a single point of
+failure. Closed membership: only emails matching an existing account/invitation may sign in
+(others are denied neutrally). Converges on the Track 6 session-cookie + role-claim model;
+reuses the Track 8 invitation/account model for the allowlist.
+
+### [ ] Track 10: Owner view [owner_view_20260613]
 Owner-only config: clan name, write-only encrypted CoC API token, clan tag, and admin/owner
 account management (delete anyone but yourself, with immediate session revocation). Guarded
 by `requireRole('owner')`.
 
-### [ ] Track 9: War Plan (CWL) — last [war_plan_cwl_20260613]
+### [ ] Track 11: War Plan (CWL) — last [war_plan_cwl_20260613]
 CWL-only view: league group + 7-war fetch, in-game-style head-to-head per war, sync status,
 unplaced eligible players, admin manual swaps (map re-orders by TH), and a pure auto-planning
 algorithm (equal-or-stronger, every eligible player in ≥2 wars, TH-strength override).

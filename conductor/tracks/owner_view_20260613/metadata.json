@@ -4,6 +4,6 @@
   "type": "feature",
   "created_at": "2026-06-13T00:00:00Z",
   "status": "pending",
-  "order": 8,
+  "order": 10,
   "depends_on": ["authentication_roles_20260613", "clash_api_integration_20260613"]
 }

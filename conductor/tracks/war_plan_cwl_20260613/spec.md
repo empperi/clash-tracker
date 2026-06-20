@@ -1,6 +1,6 @@
 # Spec: War Plan (CWL)
 
-**Track:** `war_plan_cwl_20260613` · **Order:** 9 (last) · **Depends on:** Player List, Admin view
+**Track:** `war_plan_cwl_20260613` · **Order:** 11 (last) · **Depends on:** Player List, Admin view
 
 ## Overview
 

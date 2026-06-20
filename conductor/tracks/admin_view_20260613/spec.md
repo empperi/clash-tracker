@@ -1,6 +1,6 @@
 # Spec: Admin View
 
-**Track:** `admin_view_20260613` · **Order:** 7 · **Depends on:** Player List view, Auth & roles
+**Track:** `admin_view_20260613` · **Order:** 8 · **Depends on:** Player List view, Auth & roles
 
 ## Overview
 

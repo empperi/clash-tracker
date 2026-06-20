@@ -1,0 +1,9 @@
+{
+  "id": "google_sign_in_20260620",
+  "description": "Google (OAuth) sign-in as an alternative to magic-link, strictly gated to existing authorized accounts/invitations, converging on the Track 6 session-cookie and role-claim model",
+  "type": "feature",
+  "created_at": "2026-06-20T00:00:00Z",
+  "status": "pending",
+  "order": 9,
+  "depends_on": ["authentication_roles_20260613", "admin_view_20260613"]
+}

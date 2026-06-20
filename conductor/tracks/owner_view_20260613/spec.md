@@ -1,6 +1,6 @@
 # Spec: Owner View
 
-**Track:** `owner_view_20260613` · **Order:** 8 · **Depends on:** Auth & roles, Clash API integration
+**Track:** `owner_view_20260613` · **Order:** 10 · **Depends on:** Auth & roles, Clash API integration
 
 ## Overview
 
@@ -43,7 +43,7 @@ write-only.
 - **Description:** List all owner/admin accounts (active and pending) and delete any except
   your own.
 - **Acceptance criteria:**
-  - Owner-only list of `accounts/*` (+ pending from Track 7) via a guarded read function.
+  - Owner-only list of `accounts/*` (+ pending from Track 8) via a guarded read function.
   - Delete removes the account and **revokes its sessions** (Track 6), logging that user out
     immediately and preventing re-login.
   - The owner **cannot delete their own account** (guard + UI disable).
@@ -65,7 +65,7 @@ write-only.
   reacts to changes.
 
 ## Out of Scope
-- Threshold sliders and admin invites (Track 7). The encryption codec itself (Track 2). War
-  Plan (Track 9).
+- Threshold sliders and admin invites (Track 8). The encryption codec itself (Track 2). War
+  Plan (Track 11).
 - **Clan logo / image upload** — dropped: a per-clan image only earns its keep once the app
   tracks multiple clans, which is not planned. The header keeps its generic default crest.
