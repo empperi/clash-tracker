@@ -10,9 +10,8 @@ PWA. Two problems are solved together because they share the same send path:
 1. **Delivery.** Track 6 generates the sign-in link server-side (Admin SDK
    `generateSignInWithEmailLink`) and hands it to an injected `Mailer`, but the only
    implementation is `consoleMailer`, which just logs the link — so no email reaches a user and
-   **production login is impossible**. This track adds a real `Mailer` backed by **Twilio
-   SendGrid**, with the API key held as a Firebase secret (never logged, never sent to the
-   client).
+   **production login is impossible**. This track adds a real `Mailer` backed by **Resend**, with 
+2. the API key held as a Firebase secret (never logged, never sent to the client).
 
 2. **The PWA cross-context gap.** A magic link clicked in an email opens in whatever browser the
    OS routes it to. If that is not the same browser/storage container the PWA runs in (common on
@@ -79,8 +78,8 @@ path, real delivery, and a manifest hint.
     unchanged. No new session/cookie mechanism is introduced.
   - **Priority:** High
 
-### FR-4 — SendGrid `Mailer` implementation
-- **Description:** Implement the `Mailer` using SendGrid's mail-send API, with the HTTP transport,
+### FR-4 — Resend `Mailer` implementation
+- **Description:** Implement the `Mailer` using Resend's mail-send API, with the HTTP transport,
   API key, and sender identity injected as dependencies (functional-first; no live network calls
   in tests).
 - **Acceptance criteria:**
@@ -93,7 +92,7 @@ path, real delivery, and a manifest hint.
   - **Priority:** High
 
 ### FR-5 — Secret & configuration
-- **Description:** Hold the SendGrid API key, the server-side OTP pepper, and the sender address
+- **Description:** Hold the Resend API key, the server-side OTP pepper, and the sender address
   as server-read configuration via **Firebase secrets** (`defineSecret`).
 - **Acceptance criteria:** secrets are read only server-side, bound to the sending/verifying
   functions; never reach the client, never logged. A missing/unset key fails the send with a
@@ -102,9 +101,9 @@ path, real delivery, and a manifest hint.
 - **Priority:** High
 
 ### FR-6 — Dev vs. prod mailer selection
-- **Description:** Use the SendGrid mailer when configured (production); keep `consoleMailer` for
+- **Description:** Use the Resend mailer when configured (production); keep `consoleMailer` for
   the emulator/dev (no key required) — logging both the code and the link.
-- **Acceptance criteria:** selection is explicit and tested — configured ⇒ SendGrid, unconfigured
+- **Acceptance criteria:** selection is explicit and tested — configured ⇒ Resend, unconfigured
   ⇒ console. Local dev / emulator behaviour is unchanged in spirit (now logs code **and** link).
 - **Priority:** High
 
@@ -146,10 +145,10 @@ path, real delivery, and a manifest hint.
 ## Non-Functional Requirements
 - **NFR-1 (Security):** OTP is CSPRNG-generated, hashed at rest with a server pepper, compared in
   constant time, **single-use**, **short-lived** (10 min), and **attempt-capped** (5) — and never
-  logged. `pendingLogins` is server-only. The SendGrid key and OTP pepper are secrets, never
+  logged. `pendingLogins` is server-only. The Resend key and OTP pepper are secrets, never
   logged or sent to the client. **Non-enumeration is preserved** end-to-end: the send response is
   opaque and the verify failure is uniform regardless of account existence.
-- **NFR-2 (Quality):** ≥80% coverage. Transport and randomness injected — **no live SendGrid
+- **NFR-2 (Quality):** ≥80% coverage. Transport and randomness injected — **no live Resend
   calls** and **no mocking libraries** in tests (pass fakes/in-memory/emulator). Send + verify are
   unit/emulator tested.
 
@@ -168,10 +167,11 @@ path, real delivery, and a manifest hint.
 - Verification reuses `sessionLogin` via a custom token — `getAuth().createCustomToken(uid)` on
   the server, `signInWithCustomToken` on the client. No change to `sessionLogin` itself.
 - Reuse the functions HTTP client abstraction (`functions/src/gateway/HttpClient.ts`,
-  `nodeHttpClient`) as the injected SendGrid transport so tests pass a fake client.
-- SendGrid v3 `POST /v3/mail/send` with `Authorization: Bearer <key>`; sender must be a verified
-  single sender / domain in SendGrid.
-- Secrets via `firebase-functions/params` `defineSecret('SENDGRID_API_KEY')`, `defineSecret(
+  `nodeHttpClient`) as the injected Resend transport so tests pass a fake client.
+- Resend `POST https://api.resend.com/emails` with `Authorization: Bearer <key>`. The transport
+  layer must explicitly append a custom `User-Agent` header to prevent edge firewall rejection.
+  Sender must be a verified domain in Resend (e.g., `clash-tracker.app`).
+- Secrets via `firebase-functions/params` `defineSecret('RESEND_API_KEY')`, `defineSecret(
   'OTP_PEPPER')`, plus a sender param; bound to `findAccountForLogin` and `verifyLoginOtp`.
 - Pure OTP predicates → `@clash-tracker/core`; CSPRNG generation + SHA-256 hashing → `functions/`
   (Node crypto is server-only; keep it out of the browser bundle).
