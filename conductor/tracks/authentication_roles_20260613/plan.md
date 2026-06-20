@@ -48,7 +48,7 @@ Goal: enforce roles on the server.
 - [x] 9b0acff Task: Tests + implement claim syncing: when an account's role is set, mirror it to a
   Firebase **custom claim**. (Account creation itself is Track 7; here provide the
   `setAccountRole` primitive + test.)
-- [ ] Task: Tests + implement `requireRole(role)(handler)` higher-order guard: verifies the
+- [x] d5f0618 Task: Tests + implement `requireRole(role)(handler)` higher-order guard: verifies the
   session cookie + claim, rejecting unauthorized callers with 401/403. Inject the token
   verifier so unit tests need no live Auth. Reused by Tracks 3/7/8.
 - [ ] Task: Tests + implement a `useSession()` composable exposing `{ user, role,
