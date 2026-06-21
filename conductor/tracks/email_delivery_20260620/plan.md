@@ -68,7 +68,7 @@ Goal: real delivery in production with an OTP-forward email; console in dev; sec
 - [x] 23a016a Task: Tests + implement a pure sign-in-email builder → subject + body with the **OTP
   prominent and labelled preferred** (single-use, expires in 10 min) and the **magic link below**
   as an alternative; friendly tone; no secrets beyond code + link.
-- [~] Task: Tests + implement `makeResendMailer({ httpClient, apiKey, sender })` returning a
+- [x] 8ecd062 Task: Tests + implement `makeResendMailer({ httpClient, apiKey, sender })` returning a
   `Mailer`. With a fake `httpClient`, assert the request targets the Resend send endpoint with a
   `Bearer` header and a payload whose `to` = [recipient], `from` = sender, carrying the built
   subject/body (code + link). Assert a non-2xx/transport failure becomes a typed error and that
