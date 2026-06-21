@@ -101,7 +101,8 @@ describe('LoginView.vue', () => {
     await flushPromises();
 
     expect(mockFindAccount).toHaveBeenCalledWith({ usernameOrEmail: 'john_doe' });
-    expect(wrapper.text()).toContain('Magic Link Sent!');
+    expect(wrapper.text()).toContain('Check your email');
+    expect(wrapper.find('input.otp-input').exists()).toBe(true);
   });
 
   it('shows a visually distinct email-confirmation step, not a clone of the login form', async () => {

@@ -13,6 +13,11 @@ const usernameOrEmail = ref('');
 const status = ref<'idle' | 'loading' | 'sent' | 'error' | 'verifying' | 'success'>('idle');
 const errorMessage = ref('');
 const needsEmailConfirmation = ref(false);
+const verificationCode = ref('');
+
+async function handleVerifyOtp() {
+  // To be implemented in Task 2
+}
 
 onMounted(async () => {
   if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -151,23 +156,58 @@ async function handleSendLink() {
           </div>
         </div>
 
-        <div v-else-if="status === 'sent'" class="status-container sent">
-          <div class="sent-icon">✉</div>
-          <h4 class="status-title">Magic Link Sent!</h4>
-          <p class="status-msg">
-            We have sent a sign-in link to the email associated with your account. Please check your
-            inbox (and spam folder) and click the link to log in.
+        <div v-else-if="status === 'sent'" class="form-container sent-step">
+          <div class="sent-header">
+            <div class="sent-icon">✉</div>
+            <h4 class="status-title">Check your email</h4>
+          </div>
+          <p class="sent-callout">
+            We've sent a 6-digit verification code and a sign-in link to your registered email address.
           </p>
-          <BaseButton
-            variant="secondary"
-            @click="
-              status = 'idle';
-              needsEmailConfirmation = false;
-              errorMessage = '';
-            "
-          >
-            Back to Sign In
-          </BaseButton>
+
+          <div class="input-group">
+            <label for="otp-input">6-Digit Code</label>
+            <input
+              id="otp-input"
+              v-model="verificationCode"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              placeholder="e.g. 123456"
+              class="ct-input otp-input"
+              :disabled="status === 'loading'"
+              @keyup.enter="handleVerifyOtp"
+            />
+          </div>
+
+          <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
+
+          <div class="sent-actions">
+            <BaseButton
+              variant="primary"
+              :disabled="status === 'loading' || verificationCode.length !== 6"
+              @click="handleVerifyOtp"
+            >
+              {{ status === 'loading' ? 'Verifying...' : 'Verify & Sign In' }}
+            </BaseButton>
+
+            <p class="helper-text">
+              Or, tap the auto-login button in your email to sign in directly.
+            </p>
+
+            <BaseButton
+              variant="secondary"
+              @click="
+                status = 'idle';
+                needsEmailConfirmation = false;
+                errorMessage = '';
+                verificationCode = '';
+              "
+            >
+              ← Back to Sign In
+            </BaseButton>
+          </div>
         </div>
 
         <div v-else class="form-container">
@@ -359,5 +399,42 @@ async function handleSendLink() {
   line-height: 1.6;
   max-width: 320px;
   margin-bottom: var(--ct-spacing-lg);
+}
+
+.sent-header {
+  text-align: center;
+  margin-bottom: var(--ct-spacing-md);
+}
+
+.sent-callout {
+  background-color: var(--ct-color-surface-well);
+  border-left: 4px solid var(--ct-color-gold);
+  border-radius: var(--ct-radius-md);
+  color: var(--ct-color-text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  margin-bottom: var(--ct-spacing-lg);
+}
+
+.sent-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-spacing-sm);
+}
+
+.otp-input {
+  font-size: 24px;
+  letter-spacing: 0.25em;
+  text-align: center;
+  font-family: monospace;
+}
+
+.helper-text {
+  color: var(--ct-color-text-secondary);
+  font-size: 14px;
+  text-align: center;
+  margin: var(--ct-spacing-xs) 0;
+  line-height: 1.4;
 }
 </style>
