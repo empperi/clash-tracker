@@ -2,10 +2,10 @@ import { onRequest, onCall, HttpsError, Request } from 'firebase-functions/v2/ht
 import { Response } from 'express';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { UserRole } from '@clash-tracker/core';
+import { UserRole, isValidOtpFormat } from '@clash-tracker/core';
 import crypto from 'node:crypto';
 import { PendingLoginRepository } from './repositories/PendingLoginRepository.js';
-import { generateOtp, hashOtp } from './crypto.js';
+import { generateOtp, hashOtp, constantTimeEquals } from './crypto.js';
 
 // Region is set per-function (not via setGlobalOptions) because this module is evaluated
 // before index.ts's setGlobalOptions runs, and calling setGlobalOptions twice is undefined
@@ -153,6 +153,35 @@ export function setMailerForTesting(newMailer: Mailer) {
   currentMailer = newMailer;
 }
 
+export async function resolveAccountByUsernameOrEmail(
+  db: FirebaseFirestore.Firestore,
+  usernameOrEmail: string
+): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+  const cleanInput = usernameOrEmail.trim();
+  const lowerInput = cleanInput.toLowerCase();
+  const accountsRef = db.collection('accounts');
+
+  // 1. Try username exact match
+  let snapshot = await accountsRef.where('username', '==', cleanInput).get();
+
+  // 2. Try username lowercase match
+  if (snapshot.empty) {
+    snapshot = await accountsRef.where('username', '==', lowerInput).get();
+  }
+
+  // 3. Try email exact match
+  if (snapshot.empty) {
+    snapshot = await accountsRef.where('email', '==', cleanInput).get();
+  }
+
+  // 4. Try email lowercase match
+  if (snapshot.empty) {
+    snapshot = await accountsRef.where('email', '==', lowerInput).get();
+  }
+
+  return snapshot.empty ? null : snapshot.docs[0];
+}
+
 export async function handleFindAccountForLogin(
   usernameOrEmail: string,
   origin: string,
@@ -178,30 +207,7 @@ export async function handleFindAccountForLogin(
     );
   }
 
-  const cleanInput = usernameOrEmail.trim();
-  const lowerInput = cleanInput.toLowerCase();
-
-  const accountsRef = deps.db.collection('accounts');
-
-  // 1. Try username exact match
-  let snapshot = await accountsRef.where('username', '==', cleanInput).get();
-
-  // 2. Try username lowercase match
-  if (snapshot.empty) {
-    snapshot = await accountsRef.where('username', '==', lowerInput).get();
-  }
-
-  // 3. Try email exact match
-  if (snapshot.empty) {
-    snapshot = await accountsRef.where('email', '==', cleanInput).get();
-  }
-
-  // 4. Try email lowercase match
-  if (snapshot.empty) {
-    snapshot = await accountsRef.where('email', '==', lowerInput).get();
-  }
-
-  const doc = snapshot.docs[0];
+  const doc = await resolveAccountByUsernameOrEmail(deps.db, usernameOrEmail);
   if (doc) {
     const data = doc.data();
     const email = data.email as string;
@@ -248,7 +254,7 @@ export async function handleFindAccountForLogin(
       }
     }
   } else {
-    console.log(`[Auth] No account found for "${cleanInput}". Link not sent.`);
+    console.log(`[Auth] No account found for "${usernameOrEmail}". Link not sent.`);
   }
 
   return { status: 'ok' };
@@ -423,24 +429,7 @@ export async function handleVerifyLoginOtp(
     );
   }
 
-  const cleanInput = usernameOrEmail.trim();
-  const lowerInput = cleanInput.toLowerCase();
-
-  const accountsRef = deps.db.collection('accounts');
-
-  // Lookup
-  let snapshot = await accountsRef.where('username', '==', cleanInput).get();
-  if (snapshot.empty) {
-    snapshot = await accountsRef.where('username', '==', lowerInput).get();
-  }
-  if (snapshot.empty) {
-    snapshot = await accountsRef.where('email', '==', cleanInput).get();
-  }
-  if (snapshot.empty) {
-    snapshot = await accountsRef.where('email', '==', lowerInput).get();
-  }
-
-  const doc = snapshot.docs[0];
+  const doc = await resolveAccountByUsernameOrEmail(deps.db, usernameOrEmail);
   if (!doc) {
     throw uniformError;
   }
@@ -460,7 +449,7 @@ export async function handleVerifyLoginOtp(
   }
 
   // Check format
-  if (!/^\d{6}$/.test(code)) {
+  if (!isValidOtpFormat(code)) {
     const newAttempts = pendingDoc.attempts + 1;
     if (newAttempts >= 5) {
       await repo.delete(doc.id);
@@ -474,7 +463,6 @@ export async function handleVerifyLoginOtp(
   const pepper = deps.otpPepper || process.env.OTP_PEPPER || '';
   const expectedHash = hashOtp(code, doc.id, pepper);
   
-  const { constantTimeEquals } = await import('./crypto.js');
   const isMatch = constantTimeEquals(pendingDoc.hash, expectedHash);
 
   if (!isMatch) {
