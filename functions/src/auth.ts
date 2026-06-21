@@ -156,7 +156,7 @@ export function setMailerForTesting(newMailer: Mailer) {
 export async function resolveAccountByUsernameOrEmail(
   db: FirebaseFirestore.Firestore,
   usernameOrEmail: string
-): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+): Promise<FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData> | null> {
   const cleanInput = usernameOrEmail.trim();
   const lowerInput = cleanInput.toLowerCase();
   const accountsRef = db.collection('accounts');
@@ -179,7 +179,7 @@ export async function resolveAccountByUsernameOrEmail(
     snapshot = await accountsRef.where('email', '==', lowerInput).get();
   }
 
-  return snapshot.empty ? null : snapshot.docs[0];
+  return snapshot.empty ? null : (snapshot.docs[0] || null);
 }
 
 export async function handleFindAccountForLogin(
