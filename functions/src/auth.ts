@@ -229,7 +229,7 @@ export async function handleFindAccountForLogin(
   }
 ): Promise<{ status: string }> {
   const isProduction = process.env.FUNCTIONS_EMULATOR !== 'true' && process.env.NODE_ENV !== 'test';
-  if (isProduction && !process.env.OTP_PEPPER) {
+  if (isProduction && (!process.env.OTP_PEPPER || process.env.OTP_PEPPER === 'dummy')) {
     throw new Error('OTP_PEPPER is not configured in production.');
   }
 
@@ -271,7 +271,7 @@ export async function handleFindAccountForLogin(
         const code = generateOtp(rng);
 
         const pepper = deps.otpPepper || process.env.OTP_PEPPER;
-        if (isProduction && !pepper) {
+        if (isProduction && (!pepper || pepper === 'dummy')) {
           throw new Error('OTP_PEPPER is not configured in production.');
         }
         const hashedCode = hashOtp(code, doc.id, pepper || '');
@@ -461,7 +461,7 @@ export async function handleVerifyLoginOtp(
   const uniformError = new HttpsError('failed-precondition', 'Invalid or expired code.');
 
   const isProduction = process.env.FUNCTIONS_EMULATOR !== 'true' && process.env.NODE_ENV !== 'test';
-  if (isProduction && !process.env.OTP_PEPPER) {
+  if (isProduction && (!process.env.OTP_PEPPER || process.env.OTP_PEPPER === 'dummy')) {
     throw new Error('OTP_PEPPER is not configured in production.');
   }
 
@@ -506,7 +506,7 @@ export async function handleVerifyLoginOtp(
   }
 
   const pepper = deps.otpPepper || process.env.OTP_PEPPER;
-  if (isProduction && !pepper) {
+  if (isProduction && (!pepper || pepper === 'dummy')) {
     throw new Error('OTP_PEPPER is not configured in production.');
   }
   const expectedHash = hashOtp(code, doc.id, pepper || '');

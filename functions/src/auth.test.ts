@@ -1053,4 +1053,39 @@ describe('Mailer selection and secrets validation', () => {
       })
     ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
   });
+
+  it('throws loud error in handleFindAccountForLogin if OTP_PEPPER is "dummy" in production', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.FUNCTIONS_EMULATOR;
+    process.env.OTP_PEPPER = 'dummy';
+
+    const mockDb = {} as unknown as FirebaseFirestore.Firestore;
+    await expect(
+      handleFindAccountForLogin('user', 'origin', {
+        db: mockDb,
+        auth: {} as unknown as {
+          generateSignInWithEmailLink(
+            email: string,
+            settings: { url: string; handleCodeInApp: boolean }
+          ): Promise<string>;
+          getUser(uid: string): Promise<{ uid: string }>;
+        },
+        mailer: consoleMailer,
+      })
+    ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
+  });
+
+  it('throws loud error in handleVerifyLoginOtp if OTP_PEPPER is "dummy" in production', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.FUNCTIONS_EMULATOR;
+    process.env.OTP_PEPPER = 'dummy';
+
+    const mockDb = {} as unknown as FirebaseFirestore.Firestore;
+    await expect(
+      handleVerifyLoginOtp('user', '123456', {
+        db: mockDb,
+        auth: {} as unknown as { createCustomToken(uid: string): Promise<string> },
+      })
+    ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
+  });
 });
