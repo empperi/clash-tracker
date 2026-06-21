@@ -27,3 +27,16 @@ export function rolesToCapabilities(role: UserRole | null | undefined): UserCapa
     isOwner,
   };
 }
+
+export function isValidOtpFormat(code: string): boolean {
+  return /^\d{6}$/.test(code);
+}
+
+export function isOtpExpired(now: Date, expiresAt: Date): boolean {
+  return now.getTime() >= expiresAt.getTime();
+}
+
+export function hasExceededOtpAttempts(attempts: number, max: number): boolean {
+  return attempts >= max;
+}
+
