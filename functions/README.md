@@ -24,6 +24,24 @@ CLASH_TOKEN="<api-token>" CLAN_TAG="<#clan-tag>" CLASH_TOKEN_ENC_KEY="<32-byte-h
 npx tsx functions/scripts/verify-seed.ts
 ```
 
+### Bootstrapping the first owner (`create-owner.ts`)
+Owner/admin accounts are normally created via invitations, which require an existing owner — so
+the **first** owner must be created by hand. `create-owner.ts` creates the Auth user, the
+`accounts/{uid}` doc, and the `{ role }` custom claim together (all keyed to one uid).
+
+Against **production** (uses Application Default Credentials; the SDK won't touch prod without them):
+
+```bash
+gcloud auth application-default login          # or export GOOGLE_APPLICATION_CREDENTIALS=<sa-key.json>
+GCLOUD_PROJECT=militia-clash-tracker \
+OWNER_EMAIL="you@example.com" OWNER_USERNAME="Chief" OWNER_PLAYER_TAG="#YOURTAG" \
+  npx tsx functions/scripts/create-owner.ts
+```
+
+Against the **emulator**, omit credentials (it defaults to Firestore `8080` / Auth `9099`) with the
+emulators running. `OWNER_ROLE` defaults to `owner` (set `admin` for an admin). Re-running is
+idempotent. The account can then sign in at `/login`.
+
 ### Sign-in email config (`RESEND_API_KEY`, `OTP_PEPPER`, `RESEND_SENDER`)
 These are plain environment variables read from `process.env` — **not** Secret Manager — so the
 deploy needs no Secret Manager IAM.
