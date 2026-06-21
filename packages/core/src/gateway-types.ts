@@ -38,6 +38,7 @@ export interface HttpClient {
       headers?: Record<string, string>;
       timeout?: number;
       method?: string;
+      body?: string;
     }
   ): Promise<HttpResponse>;
 }

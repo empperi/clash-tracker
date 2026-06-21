@@ -11,6 +11,7 @@ export const nodeHttpClient: HttpClient = {
       const res = await fetch(url, {
         method: init?.method || 'GET',
         headers: init?.headers,
+        body: init?.body,
         signal: controller?.signal,
       });
       return {
