@@ -41,21 +41,21 @@ accounts still leak nothing.
 - [x] 70a6227 Task: Tests + update `firestore.rules` so `pendingLogins` is server-only (deny all client
   read/write); add a rules test (`@firebase/rules-unit-testing`) proving even an admin-claim
   client cannot read/write it.
-- [ ] Verification: known account ⇒ hashed code stored + mailer received code & link; unknown ⇒
+- [x] Verification: known account ⇒ hashed code stored + mailer received code & link; unknown ⇒
   nothing; `pendingLogins` unreachable from any client. [checkpoint]
 
 ## Phase 3: OTP verification endpoint → session (emulator)
 
 Goal: a correct code signs the user in through the existing cookie path; failures stay uniform.
 
-- [ ] Task: Emulator tests + implement `verifyLoginOtp(usernameOrEmail, code)` (onCall): resolve
+- [x] db7c45e Task: Emulator tests + implement `verifyLoginOtp(usernameOrEmail, code)` (onCall): resolve
   the account via the same non-enumerating lookup, load `pendingLogins/{uid}`, constant-time
   compare, check expiry + attempt cap. **Success:** delete the pending doc and return
   `createCustomToken(uid)`. **Failure:** increment attempts (when a doc exists), invalidate at
   the cap (5), and return a **uniform** "invalid or expired code" error. Cover: success, wrong
   code, expired, cap reached, and unknown account — the last four are indistinguishable to the
   client. Assert the OTP/pepper are never logged.
-- [ ] Task: Emulator test + prove convergence: a custom token from `verifyLoginOtp`, signed in and
+- [~] Task: Emulator test + prove convergence: a custom token from `verifyLoginOtp`, signed in and
   exchanged at `sessionLogin`, yields a valid `__session` cookie (fresh `auth_time` passes the
   5-min check; account-exists check passes). `sessionLogin` itself is unchanged.
 - [ ] Verification: right code ⇒ session cookie; every wrong/expired/over-limit/unknown case ⇒
