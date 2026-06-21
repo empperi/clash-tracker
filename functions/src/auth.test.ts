@@ -1001,6 +1001,15 @@ describe('Mailer selection and secrets validation', () => {
     expect(mailer).toBe(consoleMailer);
   });
 
+  it('returns consoleMailer if RESEND_API_KEY is "dummy" and not in production', () => {
+    setMailerForTesting(consoleMailer);
+    process.env.RESEND_API_KEY = 'dummy';
+    delete process.env.FUNCTIONS_EMULATOR;
+
+    const mailer = getMailer();
+    expect(mailer).toBe(consoleMailer);
+  });
+
   it('throws loud error if RESEND_API_KEY is missing in production', () => {
     setMailerForTesting(consoleMailer);
     delete process.env.RESEND_API_KEY;

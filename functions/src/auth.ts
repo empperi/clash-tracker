@@ -165,7 +165,9 @@ export function getMailer(): Mailer {
   const apiKey = process.env.RESEND_API_KEY || '';
   const sender = process.env.RESEND_SENDER || 'Clash Tracker <onboarding@resend.dev>';
 
-  if (apiKey) {
+  const hasApiKey = apiKey && apiKey !== 'dummy';
+
+  if (hasApiKey) {
     return makeResendMailer({ httpClient: nodeHttpClient, apiKey, sender });
   }
 
