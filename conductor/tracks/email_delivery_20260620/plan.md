@@ -61,7 +61,7 @@ Goal: a correct code signs the user in through the existing cookie path; failure
 - [x] Verification: right code ⇒ session cookie; every wrong/expired/over-limit/unknown case ⇒
   same opaque error, no session, attempts capped. [checkpoint]
 
-## Phase 4: Resend mailer, email content & secrets
+## Phase 4: Resend mailer, email content & secrets [checkpoint: 6b4dc9b]
 
 Goal: real delivery in production with an OTP-forward email; console in dev; secrets guarded.
 
