@@ -81,7 +81,7 @@ Goal: real delivery in production with an OTP-forward email; console in dev; sec
   still logs code + link; secrets never logged or client-bound. Manual: real send against a
   staging/prod project, confirm the email shows code + link. [checkpoint]
 
-## Phase 5: Web UI — reframed "check your email" step with code entry
+## Phase 5: Web UI — reframed "check your email" step with code entry [checkpoint: 5ec74f9]
 
 Goal: the post-send screen is centred on typing the code, completing in-app.
 
