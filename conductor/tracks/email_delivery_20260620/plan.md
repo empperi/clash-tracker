@@ -34,7 +34,7 @@ accounts still leak nothing.
   `delete(uid)`. Isolated test paths.
 - [x] f7ae504 Task: Tests + extend the `Mailer` interface to carry the code (e.g. `sendSignInCode(email,
   { code, link })`); update `consoleMailer` to log both, and `setMailerForTesting` consumers.
-- [ ] Task: Emulator tests + extend `handleFindAccountForLogin`: for a **known** account, generate
+- [x] 963d5fe Task: Emulator tests + extend `handleFindAccountForLogin`: for a **known** account, generate
   an OTP, store its hash via the repository (TTL 10 min, attempts 0), and pass `{ code, link }`
   to the mailer; for an **unknown** account, write nothing and send nothing. Response stays an
   opaque `{ status: 'ok' }`. Assert a second request replaces the prior pending code.
