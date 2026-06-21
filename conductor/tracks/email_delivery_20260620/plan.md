@@ -21,7 +21,7 @@ Goal: deterministic, tested code generation/hashing/verification primitives.
   injected CSPRNG (deterministic in tests, preserves leading zeros) and `hashOtp(code, uid,
   pepper)` (SHA-256) with a `constantTimeEquals(a, b)` comparator. Assert equal hashes match,
   any difference fails, and the plaintext code never appears in a hash input that is logged.
-- [ ] Verification: predicates + generation/hashing covered; generation is uniform over 6 digits
+- [x] Verification: predicates + generation/hashing covered; generation is uniform over 6 digits
   and hashing is stable + constant-time-compared. [checkpoint]
 
 ## Phase 2: Pending-login store, send integration & rules (emulator)
@@ -29,7 +29,7 @@ Goal: deterministic, tested code generation/hashing/verification primitives.
 Goal: a known-account sign-in request persists a hashed code and emails code + link; unknown
 accounts still leak nothing.
 
-- [ ] Task: Tests + implement a `pendingLogins` repository (emulator): `put(uid, { hash,
+- [x] 976f481 Task: Tests + implement a `pendingLogins` repository (emulator): `put(uid, { hash,
   expiresAt, attempts })` (overwrites any prior code), `get(uid)`, `incrementAttempts(uid)`,
   `delete(uid)`. Isolated test paths.
 - [ ] Task: Tests + extend the `Mailer` interface to carry the code (e.g. `sendSignInCode(email,
