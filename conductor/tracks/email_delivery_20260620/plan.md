@@ -73,7 +73,7 @@ Goal: real delivery in production with an OTP-forward email; console in dev; sec
   `Bearer` header and a payload whose `to` = [recipient], `from` = sender, carrying the built
   subject/body (code + link). Assert a non-2xx/transport failure becomes a typed error and that
   the key and OTP are never logged.
-- [~] Task: Tests + define `RESEND_API_KEY`, `OTP_PEPPER`, and the sender param as secrets;
+- [x] cecd6e4 Task: Tests + define `RESEND_API_KEY`, `OTP_PEPPER`, and the sender param as secrets;
   implement mailer selection (configured ⇒ Resend with `nodeHttpClient`, unconfigured ⇒
   `consoleMailer`) and bind the secrets to `findAccountForLogin` and `verifyLoginOtp`. Assert
   selection both ways and that nothing secret is logged. Missing key ⇒ loud send error.
