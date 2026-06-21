@@ -12,7 +12,7 @@ to the client.
 > `sessionLogin` already checks account-exists + 5-min `auth_time` freshness. Extend these — do
 > not fork a parallel flow. The OTP path converges on `sessionLogin` via a custom token.
 
-## Phase 1: One-time-code domain (pure predicates + server crypto)
+## Phase 1: One-time-code domain (pure predicates + server crypto) [checkpoint: 86c516a]
 
 Goal: deterministic, tested code generation/hashing/verification primitives.
 
