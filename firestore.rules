@@ -30,6 +30,7 @@ service cloud.firestore {
     match /secrets/{docId}           { allow read, write: if false; }
     match /accounts/{docId}          { allow read, write: if false; }
     match /pendingAccounts/{docId}   { allow read, write: if false; }
+    match /pendingLogins/{docId}     { allow read, write: if false; }
 
     // Default deny.
     match /{document=**} {
