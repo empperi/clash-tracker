@@ -23,3 +23,14 @@ CLASH_TOKEN="<api-token>" CLAN_TAG="<#clan-tag>" CLASH_TOKEN_ENC_KEY="<32-byte-h
 ```bash
 npx tsx functions/scripts/verify-seed.ts
 ```
+
+### Emulator Secrets Override (`.secret.local`)
+The Cloud Functions use bound secrets (such as `RESEND_API_KEY`, `OTP_PEPPER`, and `RESEND_SENDER`). To prevent the Firebase Emulator from attempting to contact the live Google Cloud Secret Manager API (and throwing permission or connection warnings due to the fake project ID `demo-clash-tracker`), you must provide local secret values.
+
+Copy the example file to `.secret.local` inside the `functions` directory:
+```bash
+cp functions/.secret.local.example functions/.secret.local
+```
+
+By default, these are set to `"dummy"` values. This satisfies the presence check for the emulator, preventing it from contacting the GCP API, and correctly causes the mailer setup to default to the local `consoleMailer` (which prints OTP codes and links to the terminal console).
+
