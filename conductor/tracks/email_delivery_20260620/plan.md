@@ -89,7 +89,7 @@ Goal: the post-send screen is centred on typing the code, completing in-app.
   **"Check your email"** step: a prominent 6-digit code input (numeric inputmode, ≥44px) + a
   "Verify & sign in" primary action, with secondary helper text that they can instead tap the
   link in the email. Keep "Back to sign in".
-- [~] Task: Tests + implement completion: on submit, call `verifyLoginOtp` →
+- [x] 813fec1 Task: Tests + implement completion: on submit, call `verifyLoginOtp` →
   `signInWithCustomToken` → `getIdToken` → POST `/api/sessionLogin`; on success show the existing
   success state + redirect home; on failure show a uniform "invalid or expired code" message and
   allow retry. Leave the `onMounted` magic-link path and `needsEmailConfirmation` step untouched.
