@@ -85,7 +85,7 @@ Goal: real delivery in production with an OTP-forward email; console in dev; sec
 
 Goal: the post-send screen is centred on typing the code, completing in-app.
 
-- [ ] Task: Component tests + rework the `status === 'sent'` view in `LoginView.vue` into a
+- [~] Task: Component tests + rework the `status === 'sent'` view in `LoginView.vue` into a
   **"Check your email"** step: a prominent 6-digit code input (numeric inputmode, ≥44px) + a
   "Verify & sign in" primary action, with secondary helper text that they can instead tap the
   link in the email. Keep "Back to sign in".
