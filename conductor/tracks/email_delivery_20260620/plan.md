@@ -55,7 +55,7 @@ Goal: a correct code signs the user in through the existing cookie path; failure
   the cap (5), and return a **uniform** "invalid or expired code" error. Cover: success, wrong
   code, expired, cap reached, and unknown account — the last four are indistinguishable to the
   client. Assert the OTP/pepper are never logged.
-- [~] Task: Emulator test + prove convergence: a custom token from `verifyLoginOtp`, signed in and
+- [x] dd54152 Task: Emulator test + prove convergence: a custom token from `verifyLoginOtp`, signed in and
   exchanged at `sessionLogin`, yields a valid `__session` cookie (fresh `auth_time` passes the
   5-min check; account-exists check passes). `sessionLogin` itself is unchanged.
 - [ ] Verification: right code ⇒ session cookie; every wrong/expired/over-limit/unknown case ⇒
