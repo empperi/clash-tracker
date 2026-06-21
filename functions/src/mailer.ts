@@ -32,7 +32,7 @@ export function makeResendMailer(deps: {
       const res = await deps.httpClient.fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${deps.apiKey}`,
+          Authorization: `Bearer ${deps.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -45,7 +45,7 @@ export function makeResendMailer(deps: {
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       // Clean error message without secrets
-      throw new Error(`Resend mailer transport error: ${errMsg}`);
+      throw new Error(`Resend mailer transport error: ${errMsg}`, { cause: err });
     }
   }
 

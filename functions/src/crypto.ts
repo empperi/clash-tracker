@@ -124,4 +124,3 @@ export function constantTimeEquals(a: string, b: string): boolean {
   }
   return crypto.timingSafeEqual(bufA, bufB);
 }
-

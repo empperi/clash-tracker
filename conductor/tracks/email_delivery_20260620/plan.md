@@ -77,7 +77,7 @@ Goal: real delivery in production with an OTP-forward email; console in dev; sec
   implement mailer selection (configured ⇒ Resend with `nodeHttpClient`, unconfigured ⇒
   `consoleMailer`) and bind the secrets to `findAccountForLogin` and `verifyLoginOtp`. Assert
   selection both ways and that nothing secret is logged. Missing key ⇒ loud send error.
-- [ ] Verification: fake transport ⇒ correct OTP-forward request; selection works both ways; dev
+- [x] Verification: fake transport ⇒ correct OTP-forward request; selection works both ways; dev
   still logs code + link; secrets never logged or client-bound. Manual: real send against a
   staging/prod project, confirm the email shows code + link. [checkpoint]
 

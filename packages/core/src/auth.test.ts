@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { rolesToCapabilities, isValidOtpFormat, isOtpExpired, hasExceededOtpAttempts } from './auth';
+import {
+  rolesToCapabilities,
+  isValidOtpFormat,
+  isOtpExpired,
+  hasExceededOtpAttempts,
+} from './auth';
 
 describe('rolesToCapabilities', () => {
   it('returns all false capabilities for unauthenticated / unknown roles', () => {
@@ -108,4 +113,3 @@ describe('hasExceededOtpAttempts', () => {
     expect(hasExceededOtpAttempts(6, 5)).toBe(true);
   });
 });
-

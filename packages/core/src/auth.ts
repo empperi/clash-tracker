@@ -39,4 +39,3 @@ export function isOtpExpired(now: Date, expiresAt: Date): boolean {
 export function hasExceededOtpAttempts(attempts: number, max: number): boolean {
   return attempts >= max;
 }
-

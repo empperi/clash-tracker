@@ -659,9 +659,9 @@ describe('verifyLoginOtp callable', () => {
         ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
         : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
 
-    await expect(
-      handler({ data: { usernameOrEmail: 'john_doe', code } })
-    ).rejects.toThrowError(/Invalid or expired code/);
+    await expect(handler({ data: { usernameOrEmail: 'john_doe', code } })).rejects.toThrowError(
+      /Invalid or expired code/
+    );
 
     const docSnap = await db.collection('pendingLogins').doc(uid).get();
     expect(docSnap.exists).toBe(false);
@@ -985,7 +985,7 @@ describe('Mailer selection and secrets validation', () => {
     setMailerForTesting(consoleMailer);
     process.env.RESEND_API_KEY = 're_somekey';
     process.env.RESEND_SENDER = 'test@example.com';
-    
+
     const mailer = getMailer();
     expect(mailer).toBeDefined();
     expect(mailer).not.toBe(consoleMailer);
@@ -996,7 +996,7 @@ describe('Mailer selection and secrets validation', () => {
     delete process.env.RESEND_API_KEY;
     delete process.env.FUNCTIONS_EMULATOR;
     // NODE_ENV is 'test' (set by vitest), so isProduction is false
-    
+
     const mailer = getMailer();
     expect(mailer).toBe(consoleMailer);
   });
@@ -1006,7 +1006,7 @@ describe('Mailer selection and secrets validation', () => {
     delete process.env.RESEND_API_KEY;
     delete process.env.FUNCTIONS_EMULATOR;
     process.env.NODE_ENV = 'production';
-    
+
     expect(() => getMailer()).toThrowError(/RESEND_API_KEY is not configured in production/);
   });
 
@@ -1015,11 +1015,17 @@ describe('Mailer selection and secrets validation', () => {
     delete process.env.FUNCTIONS_EMULATOR;
     delete process.env.OTP_PEPPER;
 
-    const mockDb = {} as any;
+    const mockDb = {} as unknown as FirebaseFirestore.Firestore;
     await expect(
       handleFindAccountForLogin('user', 'origin', {
         db: mockDb,
-        auth: {} as any,
+        auth: {} as unknown as {
+          generateSignInWithEmailLink(
+            email: string,
+            settings: { url: string; handleCodeInApp: boolean }
+          ): Promise<string>;
+          getUser(uid: string): Promise<{ uid: string }>;
+        },
         mailer: consoleMailer,
       })
     ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
@@ -1030,11 +1036,11 @@ describe('Mailer selection and secrets validation', () => {
     delete process.env.FUNCTIONS_EMULATOR;
     delete process.env.OTP_PEPPER;
 
-    const mockDb = {} as any;
+    const mockDb = {} as unknown as FirebaseFirestore.Firestore;
     await expect(
       handleVerifyLoginOtp('user', '123456', {
         db: mockDb,
-        auth: {} as any,
+        auth: {} as unknown as { createCustomToken(uid: string): Promise<string> },
       })
     ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
   });

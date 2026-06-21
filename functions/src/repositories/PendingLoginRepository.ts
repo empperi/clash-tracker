@@ -13,11 +13,14 @@ export class PendingLoginRepository {
   ) {}
 
   async put(uid: string, data: PendingLogin): Promise<void> {
-    await this.db.collection(this.collectionPath).doc(uid).set({
-      hash: data.hash,
-      expiresAt: Timestamp.fromDate(data.expiresAt),
-      attempts: data.attempts,
-    });
+    await this.db
+      .collection(this.collectionPath)
+      .doc(uid)
+      .set({
+        hash: data.hash,
+        expiresAt: Timestamp.fromDate(data.expiresAt),
+        attempts: data.attempts,
+      });
   }
 
   async get(uid: string): Promise<PendingLogin | null> {
@@ -37,9 +40,12 @@ export class PendingLoginRepository {
   }
 
   async incrementAttempts(uid: string): Promise<void> {
-    await this.db.collection(this.collectionPath).doc(uid).update({
-      attempts: FieldValue.increment(1),
-    });
+    await this.db
+      .collection(this.collectionPath)
+      .doc(uid)
+      .update({
+        attempts: FieldValue.increment(1),
+      });
   }
 
   async delete(uid: string): Promise<void> {

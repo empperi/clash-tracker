@@ -23,11 +23,11 @@ describe('makeResendMailer', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [calledUrl, calledInit] = fetchMock.mock.calls[0];
-    
+
     expect(calledUrl).toBe('https://api.resend.com/emails');
     expect(calledInit.method).toBe('POST');
     expect(calledInit.headers).toEqual({
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     });
 

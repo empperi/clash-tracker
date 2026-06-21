@@ -61,7 +61,7 @@ describe('generateOtp', () => {
     const mockRng = (val: number) => () => val;
     expect(generateOtp(mockRng(0.001234))).toBe('001234');
     expect(generateOtp(mockRng(0.000005))).toBe('000005');
-    expect(generateOtp(mockRng(0.000000))).toBe('000000');
+    expect(generateOtp(mockRng(0.0))).toBe('000000');
   });
 
   it('should handle rng float boundary of exactly 1.0 or greater via modulo', () => {
@@ -109,4 +109,3 @@ describe('constantTimeEquals', () => {
     expect(constantTimeEquals('abc', 'ab')).toBe(false);
   });
 });
-

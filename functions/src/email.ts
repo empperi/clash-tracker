@@ -9,7 +9,7 @@ export interface SignInEmail {
  */
 export function buildSignInEmail(code: string, link: string): SignInEmail {
   const subject = `Your Clash Tracker Sign-In Code: ${code}`;
-  
+
   const html = `
 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6;">
   <h2 style="color: #1e3a8a;">Welcome to Clash Tracker!</h2>

@@ -145,7 +145,9 @@ export const consoleMailer: Mailer = {
     console.log(`[MAILER] Sent sign-in link to ${email}: ${link}`);
   },
   async sendSignInCode(email: string, options: { code: string; link: string }) {
-    console.log(`[MAILER] Sent OTP code ${options.code} and sign-in link to ${email}: ${options.link}`);
+    console.log(
+      `[MAILER] Sent OTP code ${options.code} and sign-in link to ${email}: ${options.link}`
+    );
   },
 };
 
@@ -177,7 +179,10 @@ export function getMailer(): Mailer {
 export async function resolveAccountByUsernameOrEmail(
   db: FirebaseFirestore.Firestore,
   usernameOrEmail: string
-): Promise<FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData> | null> {
+): Promise<FirebaseFirestore.QueryDocumentSnapshot<
+  FirebaseFirestore.DocumentData,
+  FirebaseFirestore.DocumentData
+> | null> {
   const cleanInput = usernameOrEmail.trim();
   const lowerInput = cleanInput.toLowerCase();
   const accountsRef = db.collection('accounts');
@@ -200,7 +205,7 @@ export async function resolveAccountByUsernameOrEmail(
     snapshot = await accountsRef.where('email', '==', lowerInput).get();
   }
 
-  return snapshot.empty ? null : (snapshot.docs[0] || null);
+  return snapshot.empty ? null : snapshot.docs[0] || null;
 }
 
 export async function handleFindAccountForLogin(
@@ -258,17 +263,17 @@ export async function handleFindAccountForLogin(
         };
 
         const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
-        
+
         // Generate and store OTP code (TTL 10 min, attempts 0)
         const rng = deps.rng || (() => crypto.randomBytes(4).readUInt32BE(0) / 0x100000000);
         const code = generateOtp(rng);
-        
+
         const pepper = deps.otpPepper || process.env.OTP_PEPPER;
         if (isProduction && !pepper) {
           throw new Error('OTP_PEPPER is not configured in production.');
         }
         const hashedCode = hashOtp(code, doc.id, pepper || '');
-        
+
         const repo = deps.pendingLoginRepo || new PendingLoginRepository(deps.db);
         await repo.put(doc.id, {
           hash: hashedCode,
@@ -279,7 +284,9 @@ export async function handleFindAccountForLogin(
         await deps.mailer.sendSignInCode(email, { code, link });
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        console.error(`[Auth] Failed to generate or send sign-in link/code for ${email}: ${errMsg}`);
+        console.error(
+          `[Auth] Failed to generate or send sign-in link/code for ${email}: ${errMsg}`
+        );
       }
     }
   } else {
@@ -463,10 +470,7 @@ export async function handleVerifyLoginOtp(
     );
   }
   if (!code || typeof code !== 'string') {
-    throw new HttpsError(
-      'invalid-argument',
-      'The function must be called with a string "code".'
-    );
+    throw new HttpsError('invalid-argument', 'The function must be called with a string "code".');
   }
 
   const doc = await resolveAccountByUsernameOrEmail(deps.db, usernameOrEmail);
@@ -504,7 +508,7 @@ export async function handleVerifyLoginOtp(
     throw new Error('OTP_PEPPER is not configured in production.');
   }
   const expectedHash = hashOtp(code, doc.id, pepper || '');
-  
+
   const isMatch = constantTimeEquals(pendingDoc.hash, expectedHash);
 
   if (!isMatch) {

@@ -8,7 +8,8 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
   process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
 }
 
-const app = getApps().length === 0 ? initializeApp({ projectId: 'demo-pending-logins-repo' }) : getApp();
+const app =
+  getApps().length === 0 ? initializeApp({ projectId: 'demo-pending-logins-repo' }) : getApp();
 const db = getFirestore(app);
 
 describe('PendingLoginRepository', () => {
