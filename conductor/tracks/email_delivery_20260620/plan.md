@@ -38,7 +38,7 @@ accounts still leak nothing.
   an OTP, store its hash via the repository (TTL 10 min, attempts 0), and pass `{ code, link }`
   to the mailer; for an **unknown** account, write nothing and send nothing. Response stays an
   opaque `{ status: 'ok' }`. Assert a second request replaces the prior pending code.
-- [ ] Task: Tests + update `firestore.rules` so `pendingLogins` is server-only (deny all client
+- [x] 70a6227 Task: Tests + update `firestore.rules` so `pendingLogins` is server-only (deny all client
   read/write); add a rules test (`@firebase/rules-unit-testing`) proving even an admin-claim
   client cannot read/write it.
 - [ ] Verification: known account ⇒ hashed code stored + mailer received code & link; unknown ⇒
