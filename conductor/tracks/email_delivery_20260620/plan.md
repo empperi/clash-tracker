@@ -17,7 +17,7 @@ to the client.
 Goal: deterministic, tested code generation/hashing/verification primitives.
 
 - [x] bc44d63 Task: Tests + implement pure predicates in `@clash-tracker/core`: `isValidOtpFormat(code)` (exactly 6 digits), `isOtpExpired(now, expiresAt)`, and `hasExceededOtpAttempts(attempts, max)`.
-- [ ] Task: Tests + implement, in `functions/`, `generateOtp(rng)` drawing 6 digits from an
+- [x] d3ba432 Task: Tests + implement, in `functions/`, `generateOtp(rng)` drawing 6 digits from an
   injected CSPRNG (deterministic in tests, preserves leading zeros) and `hashOtp(code, uid,
   pepper)` (SHA-256) with a `constantTimeEquals(a, b)` comparator. Assert equal hashes match,
   any difference fails, and the plaintext code never appears in a hash input that is logged.
