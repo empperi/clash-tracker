@@ -93,20 +93,23 @@ Goal: the post-send screen is centred on typing the code, completing in-app.
   `signInWithCustomToken` → `getIdToken` → POST `/api/sessionLogin`; on success show the existing
   success state + redirect home; on failure show a uniform "invalid or expired code" message and
   allow retry. Leave the `onMounted` magic-link path and `needsEmailConfirmation` step untouched.
-- [ ] Verification: a code entered in the app signs in end-to-end against the emulator; bad codes
+- [x] Verification: a code entered in the app signs in end-to-end against the emulator; bad codes
   surface a uniform error without leaving the step; magic-link completion still works. Playwright
   spot-check at ~390px. [checkpoint]
+  Confirmed via Playwright @390px: admin@example.internal → console-mailed OTP (597167) → in-app
+  entry → custom token → `__session` cookie → redirect home authenticated as ChiefAdmin. Bad-code
+  uniform error + magic-link path covered by component/emulator tests.
 
 ## Phase 6: Web App Manifest link handling
 
 Goal: installed PWAs on supporting platforms open the magic link in-app.
 
-- [ ] Task: Add link-handling fields (`launch_handler` / `handle_links`) and a `scope` covering
+- [x] dbef89b Task: Add link-handling fields (`launch_handler` / `handle_links`) and a `scope` covering
   `/login` to the vite-plugin-pwa manifest config; assert (manifest unit/build check) the
   generated manifest contains them and that install + the existing SW/`devOptions` config are
   unaffected. Document in the spec/PR that this is opportunistic (Android/ChromeOS; not iOS) and
   that OTP remains the universal path.
-- [ ] Verification: generated manifest declares link handling; no regression to install or SW.
+- [x] Verification: generated manifest declares link handling; no regression to install or SW.
   [checkpoint]
 
 ## Done when
