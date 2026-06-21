@@ -58,7 +58,7 @@ Goal: a correct code signs the user in through the existing cookie path; failure
 - [x] dd54152 Task: Emulator test + prove convergence: a custom token from `verifyLoginOtp`, signed in and
   exchanged at `sessionLogin`, yields a valid `__session` cookie (fresh `auth_time` passes the
   5-min check; account-exists check passes). `sessionLogin` itself is unchanged.
-- [ ] Verification: right code ⇒ session cookie; every wrong/expired/over-limit/unknown case ⇒
+- [x] Verification: right code ⇒ session cookie; every wrong/expired/over-limit/unknown case ⇒
   same opaque error, no session, attempts capped. [checkpoint]
 
 ## Phase 4: Resend mailer, email content & secrets
