@@ -32,7 +32,7 @@ accounts still leak nothing.
 - [x] 976f481 Task: Tests + implement a `pendingLogins` repository (emulator): `put(uid, { hash,
   expiresAt, attempts })` (overwrites any prior code), `get(uid)`, `incrementAttempts(uid)`,
   `delete(uid)`. Isolated test paths.
-- [ ] Task: Tests + extend the `Mailer` interface to carry the code (e.g. `sendSignInCode(email,
+- [x] f7ae504 Task: Tests + extend the `Mailer` interface to carry the code (e.g. `sendSignInCode(email,
   { code, link })`); update `consoleMailer` to log both, and `setMailerForTesting` consumers.
 - [ ] Task: Emulator tests + extend `handleFindAccountForLogin`: for a **known** account, generate
   an OTP, store its hash via the repository (TTL 10 min, attempts 0), and pass `{ code, link }`
