@@ -306,10 +306,13 @@ type FindAccountHandler = (req: {
 describe('findAccountForLogin callable', () => {
   const db = getFirestore(app);
 
-  const sentEmails: { email: string; link: string }[] = [];
+  const sentEmails: { email: string; link: string; code?: string }[] = [];
   const testMailer = {
     async sendSignInLink(email: string, link: string) {
       sentEmails.push({ email, link });
+    },
+    async sendSignInCode(email: string, options: { code: string; link: string }) {
+      sentEmails.push({ email, link: options.link, code: options.code });
     },
   };
 
@@ -448,6 +451,9 @@ describe('findAccountForLogin callable', () => {
   it('returns opaque response and does NOT throw if email link generation/sending fails', async () => {
     const failingMailer = {
       async sendSignInLink() {
+        throw new Error('Mailer connection failed');
+      },
+      async sendSignInCode() {
         throw new Error('Mailer connection failed');
       },
     };
