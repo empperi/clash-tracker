@@ -100,7 +100,7 @@ Goal: the post-send screen is centred on typing the code, completing in-app.
   entry → custom token → `__session` cookie → redirect home authenticated as ChiefAdmin. Bad-code
   uniform error + magic-link path covered by component/emulator tests.
 
-## Phase 6: Web App Manifest link handling
+## Phase 6: Web App Manifest link handling [checkpoint: 935e9d0]
 
 Goal: installed PWAs on supporting platforms open the magic link in-app.
 
