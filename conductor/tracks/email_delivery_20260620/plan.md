@@ -65,7 +65,7 @@ Goal: a correct code signs the user in through the existing cookie path; failure
 
 Goal: real delivery in production with an OTP-forward email; console in dev; secrets guarded.
 
-- [ ] Task: Tests + implement a pure sign-in-email builder → subject + body with the **OTP
+- [~] Task: Tests + implement a pure sign-in-email builder → subject + body with the **OTP
   prominent and labelled preferred** (single-use, expires in 10 min) and the **magic link below**
   as an alternative; friendly tone; no secrets beyond code + link.
 - [ ] Task: Tests + implement `makeResendMailer({ httpClient, apiKey, sender })` returning a
