@@ -101,3 +101,24 @@ export function parseEncryptionKey(keyStr: string): Uint8Array {
     `Invalid key length: Key must resolve to exactly 32 bytes (64 hex characters, a 44-character base64 string, or a 32-byte UTF-8 string). Provided key resolved to ${bytes.length} bytes.`
   );
 }
+
+export function generateOtp(rng: () => number): string {
+  const val = Math.floor(rng() * 1000000);
+  return val.toString().padStart(6, '0');
+}
+
+export function hashOtp(code: string, uid: string, pepper: string): string {
+  const hash = crypto.createHash('sha256');
+  hash.update(`${uid}:${code}:${pepper}`);
+  return hash.digest('hex');
+}
+
+export function constantTimeEquals(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
