@@ -33,14 +33,19 @@ Against **production** (uses Application Default Credentials; the SDK won't touc
 
 ```bash
 gcloud auth application-default login          # or export GOOGLE_APPLICATION_CREDENTIALS=<sa-key.json>
-GCLOUD_PROJECT=militia-clash-tracker \
+USE_EMULATOR=false GCLOUD_PROJECT=militia-clash-tracker \
 OWNER_EMAIL="you@example.com" OWNER_USERNAME="Chief" OWNER_PLAYER_TAG="#YOURTAG" \
   npx tsx functions/scripts/create-owner.ts
 ```
 
-Against the **emulator**, omit credentials (it defaults to Firestore `8080` / Auth `9099`) with the
-emulators running. `OWNER_ROLE` defaults to `owner` (set `admin` for an admin). Re-running is
-idempotent. The account can then sign in at `/login`.
+> `USE_EMULATOR=false` is required for production — `gcloud auth application-default login` writes
+> ADC to a well-known file (it does **not** set `GOOGLE_APPLICATION_CREDENTIALS`), so the script
+> can't auto-detect it and defaults to the emulator otherwise. The startup log prints `EMULATOR`
+> or `PRODUCTION` — check it before trusting the run.
+
+Against the **emulator** (default), run with the emulators up — it uses Firestore `8080` / Auth
+`9099`. `OWNER_ROLE` defaults to `owner` (set `admin` for an admin). Re-running is idempotent. The
+account can then sign in at `/login`.
 
 ### Sign-in email config (`RESEND_API_KEY`, `OTP_PEPPER`, `RESEND_SENDER`)
 These are plain environment variables read from `process.env` — **not** Secret Manager — so the

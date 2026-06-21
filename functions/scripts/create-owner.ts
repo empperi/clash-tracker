@@ -16,14 +16,15 @@
  *   OWNER_EMAIL=you@example.com OWNER_USERNAME=Chief \
  *     npx tsx functions/scripts/create-owner.ts        # terminal 2
  *
- * PRODUCTION (uses Application Default Credentials — the SDK refuses to run otherwise):
+ * PRODUCTION (set USE_EMULATOR=false; auth via Application Default Credentials):
  *   gcloud auth application-default login               # or export GOOGLE_APPLICATION_CREDENTIALS=<sa-key.json>
- *   GCLOUD_PROJECT=militia-clash-tracker \
+ *   USE_EMULATOR=false GCLOUD_PROJECT=militia-clash-tracker \
  *   OWNER_EMAIL=you@example.com OWNER_USERNAME=Chief OWNER_PLAYER_TAG='#YOURTAG' \
  *     npx tsx functions/scripts/create-owner.ts
  *
  * Env: OWNER_EMAIL (required), OWNER_USERNAME (required), OWNER_PLAYER_TAG (optional),
- *      OWNER_ROLE (optional, "owner" | "admin", default "owner").
+ *      OWNER_ROLE (optional, "owner" | "admin", default "owner"),
+ *      USE_EMULATOR (optional, default "true"; set "false" to target production).
  */
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -45,19 +46,28 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Default to the emulator only when no real credentials are configured — mirrors seed-secrets.
-  if (!process.env.FIRESTORE_EMULATOR_HOST && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+  // Explicit target selection — `gcloud auth application-default login` writes ADC to a
+  // well-known file and does NOT set GOOGLE_APPLICATION_CREDENTIALS, so we can't reliably
+  // auto-detect it. Default to the LOCAL emulator (safe); set USE_EMULATOR=false to target
+  // production, where the SDK picks up ADC (gcloud login file OR GOOGLE_APPLICATION_CREDENTIALS).
+  const useEmulator = process.env.USE_EMULATOR !== 'false';
+  if (useEmulator) {
+    process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
     process.env.FIREBASE_AUTH_EMULATOR_HOST =
       process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
-    console.log('No ADC configured — targeting the LOCAL emulator (Firestore 8080 / Auth 9099).');
+  } else {
+    // Make sure no emulator host leaks in, so the SDK talks to real services with ADC.
+    delete process.env.FIRESTORE_EMULATOR_HOST;
+    delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
   }
 
   const projectId = process.env.GCLOUD_PROJECT || 'militia-clash-tracker';
-  const targetingEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
   console.log(
-    `Initializing Firebase Admin SDK for project "${projectId}" (${targetingEmulator ? 'EMULATOR' : 'PRODUCTION'})...`
+    `Initializing Firebase Admin SDK for project "${projectId}" (${useEmulator ? 'EMULATOR' : 'PRODUCTION'})...`
   );
+  if (useEmulator) {
+    console.log('  (targeting the LOCAL emulator — set USE_EMULATOR=false to target production.)');
+  }
 
   const app = getApps().length === 0 ? initializeApp({ projectId }) : getApp();
   const db = getFirestore(app);
