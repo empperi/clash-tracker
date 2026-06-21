@@ -45,11 +45,18 @@ const mockSignInWithLink = vi.fn().mockResolvedValue({
   },
 });
 
+const mockSignInWithCustomToken = vi.fn().mockResolvedValue({
+  user: {
+    getIdToken: vi.fn().mockResolvedValue('mock-id-token'),
+  },
+});
+
 vi.mock('firebase/auth', () => {
   return {
     getAuth: vi.fn(),
     isSignInWithEmailLink: vi.fn().mockReturnValue(false),
     signInWithEmailLink: (...args: unknown[]) => mockSignInWithLink(...args),
+    signInWithCustomToken: (...args: unknown[]) => mockSignInWithCustomToken(...args),
   };
 });
 
@@ -57,10 +64,19 @@ const mockFindAccount = vi.fn().mockResolvedValue({
   data: { status: 'ok' },
 });
 
+const mockVerifyOtp = vi.fn().mockResolvedValue({
+  data: { customToken: 'mock-custom-token' },
+});
+
 vi.mock('firebase/functions', () => {
   return {
     getFunctions: vi.fn(),
-    httpsCallable: vi.fn(() => mockFindAccount),
+    httpsCallable: vi.fn((_, name) => {
+      if (name === 'verifyLoginOtp') {
+        return mockVerifyOtp;
+      }
+      return mockFindAccount;
+    }),
   };
 });
 
@@ -127,5 +143,69 @@ describe('LoginView.vue', () => {
     expect(text).toContain('Back to login');
     // Crucially, it must NOT look like the initial username/email entry form.
     expect(text).not.toContain('Username or Email');
+  });
+
+  it('submitting correct 6-digit OTP code logs in user and redirects to home page', async () => {
+    const wrapper = mount(LoginView, {
+      global: {
+        plugins: [router],
+      },
+    });
+
+    // 1. Move to sent/otp screen
+    const input = wrapper.find('input[type="text"]');
+    await input.setValue('john_doe');
+    const button = wrapper.find('button');
+    await button.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Check your email');
+
+    // 2. Fill 6-digit code
+    const otpInput = wrapper.find('input.otp-input');
+    await otpInput.setValue('123456');
+
+    // 3. Trigger submit
+    const verifyButton = wrapper.find('.sent-step button.ct-btn-primary');
+    await verifyButton.trigger('click');
+    await flushPromises();
+
+    expect(mockVerifyOtp).toHaveBeenCalledWith({ usernameOrEmail: 'john_doe', code: '123456' });
+    expect(mockSignInWithCustomToken).toHaveBeenCalledWith(expect.anything(), 'mock-custom-token');
+    expect(fetchMock).toHaveBeenCalledWith('/api/sessionLogin', expect.anything());
+
+    // Status should be success
+    expect(wrapper.text()).toContain('Successfully Signed In!');
+  });
+
+  it('submitting incorrect 6-digit OTP code shows uniform error and clears input', async () => {
+    mockVerifyOtp.mockRejectedValueOnce(new Error('Invalid code'));
+
+    const wrapper = mount(LoginView, {
+      global: {
+        plugins: [router],
+      },
+    });
+
+    // 1. Move to sent/otp screen
+    const input = wrapper.find('input[type="text"]');
+    await input.setValue('john_doe');
+    const button = wrapper.find('button');
+    await button.trigger('click');
+    await flushPromises();
+
+    // 2. Fill 6-digit code
+    const otpInput = wrapper.find('input.otp-input');
+    await otpInput.setValue('000000');
+
+    // 3. Trigger submit
+    const verifyButton = wrapper.find('.sent-step button.ct-btn-primary');
+    await verifyButton.trigger('click');
+    await flushPromises();
+
+    // Status remains sent with error
+    expect(wrapper.text()).toContain('Check your email');
+    expect(wrapper.text()).toContain('Invalid or expired code.');
+    expect((wrapper.find('input.otp-input').element as HTMLInputElement).value).toBe('');
   });
 });

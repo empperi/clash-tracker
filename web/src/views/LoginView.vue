@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { auth, functions } from '../firebase';
-import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { isSignInWithEmailLink, signInWithEmailLink, signInWithCustomToken } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
 import BasePanel from '../components/BasePanel.vue';
 import BaseButton from '../components/BaseButton.vue';
@@ -10,13 +10,57 @@ import BaseButton from '../components/BaseButton.vue';
 const router = useRouter();
 
 const usernameOrEmail = ref('');
-const status = ref<'idle' | 'loading' | 'sent' | 'error' | 'verifying' | 'success'>('idle');
+const status = ref<
+  'idle' | 'loading' | 'sent' | 'verifying_otp' | 'error' | 'verifying' | 'success'
+>('idle');
 const errorMessage = ref('');
 const needsEmailConfirmation = ref(false);
 const verificationCode = ref('');
 
 async function handleVerifyOtp() {
-  // To be implemented in Task 2
+  if (verificationCode.value.length !== 6) {
+    errorMessage.value = 'Please enter a 6-digit code.';
+    return;
+  }
+
+  status.value = 'verifying_otp';
+  errorMessage.value = '';
+
+  try {
+    const verifyOtp = httpsCallable<
+      { usernameOrEmail: string; code: string },
+      { customToken: string }
+    >(functions, 'verifyLoginOtp');
+
+    const result = await verifyOtp({
+      usernameOrEmail: usernameOrEmail.value,
+      code: verificationCode.value,
+    });
+
+    const customToken = result.data.customToken;
+    const userCredential = await signInWithCustomToken(auth, customToken);
+
+    // Exchange ID Token for session cookie
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch('/api/sessionLogin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    status.value = 'success';
+    setTimeout(() => {
+      router.push('/');
+    }, 1500);
+  } catch {
+    status.value = 'sent'; // Stay on code entry screen
+    errorMessage.value = 'Invalid or expired code.';
+    verificationCode.value = ''; // Clear for retry
+  }
 }
 
 onMounted(async () => {
@@ -156,13 +200,17 @@ async function handleSendLink() {
           </div>
         </div>
 
-        <div v-else-if="status === 'sent'" class="form-container sent-step">
+        <div
+          v-else-if="status === 'sent' || status === 'verifying_otp'"
+          class="form-container sent-step"
+        >
           <div class="sent-header">
             <div class="sent-icon">✉</div>
             <h4 class="status-title">Check your email</h4>
           </div>
           <p class="sent-callout">
-            We've sent a 6-digit verification code and a sign-in link to your registered email address.
+            We've sent a 6-digit verification code and a sign-in link to your registered email
+            address.
           </p>
 
           <div class="input-group">
@@ -176,7 +224,7 @@ async function handleSendLink() {
               maxlength="6"
               placeholder="e.g. 123456"
               class="ct-input otp-input"
-              :disabled="status === 'loading'"
+              :disabled="status === 'verifying_otp'"
               @keyup.enter="handleVerifyOtp"
             />
           </div>
@@ -186,10 +234,10 @@ async function handleSendLink() {
           <div class="sent-actions">
             <BaseButton
               variant="primary"
-              :disabled="status === 'loading' || verificationCode.length !== 6"
+              :disabled="status === 'verifying_otp' || verificationCode.length !== 6"
               @click="handleVerifyOtp"
             >
-              {{ status === 'loading' ? 'Verifying...' : 'Verify & Sign In' }}
+              {{ status === 'verifying_otp' ? 'Verifying...' : 'Verify & Sign In' }}
             </BaseButton>
 
             <p class="helper-text">
@@ -198,6 +246,7 @@ async function handleSendLink() {
 
             <BaseButton
               variant="secondary"
+              :disabled="status === 'verifying_otp'"
               @click="
                 status = 'idle';
                 needsEmailConfirmation = false;
