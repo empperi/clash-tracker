@@ -31,21 +31,18 @@ project, no real Clash API token, and no real email provider are needed for loca
 npm install            # installs every workspace (packages/core, functions, web)
 ```
 
-### 2. One-time local secret setup (`functions/.secret.local`)
+### 2. Local secrets — nothing to do
 
-The auth functions bind Secret Manager secrets (`RESEND_API_KEY`, `OTP_PEPPER`,
-`RESEND_SENDER`). Without local values, the emulator tries to reach the **live** Secret
-Manager API under the fake `demo-clash-tracker` project and spams warnings. Provide dummy
-values once:
+Local dev needs **no secret setup**. The sign-in email config (`RESEND_API_KEY`,
+`OTP_PEPPER`, `RESEND_SENDER`) is read from `process.env`; when unset, the functions fall
+back to the **console mailer** (which prints the OTP code + magic link to the terminal — see
+[logging in locally](#5-logging-in-locally)) and hash OTPs with an empty pepper. That's exactly
+what you want against the emulator.
 
-```bash
-cp functions/.secret.local.example functions/.secret.local
-```
-
-The example ships `=dummy` for all three. `dummy` satisfies the emulator's presence check
-**and** makes the mailer fall back to the **console mailer** (which prints the OTP code +
-magic link to the terminal — see [logging in locally](#5-logging-in-locally)). `.secret.local`
-is git-ignored; never put a real key there.
+> Only if you want to exercise the **real Resend mailer** locally: put `RESEND_API_KEY=…` (and
+> optionally `OTP_PEPPER` / `RESEND_SENDER`) in a git-ignored `functions/.env.local`, which the
+> emulator loads into `process.env`. In production these come from `functions/.env`, written by
+> CI from GitHub Actions secrets/variables (see [Deployment](#deployment--cicd)).
 
 ### 3. Run the app
 
@@ -159,7 +156,7 @@ Use `CI=true` to make watch-mode tools run once. TDD is mandatory — see
 | Email | Resend (prod) behind a `Mailer` interface; console mailer in dev/emulator |
 | File storage | Cloud Storage (clan logo) |
 | Scheduling | Cloud Scheduler (scheduled functions) for war polling |
-| Secrets | AES-256-GCM token at rest; keys/peppers in Secret Manager, never client-bound |
+| Secrets | AES-256-GCM token at rest; keys/peppers via function env (CI-injected), never client-bound |
 | Testing | Vitest + Vue Test Utils / Testing Library, Firebase Emulator Suite |
 | Hosting | Firebase Hosting |
 
@@ -204,18 +201,17 @@ deploys.
 
 ### Production secrets & config
 
-**Firebase Secret Manager** (set with `firebase functions:secrets:set <NAME>`), required for
-real sign-in email:
+**GitHub Actions secrets/variables** (*Settings → Secrets and variables → Actions*). The CI
+deploy job writes these into `functions/.env`, and the functions read them from `process.env`
+at runtime (no Secret Manager IAM required):
 
-- `RESEND_API_KEY` — Resend API key. If unset/`dummy` in production the mailer **throws loudly**
-  rather than silently failing.
-- `OTP_PEPPER` — server pepper mixed into OTP hashing. Also **fails loud** if unset or `dummy`
-  in production, so the publicly-known placeholder can never hash real codes.
-- `RESEND_SENDER` — the `From` address/name for sign-in emails.
-- `CLASH_TOKEN_ENC_KEY` — AES key for the CoC token (used by ingestion functions).
-
-**GitHub Actions secrets** (*Settings → Secrets and variables → Actions*):
-
+- `RESEND_API_KEY` — Resend API key (use a **Secret**). If empty in production the mailer
+  **throws loudly** rather than silently failing.
+- `OTP_PEPPER` — server pepper mixed into OTP hashing (use a **Secret**). Also **fails loud** if
+  unset/`dummy` in production, so the placeholder can never hash real codes.
+- `RESEND_SENDER` — `From` name/address for sign-in emails (a **Variable** is fine). Each of the
+  three is read as a secret *or* variable, so either works.
+- `CLASH_TOKEN_ENC_KEY` — AES key for the CoC token, used by ingestion functions (**Secret**).
 - `FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER` — service-account JSON for `firebase deploy`
   (from `firebase github:init`).
 

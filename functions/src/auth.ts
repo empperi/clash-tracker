@@ -305,7 +305,6 @@ export async function handleFindAccountForLogin(
 export const findAccountForLogin = onCall(
   {
     region: REGION,
-    secrets: ['RESEND_API_KEY', 'OTP_PEPPER', 'RESEND_SENDER'],
   },
   async (request) => {
     const usernameOrEmail = request.data?.usernameOrEmail;
@@ -532,7 +531,6 @@ export async function handleVerifyLoginOtp(
 export const verifyLoginOtp = onCall(
   {
     region: REGION,
-    secrets: ['RESEND_API_KEY', 'OTP_PEPPER', 'RESEND_SENDER'],
   },
   async (request) => {
     const usernameOrEmail = request.data?.usernameOrEmail;

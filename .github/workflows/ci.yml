@@ -9,6 +9,12 @@
 #   service account used for deployment (created by `firebase github:init`). Must have
 #   permissions to deploy Firebase Hosting, Firestore, and Cloud Storage.
 # - CLASH_TOKEN_ENC_KEY: AES key for encrypting/decrypting the Clash of Clans API token (required in Track 2 functions).
+# - RESEND_API_KEY: Resend API key for sending sign-in emails (Track 7). Sensitive — use a Secret.
+# - OTP_PEPPER: server pepper mixed into sign-in OTP hashing (Track 7). Sensitive — use a Secret.
+# - RESEND_SENDER: From name/address for sign-in emails, e.g. "Clash Tracker <noreply@your-domain>".
+#   Not sensitive — may be a repository Variable. (Each of the three is read as a Secret OR Variable.)
+# These three are written into functions/.env at deploy time and read from process.env at runtime
+# (not Secret Manager), so the deploy service account needs no Secret Manager IAM.
 #
 
 name: CI/CD
@@ -119,8 +125,32 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MILITIA_CLASH_TRACKER }}
 
       - name: Create environment config for functions
+        # The auth functions read RESEND_API_KEY / OTP_PEPPER / RESEND_SENDER from process.env
+        # (delivered via functions/.env, same mechanism as CLASH_TOKEN_ENC_KEY) rather than
+        # Secret Manager, so the deploy SA needs no Secret Manager IAM. Accept each as either a
+        # GitHub Actions secret or variable; sensitive ones (key, pepper) should be secrets.
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || vars.RESEND_API_KEY }}
+          OTP_PEPPER: ${{ secrets.OTP_PEPPER || vars.OTP_PEPPER }}
+          RESEND_SENDER: ${{ vars.RESEND_SENDER || secrets.RESEND_SENDER }}
         run: |
+          # Fail fast with a clear message instead of shipping a site where sign-in throws
+          # "OTP_PEPPER is not configured in production" (or sends no email) at runtime.
+          missing=0
+          for v in RESEND_API_KEY OTP_PEPPER RESEND_SENDER; do
+            if [ -z "${!v}" ]; then
+              echo "::error::$v is empty. Set it under Settings → Secrets and variables → Actions."
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+
           echo "CLASH_TOKEN_ENC_KEY=${{ secrets.CLASH_TOKEN_ENC_KEY }}" > functions/.env
+          {
+            echo "RESEND_API_KEY=$RESEND_API_KEY"
+            echo "OTP_PEPPER=$OTP_PEPPER"
+            echo "RESEND_SENDER=$RESEND_SENDER"
+          } >> functions/.env
           if [ -n "${{ secrets.COC_API_BASE_URL }}" ]; then
             echo "COC_API_BASE_URL=${{ secrets.COC_API_BASE_URL }}" >> functions/.env
           elif [ -n "${{ vars.COC_API_BASE_URL }}" ]; then

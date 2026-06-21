@@ -24,13 +24,15 @@ CLASH_TOKEN="<api-token>" CLAN_TAG="<#clan-tag>" CLASH_TOKEN_ENC_KEY="<32-byte-h
 npx tsx functions/scripts/verify-seed.ts
 ```
 
-### Emulator Secrets Override (`.secret.local`)
-The Cloud Functions use bound secrets (such as `RESEND_API_KEY`, `OTP_PEPPER`, and `RESEND_SENDER`). To prevent the Firebase Emulator from attempting to contact the live Google Cloud Secret Manager API (and throwing permission or connection warnings due to the fake project ID `demo-clash-tracker`), you must provide local secret values.
+### Sign-in email config (`RESEND_API_KEY`, `OTP_PEPPER`, `RESEND_SENDER`)
+These are plain environment variables read from `process.env` — **not** Secret Manager — so the
+deploy needs no Secret Manager IAM.
 
-Copy the example file to `.secret.local` inside the `functions` directory:
-```bash
-cp functions/.secret.local.example functions/.secret.local
-```
-
-By default, these are set to `"dummy"` values. This satisfies the presence check for the emulator, preventing it from contacting the GCP API, and correctly causes the mailer setup to default to the local `consoleMailer` (which prints OTP codes and links to the terminal console).
+- **Local/emulator:** nothing required. When unset, the mailer falls back to the `consoleMailer`
+  (prints OTP code + magic link to the terminal) and OTPs hash with an empty pepper. To exercise
+  the real Resend mailer locally, put values in a git-ignored `functions/.env.local`, which the
+  emulator loads into `process.env`.
+- **Production:** the CI deploy job writes them into `functions/.env` from GitHub Actions
+  secrets/variables (see `.github/workflows/ci.yml`). In production the functions **throw loudly**
+  if `OTP_PEPPER` is missing or `dummy`, and the mailer throws if `RESEND_API_KEY` is missing.
 
