@@ -24,7 +24,7 @@ Goal: deterministic, tested code generation/hashing/verification primitives.
 - [x] Verification: predicates + generation/hashing covered; generation is uniform over 6 digits
   and hashing is stable + constant-time-compared. [checkpoint]
 
-## Phase 2: Pending-login store, send integration & rules (emulator)
+## Phase 2: Pending-login store, send integration & rules (emulator) [checkpoint: 203bb63]
 
 Goal: a known-account sign-in request persists a hashed code and emails code + link; unknown
 accounts still leak nothing.
