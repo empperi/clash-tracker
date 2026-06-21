@@ -3,6 +3,9 @@ import { Response } from 'express';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { UserRole } from '@clash-tracker/core';
+import crypto from 'node:crypto';
+import { PendingLoginRepository } from './repositories/PendingLoginRepository.js';
+import { generateOtp, hashOtp } from './crypto.js';
 
 // Region is set per-function (not via setGlobalOptions) because this module is evaluated
 // before index.ts's setGlobalOptions runs, and calling setGlobalOptions twice is undefined
@@ -163,6 +166,9 @@ export async function handleFindAccountForLogin(
       getUser(uid: string): Promise<{ uid: string }>;
     };
     mailer: Mailer;
+    pendingLoginRepo?: PendingLoginRepository;
+    rng?: () => number;
+    otpPepper?: string;
   }
 ): Promise<{ status: string }> {
   if (!usernameOrEmail || typeof usernameOrEmail !== 'string') {
@@ -220,9 +226,25 @@ export async function handleFindAccountForLogin(
         };
 
         const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
-        await deps.mailer.sendSignInLink(email, link);
-      } catch (err) {
-        console.error(`[Auth] Failed to generate or send sign-in link for ${email}:`, err);
+        
+        // Generate and store OTP code (TTL 10 min, attempts 0)
+        const rng = deps.rng || (() => crypto.randomBytes(4).readUInt32BE(0) / 0xffffffff);
+        const code = generateOtp(rng);
+        
+        const pepper = deps.otpPepper || process.env.OTP_PEPPER || '';
+        const hashedCode = hashOtp(code, doc.id, pepper);
+        
+        const repo = deps.pendingLoginRepo || new PendingLoginRepository(deps.db);
+        await repo.put(doc.id, {
+          hash: hashedCode,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          attempts: 0,
+        });
+
+        await deps.mailer.sendSignInCode(email, { code, link });
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error(`[Auth] Failed to generate or send sign-in link/code for ${email}: ${errMsg}`);
       }
     }
   } else {
@@ -239,11 +261,13 @@ export async function handleFindAccountForLogin(
 export const findAccountForLogin = onCall({ region: REGION }, async (request) => {
   const usernameOrEmail = request.data?.usernameOrEmail;
   const origin = request.rawRequest?.headers?.origin || 'http://localhost:5000';
+  const db = getFirestore();
 
   return await handleFindAccountForLogin(usernameOrEmail, origin, {
-    db: getFirestore(),
+    db,
     auth: getAuth(),
     mailer: currentMailer,
+    pendingLoginRepo: new PendingLoginRepository(db),
   });
 });
 

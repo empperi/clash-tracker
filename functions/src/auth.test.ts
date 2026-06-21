@@ -13,6 +13,7 @@ import {
   requireRole,
   revokeAccountSessions,
 } from './auth';
+import { hashOtp } from './crypto.js';
 
 // Ensure emulator hosts are configured
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
@@ -467,6 +468,52 @@ describe('findAccountForLogin callable', () => {
     const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
     expect(result).toEqual({ status: 'ok' });
     expect(sentEmails).toHaveLength(0);
+  });
+
+  it('generates OTP, hashes it, stores it in pendingLogins doc, and passes code + link to mailer for known account', async () => {
+    await db.collection('pendingLogins').doc('john-doe-uid').delete();
+
+    const handler =
+      typeof (findAccountForLogin as unknown as { run?: FindAccountHandler }).run === 'function'
+        ? (findAccountForLogin as unknown as { run: FindAccountHandler }).run
+        : (findAccountForLogin as unknown as FindAccountHandler);
+
+    const result = await handler({ data: { usernameOrEmail: 'john_doe' } });
+    expect(result).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0].email).toBe('john.doe@example.com');
+    expect(sentEmails[0].code).toBeDefined();
+    expect(sentEmails[0].code).toMatch(/^\d{6}$/);
+    expect(sentEmails[0].link).toContain('%2Flogin');
+
+    // Verify document exists in firestore emulator
+    const docSnap = await db.collection('pendingLogins').doc('john-doe-uid').get();
+    expect(docSnap.exists).toBe(true);
+    const data = docSnap.data();
+    expect(data?.hash).toBeDefined();
+    expect(data?.attempts).toBe(0);
+    expect(data?.expiresAt).toBeDefined();
+
+    // Verify the hashed code is correct
+    const pepper = process.env.OTP_PEPPER || '';
+    const expectedHash = hashOtp(sentEmails[0].code!, 'john-doe-uid', pepper);
+    expect(data?.hash).toBe(expectedHash);
+
+    // Verify a second request overwrites the prior pending code
+    sentEmails.length = 0;
+    const result2 = await handler({ data: { usernameOrEmail: 'john_doe' } });
+    expect(result2).toEqual({ status: 'ok' });
+    expect(sentEmails).toHaveLength(1);
+    const secondCode = sentEmails[0].code;
+    expect(secondCode).toBeDefined();
+
+    const docSnap2 = await db.collection('pendingLogins').doc('john-doe-uid').get();
+    const data2 = docSnap2.data();
+    const expectedHash2 = hashOtp(secondCode!, 'john-doe-uid', pepper);
+    expect(data2?.hash).toBe(expectedHash2);
+
+    // Clean up
+    await db.collection('pendingLogins').doc('john-doe-uid').delete();
   });
 });
 
