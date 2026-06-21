@@ -394,3 +394,113 @@ export function requireRole(
     };
   };
 }
+
+export async function handleVerifyLoginOtp(
+  usernameOrEmail: string,
+  code: string,
+  deps: {
+    db: FirebaseFirestore.Firestore;
+    auth: {
+      createCustomToken(uid: string): Promise<string>;
+    };
+    pendingLoginRepo?: PendingLoginRepository;
+    otpPepper?: string;
+    now?: () => Date;
+  }
+): Promise<{ customToken: string }> {
+  const uniformError = new HttpsError('failed-precondition', 'Invalid or expired code.');
+
+  if (!usernameOrEmail || typeof usernameOrEmail !== 'string') {
+    throw new HttpsError(
+      'invalid-argument',
+      'The function must be called with a string "usernameOrEmail".'
+    );
+  }
+  if (!code || typeof code !== 'string') {
+    throw new HttpsError(
+      'invalid-argument',
+      'The function must be called with a string "code".'
+    );
+  }
+
+  const cleanInput = usernameOrEmail.trim();
+  const lowerInput = cleanInput.toLowerCase();
+
+  const accountsRef = deps.db.collection('accounts');
+
+  // Lookup
+  let snapshot = await accountsRef.where('username', '==', cleanInput).get();
+  if (snapshot.empty) {
+    snapshot = await accountsRef.where('username', '==', lowerInput).get();
+  }
+  if (snapshot.empty) {
+    snapshot = await accountsRef.where('email', '==', cleanInput).get();
+  }
+  if (snapshot.empty) {
+    snapshot = await accountsRef.where('email', '==', lowerInput).get();
+  }
+
+  const doc = snapshot.docs[0];
+  if (!doc) {
+    throw uniformError;
+  }
+
+  const repo = deps.pendingLoginRepo || new PendingLoginRepository(deps.db);
+  const pendingDoc = await repo.get(doc.id);
+  if (!pendingDoc) {
+    throw uniformError;
+  }
+
+  const now = deps.now ? deps.now() : new Date();
+
+  // If already expired or exceeded attempts
+  if (pendingDoc.attempts >= 5 || now.getTime() >= pendingDoc.expiresAt.getTime()) {
+    await repo.delete(doc.id);
+    throw uniformError;
+  }
+
+  // Check format
+  if (!/^\d{6}$/.test(code)) {
+    const newAttempts = pendingDoc.attempts + 1;
+    if (newAttempts >= 5) {
+      await repo.delete(doc.id);
+    } else {
+      await repo.incrementAttempts(doc.id);
+    }
+    throw uniformError;
+  }
+
+  // Compare hash
+  const pepper = deps.otpPepper || process.env.OTP_PEPPER || '';
+  const expectedHash = hashOtp(code, doc.id, pepper);
+  
+  const { constantTimeEquals } = await import('./crypto.js');
+  const isMatch = constantTimeEquals(pendingDoc.hash, expectedHash);
+
+  if (!isMatch) {
+    const newAttempts = pendingDoc.attempts + 1;
+    if (newAttempts >= 5) {
+      await repo.delete(doc.id);
+    } else {
+      await repo.incrementAttempts(doc.id);
+    }
+    throw uniformError;
+  }
+
+  // Success: delete pending doc and return custom token
+  await repo.delete(doc.id);
+  const customToken = await deps.auth.createCustomToken(doc.id);
+  return { customToken };
+}
+
+export const verifyLoginOtp = onCall({ region: REGION }, async (request) => {
+  const usernameOrEmail = request.data?.usernameOrEmail;
+  const code = request.data?.code;
+  const db = getFirestore();
+
+  return await handleVerifyLoginOtp(usernameOrEmail, code, {
+    db,
+    auth: getAuth(),
+    pendingLoginRepo: new PendingLoginRepository(db),
+  });
+});

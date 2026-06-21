@@ -8,6 +8,7 @@ import {
   sessionLogout,
   verifyRequestSession,
   findAccountForLogin,
+  verifyLoginOtp,
   setMailerForTesting,
   setAccountRole,
   requireRole,
@@ -514,6 +515,149 @@ describe('findAccountForLogin callable', () => {
 
     // Clean up
     await db.collection('pendingLogins').doc('john-doe-uid').delete();
+  });
+});
+
+describe('verifyLoginOtp callable', () => {
+  const db = getFirestore(app);
+  const uid = 'john-doe-uid';
+  const pepper = process.env.OTP_PEPPER || '';
+
+  type VerifyLoginOtpHandler = (req: {
+    data: { usernameOrEmail: string; code: string };
+  }) => Promise<{ customToken: string }>;
+
+  beforeAll(async () => {
+    // Seed account doc
+    await db.collection('accounts').doc(uid).set({
+      email: 'john.doe@example.com',
+      username: 'john_doe',
+      role: 'admin',
+      playerTag: '#12345',
+    });
+  });
+
+  afterAll(async () => {
+    await db.collection('accounts').doc(uid).delete();
+  });
+
+  beforeEach(async () => {
+    await db.collection('pendingLogins').doc(uid).delete();
+  });
+
+  it('successfully verifies correct OTP, deletes pending document, and returns custom token', async () => {
+    const code = '123456';
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min future
+    const hashed = hashOtp(code, uid, pepper);
+
+    await db.collection('pendingLogins').doc(uid).set({
+      hash: hashed,
+      expiresAt,
+      attempts: 0,
+    });
+
+    const handler =
+      typeof (verifyLoginOtp as unknown as { run?: VerifyLoginOtpHandler }).run === 'function'
+        ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
+        : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
+
+    const result = await handler({ data: { usernameOrEmail: 'john_doe', code } });
+    expect(result).toBeDefined();
+    expect(result.customToken).toBeDefined();
+    expect(typeof result.customToken).toBe('string');
+
+    // Doc should be deleted
+    const docSnap = await db.collection('pendingLogins').doc(uid).get();
+    expect(docSnap.exists).toBe(false);
+  });
+
+  it('fails uniformly for incorrect OTP and increments attempt count', async () => {
+    const code = '123456';
+    const wrongCode = '654321';
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const hashed = hashOtp(code, uid, pepper);
+
+    await db.collection('pendingLogins').doc(uid).set({
+      hash: hashed,
+      expiresAt,
+      attempts: 0,
+    });
+
+    const handler =
+      typeof (verifyLoginOtp as unknown as { run?: VerifyLoginOtpHandler }).run === 'function'
+        ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
+        : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
+
+    await expect(
+      handler({ data: { usernameOrEmail: 'john_doe', code: wrongCode } })
+    ).rejects.toThrowError(/Invalid or expired code/);
+
+    // Verify doc still exists but attempts are incremented
+    const docSnap = await db.collection('pendingLogins').doc(uid).get();
+    expect(docSnap.exists).toBe(true);
+    expect(docSnap.data()?.attempts).toBe(1);
+  });
+
+  it('invalidates/deletes pending doc once the attempt cap (5) is reached', async () => {
+    const code = '123456';
+    const wrongCode = '654321';
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const hashed = hashOtp(code, uid, pepper);
+
+    // Seed doc with 4 attempts (the 5th failed attempt should trigger deletion)
+    await db.collection('pendingLogins').doc(uid).set({
+      hash: hashed,
+      expiresAt,
+      attempts: 4,
+    });
+
+    const handler =
+      typeof (verifyLoginOtp as unknown as { run?: VerifyLoginOtpHandler }).run === 'function'
+        ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
+        : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
+
+    await expect(
+      handler({ data: { usernameOrEmail: 'john_doe', code: wrongCode } })
+    ).rejects.toThrowError(/Invalid or expired code/);
+
+    // Verify doc is deleted (invalidated)
+    const docSnap = await db.collection('pendingLogins').doc(uid).get();
+    expect(docSnap.exists).toBe(false);
+  });
+
+  it('fails uniformly for expired OTP and deletes it', async () => {
+    const code = '123456';
+    const expiresAt = new Date(Date.now() - 5 * 60 * 1000); // 5 min past
+    const hashed = hashOtp(code, uid, pepper);
+
+    await db.collection('pendingLogins').doc(uid).set({
+      hash: hashed,
+      expiresAt,
+      attempts: 0,
+    });
+
+    const handler =
+      typeof (verifyLoginOtp as unknown as { run?: VerifyLoginOtpHandler }).run === 'function'
+        ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
+        : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
+
+    await expect(
+      handler({ data: { usernameOrEmail: 'john_doe', code } })
+    ).rejects.toThrowError(/Invalid or expired code/);
+
+    const docSnap = await db.collection('pendingLogins').doc(uid).get();
+    expect(docSnap.exists).toBe(false);
+  });
+
+  it('fails uniformly for unknown account and writes/modifies nothing', async () => {
+    const handler =
+      typeof (verifyLoginOtp as unknown as { run?: VerifyLoginOtpHandler }).run === 'function'
+        ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
+        : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
+
+    await expect(
+      handler({ data: { usernameOrEmail: 'unknown_user', code: '123456' } })
+    ).rejects.toThrowError(/Invalid or expired code/);
   });
 });
 

@@ -186,4 +186,4 @@ export const triggerIngestNow = onRequest(async (req, res) => {
   })(req, res);
 });
 
-export { sessionLogin, sessionLogout, findAccountForLogin } from './auth.js';
+export { sessionLogin, sessionLogout, findAccountForLogin, verifyLoginOtp } from './auth.js';
