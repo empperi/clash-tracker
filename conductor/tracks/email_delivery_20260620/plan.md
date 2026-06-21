@@ -44,7 +44,7 @@ accounts still leak nothing.
 - [x] Verification: known account ⇒ hashed code stored + mailer received code & link; unknown ⇒
   nothing; `pendingLogins` unreachable from any client. [checkpoint]
 
-## Phase 3: OTP verification endpoint → session (emulator)
+## Phase 3: OTP verification endpoint → session (emulator) [checkpoint: 4e485ef]
 
 Goal: a correct code signs the user in through the existing cookie path; failures stay uniform.
 
