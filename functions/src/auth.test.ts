@@ -535,10 +535,24 @@ describe('verifyLoginOtp callable', () => {
       role: 'admin',
       playerTag: '#12345',
     });
+    try {
+      await auth.deleteUser(uid);
+    } catch {
+      // Ignored if user doesn't exist
+    }
+    await auth.createUser({
+      uid,
+      email: 'john.doe@example.com',
+    });
   });
 
   afterAll(async () => {
     await db.collection('accounts').doc(uid).delete();
+    try {
+      await auth.deleteUser(uid);
+    } catch {
+      // Ignored
+    }
   });
 
   beforeEach(async () => {
@@ -658,6 +672,54 @@ describe('verifyLoginOtp callable', () => {
     await expect(
       handler({ data: { usernameOrEmail: 'unknown_user', code: '123456' } })
     ).rejects.toThrowError(/Invalid or expired code/);
+  });
+
+  it('exchanges custom token from verifyLoginOtp at sessionLogin to yield valid session cookie (convergence)', async () => {
+    const code = '123456';
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const hashed = hashOtp(code, uid, pepper);
+
+    await db.collection('pendingLogins').doc(uid).set({
+      hash: hashed,
+      expiresAt,
+      attempts: 0,
+    });
+
+    const handler =
+      typeof (verifyLoginOtp as unknown as { run?: VerifyLoginOtpHandler }).run === 'function'
+        ? (verifyLoginOtp as unknown as { run: VerifyLoginOtpHandler }).run
+        : (verifyLoginOtp as unknown as VerifyLoginOtpHandler);
+
+    // 1. Verify code and get customToken
+    const verifyResult = await handler({ data: { usernameOrEmail: 'john_doe', code } });
+    expect(verifyResult).toBeDefined();
+    expect(verifyResult.customToken).toBeDefined();
+
+    // 2. Exchange customToken for ID token via Auth emulator REST API
+    const exchangeUrl = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=mock-key`;
+    const exchangeRes = await fetch(exchangeUrl, {
+      method: 'POST',
+      body: JSON.stringify({ token: verifyResult.customToken, returnSecureToken: true }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    expect(exchangeRes.ok).toBe(true);
+    const exchangeData = (await exchangeRes.json()) as { idToken: string };
+    const idToken = exchangeData.idToken;
+    expect(idToken).toBeDefined();
+
+    // 3. Exchange ID token for session cookie via sessionLogin
+    const context = createMockReqRes({ body: { idToken } });
+    const loginHandler =
+      typeof (sessionLogin as unknown as { run?: (req: Request, res: Response) => Promise<void> })
+        .run === 'function'
+        ? (sessionLogin as unknown as { run: (req: Request, res: Response) => Promise<void> }).run
+        : sessionLogin;
+
+    await loginHandler(context.req, context.res);
+
+    expect(context.status).toBe(200);
+    expect(context.headers['set-cookie']).toBeDefined();
+    expect(context.headers['set-cookie']).toContain('__session=');
   });
 });
 
