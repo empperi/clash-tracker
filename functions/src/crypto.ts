@@ -103,7 +103,10 @@ export function parseEncryptionKey(keyStr: string): Uint8Array {
 }
 
 export function generateOtp(rng: () => number): string {
-  const val = Math.floor(rng() * 1000000);
+  // Ensure the value is strictly in [0, 999999]. If a flawed/ununiform RNG
+  // returns exactly 1.0 or greater, modulo keeps the result within 6 digits.
+  // Note: The caller must ensure the injected rng() yields a uniform distribution in [0, 1).
+  const val = Math.floor(rng() * 1000000) % 1000000;
   return val.toString().padStart(6, '0');
 }
 

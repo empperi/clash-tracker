@@ -63,6 +63,12 @@ describe('generateOtp', () => {
     expect(generateOtp(mockRng(0.000005))).toBe('000005');
     expect(generateOtp(mockRng(0.000000))).toBe('000000');
   });
+
+  it('should handle rng float boundary of exactly 1.0 or greater via modulo', () => {
+    const mockRng = (val: number) => () => val;
+    expect(generateOtp(mockRng(1.0))).toBe('000000');
+    expect(generateOtp(mockRng(1.000005))).toBe('000005');
+  });
 });
 
 describe('hashOtp', () => {
