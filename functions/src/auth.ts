@@ -6,6 +6,8 @@ import { UserRole, isValidOtpFormat } from '@clash-tracker/core';
 import crypto from 'node:crypto';
 import { PendingLoginRepository } from './repositories/PendingLoginRepository.js';
 import { generateOtp, hashOtp, constantTimeEquals } from './crypto.js';
+import { nodeHttpClient } from './gateway/HttpClient.js';
+import { makeResendMailer } from './mailer.js';
 
 // Region is set per-function (not via setGlobalOptions) because this module is evaluated
 // before index.ts's setGlobalOptions runs, and calling setGlobalOptions twice is undefined
@@ -153,6 +155,25 @@ export function setMailerForTesting(newMailer: Mailer) {
   currentMailer = newMailer;
 }
 
+export function getMailer(): Mailer {
+  if (currentMailer !== consoleMailer) {
+    return currentMailer;
+  }
+  const isProduction = process.env.FUNCTIONS_EMULATOR !== 'true' && process.env.NODE_ENV !== 'test';
+  const apiKey = process.env.RESEND_API_KEY || '';
+  const sender = process.env.RESEND_SENDER || 'Clash Tracker <onboarding@resend.dev>';
+
+  if (apiKey) {
+    return makeResendMailer({ httpClient: nodeHttpClient, apiKey, sender });
+  }
+
+  if (isProduction) {
+    throw new Error('RESEND_API_KEY is not configured in production.');
+  }
+
+  return consoleMailer;
+}
+
 export async function resolveAccountByUsernameOrEmail(
   db: FirebaseFirestore.Firestore,
   usernameOrEmail: string
@@ -200,6 +221,11 @@ export async function handleFindAccountForLogin(
     otpPepper?: string;
   }
 ): Promise<{ status: string }> {
+  const isProduction = process.env.FUNCTIONS_EMULATOR !== 'true' && process.env.NODE_ENV !== 'test';
+  if (isProduction && !process.env.OTP_PEPPER) {
+    throw new Error('OTP_PEPPER is not configured in production.');
+  }
+
   if (!usernameOrEmail || typeof usernameOrEmail !== 'string') {
     throw new HttpsError(
       'invalid-argument',
@@ -237,8 +263,11 @@ export async function handleFindAccountForLogin(
         const rng = deps.rng || (() => crypto.randomBytes(4).readUInt32BE(0) / 0x100000000);
         const code = generateOtp(rng);
         
-        const pepper = deps.otpPepper || process.env.OTP_PEPPER || '';
-        const hashedCode = hashOtp(code, doc.id, pepper);
+        const pepper = deps.otpPepper || process.env.OTP_PEPPER;
+        if (isProduction && !pepper) {
+          throw new Error('OTP_PEPPER is not configured in production.');
+        }
+        const hashedCode = hashOtp(code, doc.id, pepper || '');
         
         const repo = deps.pendingLoginRepo || new PendingLoginRepository(deps.db);
         await repo.put(doc.id, {
@@ -264,18 +293,24 @@ export async function handleFindAccountForLogin(
  * Resolves a username or email, generates a sign-in link server-side if found,
  * and sends it via the configured mailer. Returns an opaque { status: 'ok' } response.
  */
-export const findAccountForLogin = onCall({ region: REGION }, async (request) => {
-  const usernameOrEmail = request.data?.usernameOrEmail;
-  const origin = request.rawRequest?.headers?.origin || 'http://localhost:5000';
-  const db = getFirestore();
+export const findAccountForLogin = onCall(
+  {
+    region: REGION,
+    secrets: ['RESEND_API_KEY', 'OTP_PEPPER', 'RESEND_SENDER'],
+  },
+  async (request) => {
+    const usernameOrEmail = request.data?.usernameOrEmail;
+    const origin = request.rawRequest?.headers?.origin || 'http://localhost:5000';
+    const db = getFirestore();
 
-  return await handleFindAccountForLogin(usernameOrEmail, origin, {
-    db,
-    auth: getAuth(),
-    mailer: currentMailer,
-    pendingLoginRepo: new PendingLoginRepository(db),
-  });
-});
+    return await handleFindAccountForLogin(usernameOrEmail, origin, {
+      db,
+      auth: getAuth(),
+      mailer: getMailer(),
+      pendingLoginRepo: new PendingLoginRepository(db),
+    });
+  }
+);
 
 /**
  * Sets the role for an account in Firestore and mirrors it to custom claims in Auth.
@@ -416,6 +451,11 @@ export async function handleVerifyLoginOtp(
 ): Promise<{ customToken: string }> {
   const uniformError = new HttpsError('failed-precondition', 'Invalid or expired code.');
 
+  const isProduction = process.env.FUNCTIONS_EMULATOR !== 'true' && process.env.NODE_ENV !== 'test';
+  if (isProduction && !process.env.OTP_PEPPER) {
+    throw new Error('OTP_PEPPER is not configured in production.');
+  }
+
   if (!usernameOrEmail || typeof usernameOrEmail !== 'string') {
     throw new HttpsError(
       'invalid-argument',
@@ -459,9 +499,11 @@ export async function handleVerifyLoginOtp(
     throw uniformError;
   }
 
-  // Compare hash
-  const pepper = deps.otpPepper || process.env.OTP_PEPPER || '';
-  const expectedHash = hashOtp(code, doc.id, pepper);
+  const pepper = deps.otpPepper || process.env.OTP_PEPPER;
+  if (isProduction && !pepper) {
+    throw new Error('OTP_PEPPER is not configured in production.');
+  }
+  const expectedHash = hashOtp(code, doc.id, pepper || '');
   
   const isMatch = constantTimeEquals(pendingDoc.hash, expectedHash);
 
@@ -481,14 +523,20 @@ export async function handleVerifyLoginOtp(
   return { customToken };
 }
 
-export const verifyLoginOtp = onCall({ region: REGION }, async (request) => {
-  const usernameOrEmail = request.data?.usernameOrEmail;
-  const code = request.data?.code;
-  const db = getFirestore();
+export const verifyLoginOtp = onCall(
+  {
+    region: REGION,
+    secrets: ['RESEND_API_KEY', 'OTP_PEPPER', 'RESEND_SENDER'],
+  },
+  async (request) => {
+    const usernameOrEmail = request.data?.usernameOrEmail;
+    const code = request.data?.code;
+    const db = getFirestore();
 
-  return await handleVerifyLoginOtp(usernameOrEmail, code, {
-    db,
-    auth: getAuth(),
-    pendingLoginRepo: new PendingLoginRepository(db),
-  });
-});
+    return await handleVerifyLoginOtp(usernameOrEmail, code, {
+      db,
+      auth: getAuth(),
+      pendingLoginRepo: new PendingLoginRepository(db),
+    });
+  }
+);

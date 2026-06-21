@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -13,6 +13,10 @@ import {
   setAccountRole,
   requireRole,
   revokeAccountSessions,
+  getMailer,
+  handleFindAccountForLogin,
+  handleVerifyLoginOtp,
+  consoleMailer,
 } from './auth';
 import { hashOtp } from './crypto.js';
 
@@ -963,5 +967,75 @@ describe('revokeAccountSessions helper', () => {
     await revokeAccountSessions('user-to-revoke', { auth: mockAuth });
 
     expect(mockRevoke).toHaveBeenCalledWith('user-to-revoke');
+  });
+});
+
+describe('Mailer selection and secrets validation', () => {
+  let originalEnv: Record<string, string | undefined>;
+
+  beforeAll(() => {
+    originalEnv = { ...process.env };
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it('returns Resend mailer if RESEND_API_KEY is defined', () => {
+    setMailerForTesting(consoleMailer);
+    process.env.RESEND_API_KEY = 're_somekey';
+    process.env.RESEND_SENDER = 'test@example.com';
+    
+    const mailer = getMailer();
+    expect(mailer).toBeDefined();
+    expect(mailer).not.toBe(consoleMailer);
+  });
+
+  it('returns consoleMailer if RESEND_API_KEY is not defined and not in production', () => {
+    setMailerForTesting(consoleMailer);
+    delete process.env.RESEND_API_KEY;
+    delete process.env.FUNCTIONS_EMULATOR;
+    // NODE_ENV is 'test' (set by vitest), so isProduction is false
+    
+    const mailer = getMailer();
+    expect(mailer).toBe(consoleMailer);
+  });
+
+  it('throws loud error if RESEND_API_KEY is missing in production', () => {
+    setMailerForTesting(consoleMailer);
+    delete process.env.RESEND_API_KEY;
+    delete process.env.FUNCTIONS_EMULATOR;
+    process.env.NODE_ENV = 'production';
+    
+    expect(() => getMailer()).toThrowError(/RESEND_API_KEY is not configured in production/);
+  });
+
+  it('throws loud error in handleFindAccountForLogin if OTP_PEPPER is missing in production', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.FUNCTIONS_EMULATOR;
+    delete process.env.OTP_PEPPER;
+
+    const mockDb = {} as any;
+    await expect(
+      handleFindAccountForLogin('user', 'origin', {
+        db: mockDb,
+        auth: {} as any,
+        mailer: consoleMailer,
+      })
+    ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
+  });
+
+  it('throws loud error in handleVerifyLoginOtp if OTP_PEPPER is missing in production', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.FUNCTIONS_EMULATOR;
+    delete process.env.OTP_PEPPER;
+
+    const mockDb = {} as any;
+    await expect(
+      handleVerifyLoginOtp('user', '123456', {
+        db: mockDb,
+        auth: {} as any,
+      })
+    ).rejects.toThrowError(/OTP_PEPPER is not configured in production/);
   });
 });
