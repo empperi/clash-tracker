@@ -228,7 +228,7 @@ export async function handleFindAccountForLogin(
         const link = await deps.auth.generateSignInWithEmailLink(email, actionCodeSettings);
         
         // Generate and store OTP code (TTL 10 min, attempts 0)
-        const rng = deps.rng || (() => crypto.randomBytes(4).readUInt32BE(0) / 0xffffffff);
+        const rng = deps.rng || (() => crypto.randomBytes(4).readUInt32BE(0) / 0x100000000);
         const code = generateOtp(rng);
         
         const pepper = deps.otpPepper || process.env.OTP_PEPPER || '';
