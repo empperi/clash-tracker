@@ -41,7 +41,7 @@ Goal: invite admins and manage pending invites.
   injected sender. Assert non-admins rejected; duplicate handled.
 - [x] e70fb07 Task: Emulator tests + implement guarded `listPendingInvites()` and
   `revokeInvite(id)` (delete). Mark/prune expired ones using the predicate.
-- [ ] Task: Tests + implement the invite UI (email field + submit) and the pending list with
+- [~] Task: Tests + implement the invite UI (email field + submit) and the pending list with
   revoke buttons + expired indicator. Admin-gated.
 - [ ] Verification: invite creates a pending record + email; revoke removes it. [checkpoint]
 
