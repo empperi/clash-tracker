@@ -11,7 +11,7 @@ the clock and the email sender for testability.
 
 Goal: persist the two thresholds safely.
 
-- [ ] Task: Tests + implement pure validators: acceptance % ∈ [0,100] integer; min war
+- [x] 148f4db Task: Tests + implement pure validators: acceptance % ∈ [0,100] integer; min war
   participation ∈ [0,20] integer. Reject out-of-range.
 - [ ] Task: Emulator tests + implement a guarded `setThreshold` function writing to
   `publicSettings/config` (one for each value or a single function with a field arg). Assert
