@@ -18,7 +18,7 @@ Goal: persist the two thresholds safely.
   non-admins are rejected and admins persist; validate inputs.
 - [x] 9f5d011 Verification: thresholds persist; public read reflects them. [checkpoint]
 
-## Phase 2: Threshold sliders (instant save)
+## Phase 2: Threshold sliders (instant save) [checkpoint: 1192008]
 
 Goal: touch-friendly sliders that save on change.
 
@@ -28,7 +28,7 @@ Goal: touch-friendly sliders that save on change.
   guard/capability hides them from non-admins.
 - [x] 12a2d71 Task: Tests — confirm changing a slider updates `publicSettings/config` and the Player
   List composable re-splits (integration with Track 5 via shared settings query).
-- [ ] Verification: dragging a slider re-draws the qualification line live. [checkpoint]
+- [x] 1192008 Verification: dragging a slider re-draws the qualification line live. [checkpoint]
 
 ## Phase 3: Invitations
 
