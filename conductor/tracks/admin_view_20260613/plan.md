@@ -34,7 +34,7 @@ Goal: touch-friendly sliders that save on change.
 
 Goal: invite admins and manage pending invites.
 
-- [ ] Task: Tests + implement pure `isInvitationExpired(createdAt, now)` (>30 min) and an
+- [x] 8bb19dd Task: Tests + implement pure `isInvitationExpired(createdAt, now)` (>30 min) and an
   email validator. Reuse the expiry predicate later in registration + the pending list.
 - [ ] Task: Emulator tests + implement guarded `inviteAdmin(email)`: validate, create
   `pendingAccounts/{id}` with `createdAt`/role, and send the registration email via an
