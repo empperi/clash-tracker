@@ -34,6 +34,14 @@
         "function": "inviteAdmin"
       },
       {
+        "source": "/api/listPendingInvites",
+        "function": "listPendingInvites"
+      },
+      {
+        "source": "/api/revokeInvite",
+        "function": "revokeInvite"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

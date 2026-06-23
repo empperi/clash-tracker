@@ -64,6 +64,14 @@ describe('Cloud Function handlers delegation', () => {
     (request: Request, response: Response): Promise<void> | void;
     run?: (request: Request, response: Response) => Promise<void> | void;
   };
+  let listPendingInvites: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
+  let revokeInvite: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -73,6 +81,8 @@ describe('Cloud Function handlers delegation', () => {
     triggerIngestNow = mod.triggerIngestNow;
     setThreshold = mod.setThreshold;
     inviteAdmin = mod.inviteAdmin;
+    listPendingInvites = mod.listPendingInvites;
+    revokeInvite = mod.revokeInvite;
   });
 
   beforeEach(async () => {
@@ -735,6 +745,158 @@ describe('Cloud Function handlers delegation', () => {
 
       const pendingAccounts = await db.collection('pendingAccounts').get();
       expect(pendingAccounts.empty).toBe(true);
+    });
+  });
+
+  describe('listPendingInvites endpoint', () => {
+    let listPendingInvitesHandler: (req: Request, res: Response) => Promise<void> | void;
+    const testAdminUid = 'admin-user-list';
+    const testMemberUid = 'member-user-list';
+
+    beforeAll(() => {
+      listPendingInvitesHandler = typeof listPendingInvites.run === 'function' ? listPendingInvites.run : listPendingInvites;
+    });
+
+    beforeEach(async () => {
+      const pendingAccounts = await db.collection('pendingAccounts').get();
+      for (const doc of pendingAccounts.docs) {
+        await doc.ref.delete();
+      }
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('accounts').doc(testMemberUid).delete();
+    });
+
+    it('rejects if session cookie is missing', async () => {
+      const context = createMockReqRes({ method: 'GET' });
+      await listPendingInvitesHandler(context.req, context.res);
+      expect(context.status).toBe(401);
+      expect(context.body).toContain('Session cookie missing.');
+    });
+
+    it('rejects if role is insufficient', async () => {
+      const cookie = await getSessionCookieForUser(testMemberUid, 'member');
+      const context = createMockReqRes({
+        method: 'GET',
+        headers: { cookie: `__session=${cookie}` }
+      });
+      await listPendingInvitesHandler(context.req, context.res);
+      expect(context.status).toBe(403);
+      expect(context.body).toContain('Insufficient permissions.');
+    });
+
+    it('returns a list of pending invitations with active and expired statuses', async () => {
+      const now = new Date();
+      const activeDate = new Date(now.getTime() - 10 * 60 * 1000); // 10 min ago (active)
+      const expiredDate = new Date(now.getTime() - 35 * 60 * 1000); // 35 min ago (expired)
+
+      await db.collection('pendingAccounts').doc('active-id').set({
+        email: 'active@example.com',
+        role: 'admin',
+        createdAt: activeDate,
+      });
+
+      await db.collection('pendingAccounts').doc('expired-id').set({
+        email: 'expired@example.com',
+        role: 'admin',
+        createdAt: expiredDate,
+      });
+
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'GET',
+        headers: { cookie: `__session=${cookie}` }
+      });
+      await listPendingInvitesHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+
+      interface InviteItem {
+        id: string;
+        email: string;
+        role: string;
+        createdAt: string;
+        expired: boolean;
+      }
+
+      const list = context.body as InviteItem[];
+      expect(list).toHaveLength(2);
+
+      const activeInvite = list.find((i) => i.id === 'active-id');
+      expect(activeInvite).toBeDefined();
+      expect(activeInvite.email).toBe('active@example.com');
+      expect(activeInvite.expired).toBe(false);
+
+      const expiredInvite = list.find((i) => i.id === 'expired-id');
+      expect(expiredInvite).toBeDefined();
+      expect(expiredInvite.email).toBe('expired@example.com');
+      expect(expiredInvite.expired).toBe(true);
+    });
+  });
+
+  describe('revokeInvite endpoint', () => {
+    let revokeInviteHandler: (req: Request, res: Response) => Promise<void> | void;
+    const testAdminUid = 'admin-user-revoke';
+    const testMemberUid = 'member-user-revoke';
+
+    beforeAll(() => {
+      revokeInviteHandler = typeof revokeInvite.run === 'function' ? revokeInvite.run : revokeInvite;
+    });
+
+    beforeEach(async () => {
+      const pendingAccounts = await db.collection('pendingAccounts').get();
+      for (const doc of pendingAccounts.docs) {
+        await doc.ref.delete();
+      }
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('accounts').doc(testMemberUid).delete();
+    });
+
+    it('rejects if method is not POST', async () => {
+      const context = createMockReqRes({ method: 'GET' });
+      await revokeInviteHandler(context.req, context.res);
+      expect(context.status).toBe(405);
+      expect(context.body).toContain('Method Not Allowed');
+    });
+
+    it('rejects if session cookie is missing', async () => {
+      const context = createMockReqRes({ method: 'POST', body: { id: 'some-id' } });
+      await revokeInviteHandler(context.req, context.res);
+      expect(context.status).toBe(401);
+      expect(context.body).toContain('Session cookie missing.');
+    });
+
+    it('rejects if role is insufficient', async () => {
+      const cookie = await getSessionCookieForUser(testMemberUid, 'member');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { id: 'some-id' }
+      });
+      await revokeInviteHandler(context.req, context.res);
+      expect(context.status).toBe(403);
+      expect(context.body).toContain('Insufficient permissions.');
+    });
+
+    it('successfully deletes/revokes the pending invitation document', async () => {
+      await db.collection('pendingAccounts').doc('to-revoke-id').set({
+        email: 'revoke-me@example.com',
+        role: 'admin',
+        createdAt: new Date(),
+      });
+
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { id: 'to-revoke-id' }
+      });
+      await revokeInviteHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      const doc = await db.collection('pendingAccounts').doc('to-revoke-id').get();
+      expect(doc.exists).toBe(false);
     });
   });
 });

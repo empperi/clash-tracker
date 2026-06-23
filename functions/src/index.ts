@@ -306,4 +306,57 @@ export const inviteAdmin = onRequest(async (req, res) => {
   })(req, res);
 });
 
+export const listPendingInvites = onRequest(async (req, res) => {
+  await requireRole('admin')(async (req, res) => {
+    try {
+      const snapshot = await db.collection('pendingAccounts').get();
+      const list = [];
+      const now = new Date();
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        const createdAt = data.createdAt.toDate();
+        const expired = isInvitationExpired(createdAt, now);
+
+        if (expired) {
+          await doc.ref.delete();
+        }
+
+        list.push({
+          id: doc.id,
+          email: data.email,
+          role: data.role,
+          createdAt: createdAt.toISOString(),
+          expired,
+        });
+      }
+      res.status(200).json(list);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
+export const revokeInvite = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('admin')(async (req, res) => {
+    try {
+      const id = req.body?.id;
+      if (!id || typeof id !== 'string') {
+        res.status(400).send('Missing or invalid invite ID');
+        return;
+      }
+
+      await db.collection('pendingAccounts').doc(id).delete();
+      res.status(200).json({ status: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
 export { sessionLogin, sessionLogout, findAccountForLogin, verifyLoginOtp } from './auth.js';
