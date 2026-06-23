@@ -57,12 +57,12 @@ describe('Cloud Function handlers delegation', () => {
     run?: (request: unknown) => Promise<unknown>;
   };
   let setThreshold: {
-    (request: unknown, response?: unknown): Promise<unknown>;
-    run?: (request: unknown, response?: unknown) => Promise<unknown>;
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
   };
   let inviteAdmin: {
-    (request: unknown, response?: unknown): Promise<unknown>;
-    run?: (request: unknown, response?: unknown) => Promise<unknown>;
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
   };
   let mod: typeof import('./index');
 
@@ -549,12 +549,12 @@ describe('Cloud Function handlers delegation', () => {
   });
 
   describe('inviteAdmin endpoint', () => {
-    let inviteAdminHandler: (req: Request, res: Response) => Promise<void>;
+    let inviteAdminHandler: (req: Request, res: Response) => Promise<void> | void;
     const testAdminUid = 'admin-user-invite';
     const testMemberUid = 'member-user-invite';
 
     beforeAll(() => {
-      inviteAdminHandler = typeof inviteAdmin.run === 'function' ? inviteAdmin.run : (inviteAdmin as any);
+      inviteAdminHandler = typeof inviteAdmin.run === 'function' ? inviteAdmin.run : inviteAdmin;
     });
 
     beforeEach(async () => {
@@ -562,10 +562,10 @@ describe('Cloud Function handlers delegation', () => {
       for (const doc of pendingAccounts.docs) {
         await doc.ref.delete();
       }
-      const accounts = await db.collection('accounts').get();
-      for (const doc of accounts.docs) {
-        await doc.ref.delete();
-      }
+      // Only delete accounts created by these tests to avoid database collision with auth.test.ts
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('accounts').doc(testMemberUid).delete();
+      await db.collection('accounts').doc('existing-uid').delete();
     });
 
     it('rejects if method is not POST', async () => {
@@ -712,6 +712,29 @@ describe('Cloud Function handlers delegation', () => {
       const newDoc = await db.collection('pendingAccounts').doc(resBody.inviteId).get();
       expect(newDoc.exists).toBe(true);
       expect(newDoc.data()?.email).toBe('expired-pending@example.com');
+    });
+
+    it('deletes the pendingAccounts document if mailer.sendInvitation throws an error', async () => {
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const mockMailer = {
+        sendSignInLink: vi.fn(),
+        sendSignInCode: vi.fn(),
+        sendInvitation: vi.fn().mockRejectedValue(new Error('SMTP failure')),
+      };
+      setMailerForTesting(mockMailer);
+
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { email: 'fail-email@example.com' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+
+      expect(context.status).toBe(500);
+      expect(context.body).toContain('SMTP failure');
+
+      const pendingAccounts = await db.collection('pendingAccounts').get();
+      expect(pendingAccounts.empty).toBe(true);
     });
   });
 });

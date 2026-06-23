@@ -122,7 +122,7 @@ describe('isInvitationExpired', () => {
     expect(isInvitationExpired(createdAt, now)).toBe(false);
   });
 
-  it('returns true when now is exactly 30 minutes after createdAt', () => {
+  it('is not expired at exactly 30 min, expired at 30:01', () => {
     const createdAt = new Date('2026-06-21T16:00:00Z');
     const now = new Date('2026-06-21T16:30:00Z');
     expect(isInvitationExpired(createdAt, now)).toBe(false);

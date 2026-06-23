@@ -290,8 +290,13 @@ export const inviteAdmin = onRequest(async (req, res) => {
       const origin = req.headers?.origin || 'http://localhost:5173';
       const link = `${origin}/register?inviteId=${inviteId}`;
 
-      const mailer = getMailer();
-      await mailer.sendInvitation(validatedEmail, { inviteId, link });
+      try {
+        const mailer = getMailer();
+        await mailer.sendInvitation(validatedEmail, { inviteId, link });
+      } catch (mailError) {
+        await inviteDocRef.delete();
+        throw mailError;
+      }
 
       res.status(200).json({ status: 'success', inviteId });
     } catch (err: unknown) {
