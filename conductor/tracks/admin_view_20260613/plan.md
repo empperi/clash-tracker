@@ -39,7 +39,7 @@ Goal: invite admins and manage pending invites.
 - [x] f19b890 Task: Emulator tests + implement guarded `inviteAdmin(email)`: validate, create
   `pendingAccounts/{id}` with `createdAt`/role, and send the registration email via an
   injected sender. Assert non-admins rejected; duplicate handled.
-- [ ] Task: Emulator tests + implement guarded `listPendingInvites()` and
+- [~] Task: Emulator tests + implement guarded `listPendingInvites()` and
   `revokeInvite(id)` (delete). Mark/prune expired ones using the predicate.
 - [ ] Task: Tests + implement the invite UI (email field + submit) and the pending list with
   revoke buttons + expired indicator. Admin-gated.
