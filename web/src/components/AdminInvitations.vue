@@ -17,6 +17,7 @@ const {
   isLoading,
   isError,
   isInviting,
+  isRevoking,
   invite,
   revoke,
 } = useInvitations(invitationsApi);
@@ -108,7 +109,7 @@ async function onRevoke(id: string) {
             <BaseButton
               variant="danger"
               class="btn-revoke"
-              :disabled="isInviting"
+              :disabled="isRevoking"
               @click="onRevoke(inv.id)"
             >
               REVOKE
