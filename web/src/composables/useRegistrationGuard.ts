@@ -1,6 +1,5 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { decideRegistrationStatus } from '@clash-tracker/core';
 
 export function useRegistrationGuard(
   inviteId: string | null,
@@ -19,14 +18,7 @@ export function useRegistrationGuard(
     try {
       const data = await fetchStatusFn(inviteId);
       
-      const inviteExists = data.exists;
-      const now = new Date();
-      const createdAt = data.exists
-        ? (data.expired ? new Date(now.getTime() - 40 * 60 * 1000) : new Date(now.getTime() - 10 * 60 * 1000))
-        : null;
-
-      const decision = decideRegistrationStatus(inviteExists, createdAt, now);
-      if (decision === 'redirect-invalid' || decision === 'redirect-expired') {
+      if (!data.exists || data.expired) {
         router.push('/');
         return;
       }
