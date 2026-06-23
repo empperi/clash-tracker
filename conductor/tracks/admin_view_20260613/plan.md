@@ -7,7 +7,7 @@ the clock and the email sender for testability.
 > Implementer note: enforce the 30-minute expiry **server-side**. Guard every write. The
 > thresholds are public-readable (so the list re-splits) but only admins may write them.
 
-## Phase 1: Settings (threshold) functions
+## Phase 1: Settings (threshold) functions [checkpoint: 9f5d011]
 
 Goal: persist the two thresholds safely.
 
@@ -16,7 +16,7 @@ Goal: persist the two thresholds safely.
 - [x] 0391aa5 Task: Emulator tests + implement a guarded `setThreshold` function writing to
   `publicSettings/config` (one for each value or a single function with a field arg). Assert
   non-admins are rejected and admins persist; validate inputs.
-- [ ] Verification: thresholds persist; public read reflects them. [checkpoint]
+- [x] 9f5d011 Verification: thresholds persist; public read reflects them. [checkpoint]
 
 ## Phase 2: Threshold sliders (instant save)
 
