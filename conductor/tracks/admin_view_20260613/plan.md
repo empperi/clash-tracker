@@ -22,11 +22,11 @@ Goal: persist the two thresholds safely.
 
 Goal: touch-friendly sliders that save on change.
 
-- [ ] Task: Tests + implement `AcceptancePercentSlider` (0–100, step 1) and
+- [x] 12a2d71 Task: Tests + implement `AcceptancePercentSlider` (0–100, step 1) and
   `MinWarParticipationSlider` (0–20, step 1): emit on change, debounce, call the settings
   function, show saving/saved indicator. Assert debounce coalesces rapid changes and the
   guard/capability hides them from non-admins.
-- [ ] Task: Tests — confirm changing a slider updates `publicSettings/config` and the Player
+- [x] 12a2d71 Task: Tests — confirm changing a slider updates `publicSettings/config` and the Player
   List composable re-splits (integration with Track 5 via shared settings query).
 - [ ] Verification: dragging a slider re-draws the qualification line live. [checkpoint]
 
