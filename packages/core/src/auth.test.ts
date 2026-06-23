@@ -4,6 +4,7 @@ import {
   isValidOtpFormat,
   isOtpExpired,
   hasExceededOtpAttempts,
+  isInvitationExpired,
 } from './auth';
 
 describe('rolesToCapabilities', () => {
@@ -111,5 +112,28 @@ describe('hasExceededOtpAttempts', () => {
 
   it('returns true when attempts are greater than max', () => {
     expect(hasExceededOtpAttempts(6, 5)).toBe(true);
+  });
+});
+
+describe('isInvitationExpired', () => {
+  it('returns false when now is within 30 minutes of createdAt', () => {
+    const createdAt = new Date('2026-06-21T16:00:00Z');
+    const now = new Date('2026-06-21T16:29:59Z');
+    expect(isInvitationExpired(createdAt, now)).toBe(false);
+  });
+
+  it('returns true when now is exactly 30 minutes after createdAt', () => {
+    const createdAt = new Date('2026-06-21T16:00:00Z');
+    const now = new Date('2026-06-21T16:30:00Z');
+    expect(isInvitationExpired(createdAt, now)).toBe(false);
+
+    const nowExpired = new Date('2026-06-21T16:30:01Z');
+    expect(isInvitationExpired(createdAt, nowExpired)).toBe(true);
+  });
+
+  it('returns true when now is more than 30 minutes after createdAt', () => {
+    const createdAt = new Date('2026-06-21T16:00:00Z');
+    const now = new Date('2026-06-21T17:00:00Z');
+    expect(isInvitationExpired(createdAt, now)).toBe(true);
   });
 });

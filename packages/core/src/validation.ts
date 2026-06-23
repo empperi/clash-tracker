@@ -31,3 +31,18 @@ export function validateMinWarParticipation(val: unknown): Result<number, string
   }
   return ok(val);
 }
+
+/**
+ * Validates that the input is a valid email address and normalizes it.
+ */
+export function validateEmail(val: unknown): Result<string, string> {
+  if (typeof val !== 'string') {
+    return err('Email must be a string');
+  }
+  const trimmed = val.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(trimmed)) {
+    return err('Invalid email format');
+  }
+  return ok(trimmed.toLowerCase());
+}

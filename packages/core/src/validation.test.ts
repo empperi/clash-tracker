@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateAcceptancePercent, validateMinWarParticipation } from './validation.js';
+import { validateAcceptancePercent, validateMinWarParticipation, validateEmail } from './validation.js';
 
 describe('validation', () => {
   describe('validateAcceptancePercent', () => {
@@ -45,6 +45,35 @@ describe('validation', () => {
       expect(validateMinWarParticipation('10').success).toBe(false);
       expect(validateMinWarParticipation(null).success).toBe(false);
       expect(validateMinWarParticipation(undefined).success).toBe(false);
+    });
+  });
+
+  describe('validateEmail', () => {
+    it('accepts valid email addresses and normalizes them', () => {
+      expect(validateEmail('test@example.com')).toEqual({ success: true, value: 'test@example.com' });
+      expect(validateEmail('TEST.NAME@SOME-DOMAIN.CO.UK')).toEqual({
+        success: true,
+        value: 'test.name@some-domain.co.uk',
+      });
+      expect(validateEmail('  spaced@email.com  ')).toEqual({
+        success: true,
+        value: 'spaced@email.com',
+      });
+    });
+
+    it('rejects invalid email formats', () => {
+      expect(validateEmail('invalid-email').success).toBe(false);
+      expect(validateEmail('invalid@').success).toBe(false);
+      expect(validateEmail('@domain.com').success).toBe(false);
+      expect(validateEmail('test@domain').success).toBe(false);
+      expect(validateEmail('test@domain.').success).toBe(false);
+      expect(validateEmail('test.domain.com').success).toBe(false);
+    });
+
+    it('rejects non-strings', () => {
+      expect(validateEmail(null).success).toBe(false);
+      expect(validateEmail(undefined).success).toBe(false);
+      expect(validateEmail(123).success).toBe(false);
     });
   });
 });

@@ -39,3 +39,8 @@ export function isOtpExpired(now: Date, expiresAt: Date): boolean {
 export function hasExceededOtpAttempts(attempts: number, max: number): boolean {
   return attempts >= max;
 }
+
+export function isInvitationExpired(createdAt: Date, now: Date): boolean {
+  const diffMs = now.getTime() - createdAt.getTime();
+  return diffMs > 30 * 60 * 1000;
+}
