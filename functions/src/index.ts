@@ -201,22 +201,26 @@ export const setThreshold = onRequest(async (req, res) => {
         return;
       }
 
+      let validatedValue: number;
+
       if (field === 'acceptancePct') {
         const validationResult = validateAcceptancePercent(value);
         if (!validationResult.success) {
           res.status(400).send(validationResult.error);
           return;
         }
+        validatedValue = validationResult.value;
       } else {
         const validationResult = validateMinWarParticipation(value);
         if (!validationResult.success) {
           res.status(400).send(validationResult.error);
           return;
         }
+        validatedValue = validationResult.value;
       }
 
       await db.collection('publicSettings').doc('config').set(
-        { [field]: value },
+        { [field]: validatedValue },
         { merge: true }
       );
 

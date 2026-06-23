@@ -121,7 +121,7 @@ describe('Cloud Function handlers delegation', () => {
     return sessionCookie;
   }
 
-  function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string; body?: any }) {
+  function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string; body?: unknown }) {
     const req = {
       method: reqData.method || 'POST',
       headers: reqData.headers || {},
@@ -425,13 +425,13 @@ describe('Cloud Function handlers delegation', () => {
     const testMemberUid = 'test-member-threshold';
 
     beforeAll(async () => {
-      try { await auth.deleteUser(testAdminUid); } catch {}
-      try { await auth.deleteUser(testMemberUid); } catch {}
+      try { await auth.deleteUser(testAdminUid); } catch { /* Ignored */ }
+      try { await auth.deleteUser(testMemberUid); } catch { /* Ignored */ }
     });
 
     afterAll(async () => {
-      try { await auth.deleteUser(testAdminUid); } catch {}
-      try { await auth.deleteUser(testMemberUid); } catch {}
+      try { await auth.deleteUser(testAdminUid); } catch { /* Ignored */ }
+      try { await auth.deleteUser(testMemberUid); } catch { /* Ignored */ }
       await db.collection('accounts').doc(testAdminUid).delete();
       await db.collection('accounts').doc(testMemberUid).delete();
       await db.collection('publicSettings').doc('config').delete();
