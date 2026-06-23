@@ -30,7 +30,7 @@ Goal: touch-friendly sliders that save on change.
   List composable re-splits (integration with Track 5 via shared settings query).
 - [x] 1192008 Verification: dragging a slider re-draws the qualification line live. [checkpoint]
 
-## Phase 3: Invitations
+## Phase 3: Invitations [checkpoint: 0b15160]
 
 Goal: invite admins and manage pending invites.
 
