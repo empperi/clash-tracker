@@ -111,4 +111,36 @@ describe('makeResendMailer', () => {
     consoleErrorSpy.mockRestore();
     consoleLogSpy.mockRestore();
   });
+
+  it('sends an invitation email with a link matching Resend spec', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200,
+      json: async () => ({ id: 'email-id-456' }),
+    });
+    const httpClient: HttpClient = {
+      fetch: fetchMock,
+    };
+    const apiKey = 're_testApiKey';
+    const sender = 'Clash Tracker <onboarding@resend.dev>';
+    const mailer = makeResendMailer({ httpClient, apiKey, sender });
+
+    const email = 'new-admin@example.com';
+    const inviteId = 'invite-xyz-789';
+    const link = 'https://example.com/register?inviteId=invite-xyz-789';
+
+    await mailer.sendInvitation(email, { inviteId, link });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [calledUrl, calledInit] = fetchMock.mock.calls[0];
+
+    expect(calledUrl).toBe('https://api.resend.com/emails');
+    expect(calledInit.method).toBe('POST');
+
+    const parsedBody = JSON.parse(calledInit.body);
+    expect(parsedBody.from).toBe(sender);
+    expect(parsedBody.to).toEqual([email]);
+    expect(parsedBody.subject).toBe('Invitation to join Clash Tracker as an Admin');
+    expect(parsedBody.html).toContain(link);
+    expect(parsedBody.text).toContain(link);
+  });
 });

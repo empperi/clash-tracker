@@ -60,5 +60,11 @@ export function makeResendMailer(deps: {
       const { subject, html, text } = buildSignInEmail(options.code, options.link);
       await sendEmail({ email, subject, html, text });
     },
+    async sendInvitation(email: string, options: { inviteId: string; link: string }): Promise<void> {
+      const subject = 'Invitation to join Clash Tracker as an Admin';
+      const html = `<p>You have been invited to join Clash Tracker as an administrator. Click the link below to complete your registration:</p><p><a href="${options.link}">${options.link}</a></p>`;
+      const text = `You have been invited to join Clash Tracker as an administrator. Click the link below to complete your registration: ${options.link}`;
+      await sendEmail({ email, subject, html, text });
+    },
   };
 }

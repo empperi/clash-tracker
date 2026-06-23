@@ -138,6 +138,7 @@ export const sessionLogout = onRequest({ region: REGION }, async (req, res) => {
 export interface Mailer {
   sendSignInLink(email: string, link: string): Promise<void>;
   sendSignInCode(email: string, options: { code: string; link: string }): Promise<void>;
+  sendInvitation(email: string, options: { inviteId: string; link: string }): Promise<void>;
 }
 
 export const consoleMailer: Mailer = {
@@ -147,6 +148,11 @@ export const consoleMailer: Mailer = {
   async sendSignInCode(email: string, options: { code: string; link: string }) {
     console.log(
       `[MAILER] Sent OTP code ${options.code} and sign-in link to ${email}: ${options.link}`
+    );
+  },
+  async sendInvitation(email: string, options: { inviteId: string; link: string }) {
+    console.log(
+      `[MAILER] Sent invitation with ID ${options.inviteId} and link to ${email}: ${options.link}`
     );
   },
 };

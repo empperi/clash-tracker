@@ -1,12 +1,12 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest, HttpsError } from 'firebase-functions/v2/https';
-import { requireRole } from './auth.js';
+import { requireRole, getMailer } from './auth.js';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar.js';
 import { makeRecomputePlayerStats, RecomputeSummary } from './use-cases/recomputePlayerStats.js';
-import { Result, validateAcceptancePercent, validateMinWarParticipation } from '@clash-tracker/core';
+import { Result, validateAcceptancePercent, validateMinWarParticipation, validateEmail, isInvitationExpired } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
 import { WarRepository } from './repositories/WarRepository.js';
@@ -225,6 +225,75 @@ export const setThreshold = onRequest(async (req, res) => {
       );
 
       res.status(200).json({ status: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
+export const inviteAdmin = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('admin')(async (req, res) => {
+    try {
+      const emailInput = req.body?.email;
+      const validationResult = validateEmail(emailInput);
+      if (!validationResult.success) {
+        res.status(400).send(validationResult.error);
+        return;
+      }
+      const validatedEmail = validationResult.value;
+
+      // Check if user is already registered in accounts collection
+      const userSnapshot = await db.collection('accounts')
+        .where('email', '==', validatedEmail)
+        .get();
+      if (!userSnapshot.empty) {
+        res.status(409).send('User is already registered with this email');
+        return;
+      }
+
+      // Check if there is an active invite in pendingAccounts
+      const snapshot = await db.collection('pendingAccounts')
+        .where('email', '==', validatedEmail)
+        .get();
+
+      let hasActiveInvite = false;
+      const now = new Date();
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        const createdAt = data.createdAt.toDate();
+        if (isInvitationExpired(createdAt, now)) {
+          await doc.ref.delete();
+        } else {
+          hasActiveInvite = true;
+        }
+      }
+
+      if (hasActiveInvite) {
+        res.status(409).send('Email is already invited');
+        return;
+      }
+
+      // Create new pending invitation
+      const inviteDocRef = db.collection('pendingAccounts').doc();
+      const inviteId = inviteDocRef.id;
+      await inviteDocRef.set({
+        email: validatedEmail,
+        role: 'admin',
+        createdAt: now,
+      });
+
+      const origin = req.headers?.origin || 'http://localhost:5173';
+      const link = `${origin}/register?inviteId=${inviteId}`;
+
+      const mailer = getMailer();
+      await mailer.sendInvitation(validatedEmail, { inviteId, link });
+
+      res.status(200).json({ status: 'success', inviteId });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       res.status(500).send(msg);

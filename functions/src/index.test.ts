@@ -5,7 +5,7 @@ import { RecomputeSummary } from './use-cases/recomputePlayerStats';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import { setAccountRole } from './auth.js';
+import { setAccountRole, setMailerForTesting } from './auth.js';
 import { SecretsRepository } from './repositories/SecretsRepository';
 import { parseEncryptionKey } from './crypto';
 import { Request } from 'firebase-functions/v2/https';
@@ -60,6 +60,10 @@ describe('Cloud Function handlers delegation', () => {
     (request: unknown, response?: unknown): Promise<unknown>;
     run?: (request: unknown, response?: unknown) => Promise<unknown>;
   };
+  let inviteAdmin: {
+    (request: unknown, response?: unknown): Promise<unknown>;
+    run?: (request: unknown, response?: unknown) => Promise<unknown>;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -68,6 +72,7 @@ describe('Cloud Function handlers delegation', () => {
     handleTriggerIngestNow = mod.handleTriggerIngestNow;
     triggerIngestNow = mod.triggerIngestNow;
     setThreshold = mod.setThreshold;
+    inviteAdmin = mod.inviteAdmin;
   });
 
   beforeEach(async () => {
@@ -540,6 +545,173 @@ describe('Cloud Function handlers delegation', () => {
       const configDoc = await db.collection('publicSettings').doc('config').get();
       expect(configDoc.exists).toBe(true);
       expect(configDoc.data()?.minWarParticipation).toBe(5);
+    });
+  });
+
+  describe('inviteAdmin endpoint', () => {
+    let inviteAdminHandler: (req: Request, res: Response) => Promise<void>;
+    const testAdminUid = 'admin-user-invite';
+    const testMemberUid = 'member-user-invite';
+
+    beforeAll(() => {
+      inviteAdminHandler = typeof inviteAdmin.run === 'function' ? inviteAdmin.run : (inviteAdmin as any);
+    });
+
+    beforeEach(async () => {
+      const pendingAccounts = await db.collection('pendingAccounts').get();
+      for (const doc of pendingAccounts.docs) {
+        await doc.ref.delete();
+      }
+      const accounts = await db.collection('accounts').get();
+      for (const doc of accounts.docs) {
+        await doc.ref.delete();
+      }
+    });
+
+    it('rejects if method is not POST', async () => {
+      const context = createMockReqRes({ method: 'GET' });
+      await inviteAdminHandler(context.req, context.res);
+      expect(context.status).toBe(405);
+      expect(context.body).toContain('Method Not Allowed');
+    });
+
+    it('rejects if session cookie is missing', async () => {
+      const context = createMockReqRes({ method: 'POST', body: { email: 'test@example.com' } });
+      await inviteAdminHandler(context.req, context.res);
+      expect(context.status).toBe(401);
+      expect(context.body).toContain('Session cookie missing.');
+    });
+
+    it('rejects if role is insufficient', async () => {
+      const cookie = await getSessionCookieForUser(testMemberUid, 'member');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { email: 'test@example.com' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+      expect(context.status).toBe(403);
+      expect(context.body).toContain('Insufficient permissions.');
+    });
+
+    it('rejects invalid email formats', async () => {
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { email: 'invalid-email' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Invalid email format');
+    });
+
+    it('successfully invites a new admin, creating a pending account and sending email', async () => {
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const mockMailer = {
+        sendSignInLink: vi.fn(),
+        sendSignInCode: vi.fn(),
+        sendInvitation: vi.fn().mockResolvedValue(undefined),
+      };
+      setMailerForTesting(mockMailer);
+
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}`, origin: 'http://my-origin.com' },
+        body: { email: 'new-admin@example.com' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+      const resBody = context.body as { status: string; inviteId: string };
+      expect(resBody.status).toBe('success');
+      expect(resBody.inviteId).toBeDefined();
+
+      const pendingDoc = await db.collection('pendingAccounts').doc(resBody.inviteId).get();
+      expect(pendingDoc.exists).toBe(true);
+      const data = pendingDoc.data();
+      expect(data?.email).toBe('new-admin@example.com');
+      expect(data?.role).toBe('admin');
+      expect(data?.createdAt).toBeDefined();
+
+      expect(mockMailer.sendInvitation).toHaveBeenCalledTimes(1);
+      expect(mockMailer.sendInvitation).toHaveBeenCalledWith('new-admin@example.com', {
+        inviteId: resBody.inviteId,
+        link: `http://my-origin.com/register?inviteId=${resBody.inviteId}`,
+      });
+    });
+
+    it('rejects if user is already registered in accounts collection', async () => {
+      await db.collection('accounts').doc('existing-uid').set({
+        username: 'existing_user',
+        email: 'registered@example.com',
+        role: 'admin',
+      });
+
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { email: 'registered@example.com' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+
+      expect(context.status).toBe(409);
+      expect(context.body).toContain('User is already registered with this email');
+    });
+
+    it('rejects if email already has an active pending invitation', async () => {
+      await db.collection('pendingAccounts').doc('active-invite-id').set({
+        email: 'pending@example.com',
+        role: 'admin',
+        createdAt: new Date(),
+      });
+
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { email: 'pending@example.com' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+
+      expect(context.status).toBe(409);
+      expect(context.body).toContain('Email is already invited');
+    });
+
+    it('prunes expired pending invitation and succeeds if invitation exists but is expired', async () => {
+      const expiredDate = new Date(Date.now() - 31 * 60 * 1000);
+      const expiredDocRef = db.collection('pendingAccounts').doc('expired-invite-id');
+      await expiredDocRef.set({
+        email: 'expired-pending@example.com',
+        role: 'admin',
+        createdAt: expiredDate,
+      });
+
+      const mockMailer = {
+        sendSignInLink: vi.fn(),
+        sendSignInCode: vi.fn(),
+        sendInvitation: vi.fn().mockResolvedValue(undefined),
+      };
+      setMailerForTesting(mockMailer);
+
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { email: 'expired-pending@example.com' }
+      });
+      await inviteAdminHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+
+      const oldDoc = await db.collection('pendingAccounts').doc('expired-invite-id').get();
+      expect(oldDoc.exists).toBe(false);
+
+      const resBody = context.body as { status: string; inviteId: string };
+      const newDoc = await db.collection('pendingAccounts').doc(resBody.inviteId).get();
+      expect(newDoc.exists).toBe(true);
+      expect(newDoc.data()?.email).toBe('expired-pending@example.com');
     });
   });
 });
