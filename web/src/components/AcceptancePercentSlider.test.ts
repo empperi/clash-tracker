@@ -126,4 +126,48 @@ describe('AcceptancePercentSlider.vue', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.find('.indicator').exists()).toBe(false);
   });
+
+  test('coalesces rapid changes and calls fetch once with the final value', async () => {
+    mockUseSession.mockReturnValue({
+      capabilities: ref({ canEditThresholds: true }),
+    });
+
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    global.fetch = fetchMock;
+
+    const wrapper = mount(AcceptancePercentSlider, {
+      props: {
+        modelValue: 80,
+      },
+    });
+
+    const input = wrapper.find('input[type="range"]');
+
+    // Trigger input 3x rapidly
+    (input.element as HTMLInputElement).value = '82';
+    await input.trigger('input');
+    await vi.advanceTimersByTimeAsync(200);
+
+    (input.element as HTMLInputElement).value = '85';
+    await input.trigger('input');
+    await vi.advanceTimersByTimeAsync(200);
+
+    (input.element as HTMLInputElement).value = '88';
+    await input.trigger('input');
+
+    // Network call should not have occurred yet
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    // Advance remaining time of debounce window (500ms from last event)
+    await vi.advanceTimersByTimeAsync(500);
+    await wrapper.vm.$nextTick();
+
+    // Should only call fetch once with final value '88'
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith('/api/setThreshold', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ field: 'acceptancePct', value: 88 }),
+    });
+  });
 });
