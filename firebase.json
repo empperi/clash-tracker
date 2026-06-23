@@ -42,6 +42,10 @@
         "function": "revokeInvite"
       },
       {
+        "source": "/api/getInviteStatus",
+        "function": "getInviteStatus"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

@@ -359,4 +359,44 @@ export const revokeInvite = onRequest(async (req, res) => {
   })(req, res);
 });
 
+export const getInviteStatus = onRequest(async (req, res) => {
+  if (req.method !== 'GET') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  try {
+    const inviteId = req.query?.inviteId;
+    if (!inviteId || typeof inviteId !== 'string') {
+      res.status(400).send('Missing or invalid inviteId');
+      return;
+    }
+
+    const doc = await db.collection('pendingAccounts').doc(inviteId).get();
+    if (!doc.exists) {
+      res.status(200).json({ exists: false });
+      return;
+    }
+
+    const data = doc.data();
+    if (!data) {
+      res.status(200).json({ exists: false });
+      return;
+    }
+
+    const createdAt = data.createdAt.toDate();
+    const now = new Date();
+    const expired = isInvitationExpired(createdAt, now);
+    if (expired) {
+      await doc.ref.delete();
+      res.status(200).json({ exists: true, expired: true, email: data.email });
+      return;
+    }
+
+    res.status(200).json({ exists: true, expired: false, email: data.email });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).send(msg);
+  }
+});
+
 export { sessionLogin, sessionLogout, findAccountForLogin, verifyLoginOtp } from './auth.js';

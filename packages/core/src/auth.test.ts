@@ -5,6 +5,7 @@ import {
   isOtpExpired,
   hasExceededOtpAttempts,
   isInvitationExpired,
+  decideRegistrationStatus,
 } from './auth';
 
 describe('rolesToCapabilities', () => {
@@ -135,5 +136,30 @@ describe('isInvitationExpired', () => {
     const createdAt = new Date('2026-06-21T16:00:00Z');
     const now = new Date('2026-06-21T17:00:00Z');
     expect(isInvitationExpired(createdAt, now)).toBe(true);
+  });
+});
+
+describe('decideRegistrationStatus', () => {
+  it("returns 'redirect-invalid' when inviteExists is false", () => {
+    const now = new Date('2026-06-21T16:00:00Z');
+    const createdAt = new Date('2026-06-21T15:45:00Z');
+    expect(decideRegistrationStatus(false, createdAt, now)).toBe('redirect-invalid');
+  });
+
+  it("returns 'redirect-invalid' when createdAt is null", () => {
+    const now = new Date('2026-06-21T16:00:00Z');
+    expect(decideRegistrationStatus(true, null, now)).toBe('redirect-invalid');
+  });
+
+  it("returns 'redirect-expired' when the invitation has expired (> 30 min)", () => {
+    const now = new Date('2026-06-21T16:31:00Z');
+    const createdAt = new Date('2026-06-21T16:00:00Z');
+    expect(decideRegistrationStatus(true, createdAt, now)).toBe('redirect-expired');
+  });
+
+  it("returns 'show-form' when the invitation is valid and within 30 min", () => {
+    const now = new Date('2026-06-21T16:29:00Z');
+    const createdAt = new Date('2026-06-21T16:00:00Z');
+    expect(decideRegistrationStatus(true, createdAt, now)).toBe('show-form');
   });
 });

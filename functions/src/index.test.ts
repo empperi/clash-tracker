@@ -72,6 +72,10 @@ describe('Cloud Function handlers delegation', () => {
     (request: Request, response: Response): Promise<void> | void;
     run?: (request: Request, response: Response) => Promise<void> | void;
   };
+  let getInviteStatus: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -83,6 +87,7 @@ describe('Cloud Function handlers delegation', () => {
     inviteAdmin = mod.inviteAdmin;
     listPendingInvites = mod.listPendingInvites;
     revokeInvite = mod.revokeInvite;
+    getInviteStatus = mod.getInviteStatus;
   });
 
   beforeEach(async () => {
@@ -136,11 +141,12 @@ describe('Cloud Function handlers delegation', () => {
     return sessionCookie;
   }
 
-  function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string; body?: unknown }) {
+  function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string; body?: unknown; query?: unknown }) {
     const req = {
       method: reqData.method || 'POST',
       headers: reqData.headers || {},
       body: reqData.body || {},
+      query: reqData.query || {},
     } as unknown as Request;
 
     let resStatus = 200;
@@ -897,6 +903,86 @@ describe('Cloud Function handlers delegation', () => {
 
       const doc = await db.collection('pendingAccounts').doc('to-revoke-id').get();
       expect(doc.exists).toBe(false);
+    });
+  });
+
+  describe('getInviteStatus endpoint', () => {
+    let getInviteStatusHandler: (req: Request, res: Response) => Promise<void> | void;
+
+    beforeAll(() => {
+      getInviteStatusHandler = typeof getInviteStatus.run === 'function' ? getInviteStatus.run : getInviteStatus;
+    });
+
+    beforeEach(async () => {
+      const pendingAccounts = await db.collection('pendingAccounts').get();
+      for (const doc of pendingAccounts.docs) {
+        await doc.ref.delete();
+      }
+    });
+
+    it('rejects if method is not GET', async () => {
+      const context = createMockReqRes({ method: 'POST' });
+      await getInviteStatusHandler(context.req, context.res);
+      expect(context.status).toBe(405);
+      expect(context.body).toContain('Method Not Allowed');
+    });
+
+    it('rejects if inviteId is missing', async () => {
+      const context = createMockReqRes({ method: 'GET', query: {} });
+      await getInviteStatusHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Missing or invalid inviteId');
+    });
+
+    it("returns exists: false if invitation does not exist", async () => {
+      const context = createMockReqRes({ method: 'GET', query: { inviteId: 'non-existent' } });
+      await getInviteStatusHandler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ exists: false });
+    });
+
+    it("returns exists: true, expired: true, email and deletes doc if invitation is expired", async () => {
+      const expiredDate = new Date(Date.now() - 31 * 60 * 1000);
+      await db.collection('pendingAccounts').doc('expired-id').set({
+        email: 'expired-reg@example.com',
+        role: 'admin',
+        createdAt: expiredDate,
+      });
+
+      const context = createMockReqRes({ method: 'GET', query: { inviteId: 'expired-id' } });
+      await getInviteStatusHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({
+        exists: true,
+        expired: true,
+        email: 'expired-reg@example.com',
+      });
+
+      const doc = await db.collection('pendingAccounts').doc('expired-id').get();
+      expect(doc.exists).toBe(false);
+    });
+
+    it("returns exists: true, expired: false, email if invitation is valid", async () => {
+      const validDate = new Date(Date.now() - 15 * 60 * 1000);
+      await db.collection('pendingAccounts').doc('valid-id').set({
+        email: 'valid-reg@example.com',
+        role: 'admin',
+        createdAt: validDate,
+      });
+
+      const context = createMockReqRes({ method: 'GET', query: { inviteId: 'valid-id' } });
+      await getInviteStatusHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({
+        exists: true,
+        expired: false,
+        email: 'valid-reg@example.com',
+      });
+
+      const doc = await db.collection('pendingAccounts').doc('valid-id').get();
+      expect(doc.exists).toBe(true);
     });
   });
 });
