@@ -6,7 +6,7 @@ import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar.js';
 import { makeRecomputePlayerStats, RecomputeSummary } from './use-cases/recomputePlayerStats.js';
-import { Result } from '@clash-tracker/core';
+import { Result, validateAcceptancePercent, validateMinWarParticipation } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
 import { WarRepository } from './repositories/WarRepository.js';
@@ -179,6 +179,48 @@ export const triggerIngestNow = onRequest(async (req, res) => {
     try {
       const result = await handleTriggerIngestNow(overrideIngestUseCase, overrideRecomputeUseCase);
       res.status(200).json(result);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
+export const setThreshold = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('admin')(async (req, res) => {
+    try {
+      const field = req.body?.field;
+      const value = req.body?.value;
+
+      if (field !== 'acceptancePct' && field !== 'minWarParticipation') {
+        res.status(400).send('Invalid field: must be acceptancePct or minWarParticipation.');
+        return;
+      }
+
+      if (field === 'acceptancePct') {
+        const validationResult = validateAcceptancePercent(value);
+        if (!validationResult.success) {
+          res.status(400).send(validationResult.error);
+          return;
+        }
+      } else {
+        const validationResult = validateMinWarParticipation(value);
+        if (!validationResult.success) {
+          res.status(400).send(validationResult.error);
+          return;
+        }
+      }
+
+      await db.collection('publicSettings').doc('config').set(
+        { [field]: value },
+        { merge: true }
+      );
+
+      res.status(200).json({ status: 'success' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       res.status(500).send(msg);

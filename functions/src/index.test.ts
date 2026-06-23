@@ -56,6 +56,10 @@ describe('Cloud Function handlers delegation', () => {
     (request: unknown): Promise<unknown>;
     run?: (request: unknown) => Promise<unknown>;
   };
+  let setThreshold: {
+    (request: unknown, response?: unknown): Promise<unknown>;
+    run?: (request: unknown, response?: unknown) => Promise<unknown>;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -63,12 +67,111 @@ describe('Cloud Function handlers delegation', () => {
     handleScheduledIngest = mod.handleScheduledIngest;
     handleTriggerIngestNow = mod.handleTriggerIngestNow;
     triggerIngestNow = mod.triggerIngestNow;
+    setThreshold = mod.setThreshold;
   });
 
   beforeEach(async () => {
     process.env.CLASH_TOKEN_ENC_KEY = encKeyStr;
     await secretsRepo.setClanTag('#2PGQYPQ');
   });
+
+  async function getSessionCookieForUser(
+    uid: string,
+    role: 'admin' | 'member' | null
+  ): Promise<string> {
+    try {
+      await auth.deleteUser(uid);
+    } catch {
+      // Ignored
+    }
+    await auth.createUser({ uid, email: `${uid}@example.com` });
+
+    await db
+      .collection('accounts')
+      .doc(uid)
+      .set({
+        username: `${uid}_user`,
+        email: `${uid}@example.com`,
+        role: null,
+        playerTag: '#TEST1',
+      });
+
+    if (role === 'member') {
+      await auth.setCustomUserClaims(uid, { role: 'member' });
+    } else {
+      await setAccountRole(uid, role);
+    }
+
+    const customToken = await auth.createCustomToken(uid);
+    const url = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=mock-key`;
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ token: customToken, returnSecureToken: true }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to exchange custom token: ${await res.text()}`);
+    }
+    const data = (await res.json()) as { idToken: string };
+    const idToken = data.idToken;
+
+    const sessionCookie = await auth.createSessionCookie(idToken, {
+      expiresIn: 1000 * 60 * 60 * 24 * 5,
+    });
+    return sessionCookie;
+  }
+
+  function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string; body?: any }) {
+    const req = {
+      method: reqData.method || 'POST',
+      headers: reqData.headers || {},
+      body: reqData.body || {},
+    } as unknown as Request;
+
+    let resStatus = 200;
+    const resHeaders: Record<string, string> = {};
+    let resBody: unknown = null;
+
+    const res = {
+      status(code: number) {
+        resStatus = code;
+        return this;
+      },
+      setHeader(name: string, value: string) {
+        resHeaders[name.toLowerCase()] = value;
+        return this;
+      },
+      send(body: unknown) {
+        resBody = body;
+      },
+      json(body: unknown) {
+        resBody = body;
+      },
+      redirect(statusOrUrl: number | string, maybeUrl?: string) {
+        if (typeof statusOrUrl === 'number') {
+          resStatus = statusOrUrl;
+          resHeaders['location'] = maybeUrl || '';
+        } else {
+          resStatus = 302;
+          resHeaders['location'] = statusOrUrl;
+        }
+      },
+    } as unknown as Response;
+
+    return {
+      req,
+      res,
+      get status() {
+        return resStatus;
+      },
+      get headers() {
+        return resHeaders;
+      },
+      get body() {
+        return resBody;
+      },
+    };
+  }
 
   it('handleScheduledIngest should fetch clan tag and call use case', async () => {
     let calledClanTag = '';
@@ -230,104 +333,6 @@ describe('Cloud Function handlers delegation', () => {
       await db.collection('accounts').doc(testMemberUid).delete();
     });
 
-    async function getSessionCookieForUser(
-      uid: string,
-      role: 'admin' | 'member' | null
-    ): Promise<string> {
-      try {
-        await auth.deleteUser(uid);
-      } catch {
-        // Ignored
-      }
-      await auth.createUser({ uid, email: `${uid}@example.com` });
-
-      await db
-        .collection('accounts')
-        .doc(uid)
-        .set({
-          username: `${uid}_user`,
-          email: `${uid}@example.com`,
-          role: null,
-          playerTag: '#TEST1',
-        });
-
-      if (role === 'member') {
-        // Set the custom claim directly to 'member' to test negative access role gating,
-        // avoiding typescript compiler errors for unprivileged roles.
-        await auth.setCustomUserClaims(uid, { role: 'member' });
-      } else {
-        await setAccountRole(uid, role);
-      }
-
-      const customToken = await auth.createCustomToken(uid);
-      const url = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=mock-key`;
-      const res = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({ token: customToken, returnSecureToken: true }),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) {
-        throw new Error(`Failed to exchange custom token: ${await res.text()}`);
-      }
-      const data = (await res.json()) as { idToken: string };
-      const idToken = data.idToken;
-
-      const sessionCookie = await auth.createSessionCookie(idToken, {
-        expiresIn: 1000 * 60 * 60 * 24 * 5,
-      });
-      return sessionCookie;
-    }
-
-    function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string }) {
-      const req = {
-        method: reqData.method || 'POST',
-        headers: reqData.headers || {},
-      } as unknown as Request;
-
-      let resStatus = 200;
-      const resHeaders: Record<string, string> = {};
-      let resBody: unknown = null;
-
-      const res = {
-        status(code: number) {
-          resStatus = code;
-          return this;
-        },
-        setHeader(name: string, value: string) {
-          resHeaders[name.toLowerCase()] = value;
-          return this;
-        },
-        send(body: unknown) {
-          resBody = body;
-        },
-        json(body: unknown) {
-          resBody = body;
-        },
-        redirect(statusOrUrl: number | string, maybeUrl?: string) {
-          if (typeof statusOrUrl === 'number') {
-            resStatus = statusOrUrl;
-            resHeaders['location'] = maybeUrl || '';
-          } else {
-            resStatus = 302;
-            resHeaders['location'] = statusOrUrl;
-          }
-        },
-      } as unknown as Response;
-
-      return {
-        req,
-        res,
-        get status() {
-          return resStatus;
-        },
-        get headers() {
-          return resHeaders;
-        },
-        get body() {
-          return resBody;
-        },
-      };
-    }
 
     it('rejects non-POST requests with 405 Method Not Allowed', async () => {
       const handler =
@@ -412,6 +417,129 @@ describe('Cloud Function handlers delegation', () => {
 
       mod.setIngestUseCaseForTesting(undefined);
       mod.setRecomputeUseCaseForTesting(undefined);
+    });
+  });
+
+  describe('setThreshold', () => {
+    const testAdminUid = 'test-admin-threshold';
+    const testMemberUid = 'test-member-threshold';
+
+    beforeAll(async () => {
+      try { await auth.deleteUser(testAdminUid); } catch {}
+      try { await auth.deleteUser(testMemberUid); } catch {}
+    });
+
+    afterAll(async () => {
+      try { await auth.deleteUser(testAdminUid); } catch {}
+      try { await auth.deleteUser(testMemberUid); } catch {}
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('accounts').doc(testMemberUid).delete();
+      await db.collection('publicSettings').doc('config').delete();
+    });
+
+    it('rejects non-POST requests with 405 Method Not Allowed', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const context = createMockReqRes({
+        method: 'GET',
+        headers: { cookie: '__session=admin-cookie' }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(405);
+      expect(context.body).toContain('Method Not Allowed');
+    });
+
+    it('rejects if cookie is missing', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const context = createMockReqRes({ headers: {}, method: 'POST' });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(401);
+      expect(context.body).toContain('Session cookie missing.');
+    });
+
+    it('rejects if role is insufficient', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const cookie = await getSessionCookieForUser(testMemberUid, 'member');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { field: 'acceptancePct', value: 80 }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(403);
+      expect(context.body).toContain('Insufficient permissions.');
+    });
+
+    it('rejects invalid fields', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { field: 'invalidField', value: 80 }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Invalid field');
+    });
+
+    it('rejects out of range validation for acceptancePct', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { field: 'acceptancePct', value: 150 }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Acceptance percentage must be');
+    });
+
+    it('rejects out of range validation for minWarParticipation', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { field: 'minWarParticipation', value: -5 }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Minimum war participation must be');
+    });
+
+    it('saves valid acceptancePct to Firestore config doc', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { field: 'acceptancePct', value: 85 }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      const configDoc = await db.collection('publicSettings').doc('config').get();
+      expect(configDoc.exists).toBe(true);
+      expect(configDoc.data()?.acceptancePct).toBe(85);
+    });
+
+    it('saves valid minWarParticipation to Firestore config doc', async () => {
+      const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { field: 'minWarParticipation', value: 5 }
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      const configDoc = await db.collection('publicSettings').doc('config').get();
+      expect(configDoc.exists).toBe(true);
+      expect(configDoc.data()?.minWarParticipation).toBe(5);
     });
   });
 });
