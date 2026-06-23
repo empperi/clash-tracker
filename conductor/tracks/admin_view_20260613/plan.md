@@ -49,7 +49,7 @@ Goal: invite admins and manage pending invites.
 
 Goal: self-service activation from the invite link.
 
-- [~] Task: Tests + implement the registration route guard logic (pure where possible):
+- [x] 0eff0cf Task: Tests + implement the registration route guard logic (pure where possible):
   given an invite id + `now`, decide `redirect` (no pending) / `expired` (delete + redirect)
   / `show-form`. Cover all three.
 - [ ] Task: Emulator tests + implement `completeRegistration({ inviteId, username,
