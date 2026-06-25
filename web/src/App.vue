@@ -80,13 +80,17 @@ const trackStyle = computed(() =>
 function handleTransitionEnd(event: TransitionEvent): void {
   if (event.propertyName === 'transform') onTransitionEnd();
 }
+
+const isFullPageRoute = computed(() =>
+  route.name ? !VIEW_ORDER.includes(String(route.name)) : false
+);
 </script>
 
 <template>
   <div class="app-container">
     <AppHeader />
     <main ref="viewport" class="app-viewport">
-      <div v-if="route.name === 'login'" class="login-container">
+      <div v-if="isFullPageRoute" class="login-container">
         <router-view />
       </div>
       <div v-else class="swipe-track" :style="trackStyle" @transitionend="handleTransitionEnd">
@@ -101,7 +105,7 @@ function handleTransitionEnd(event: TransitionEvent): void {
         </section>
       </div>
     </main>
-    <AppNav v-if="route.name !== 'login'" />
+    <AppNav v-if="!isFullPageRoute" />
   </div>
 </template>
 

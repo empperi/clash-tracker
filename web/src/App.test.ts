@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils';
-import { expect, test } from 'vitest';
+import { mount, flushPromises } from '@vue/test-utils';
+import { expect, test, vi } from 'vitest';
 import App from './App.vue';
 import { createPinia } from 'pinia';
 import router from './router';
@@ -43,4 +43,35 @@ test('navigating the router (nav tap / deep link) recentres the carousel', async
   // The route watcher should recentre on Admin without throwing.
   const track = wrapper.find('.swipe-track');
   expect(track.attributes('style')).toContain('translateX(calc(-100% + 0px))');
+});
+
+test('App renders RegisterView when route is /register', async () => {
+  // Mock fetch status call for the guard in RegisterView to not redirect to /
+  const fetchMock = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ exists: true, expired: false, email: 'invited@example.com' }),
+  });
+  vi.stubGlobal('fetch', fetchMock);
+
+  const pinia = createPinia();
+  router.push('/register?inviteId=test-invite-id');
+  await router.isReady();
+
+  const wrapper = mount(App, {
+    global: {
+      plugins: [pinia, router, VueQueryPlugin],
+    },
+  });
+
+  // Let the guard resolve status fetch
+  await flushPromises();
+
+  expect(wrapper.find('header').exists()).toBe(true);
+  expect(wrapper.find('.swipe-track').exists()).toBe(false);
+  expect(wrapper.find('.login-container').exists()).toBe(true);
+  expect(wrapper.find('form').exists()).toBe(true);
+  expect(wrapper.text()).toContain('Activate Admin Account');
+  expect(wrapper.text()).toContain('invited@example.com');
+  expect(wrapper.find('#username-input').exists()).toBe(true);
+  expect(wrapper.find('nav.app-nav').exists()).toBe(false); // Bottom navigation must be hidden
 });
