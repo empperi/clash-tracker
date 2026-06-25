@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateClanTag, normalizeClanTag } from './tag';
+import { validateClanTag, normalizeClanTag, validatePlayerTag, normalizePlayerTag } from './tag';
 
 describe('Clan Tag Validation and Normalization', () => {
   describe('normalizeClanTag', () => {
@@ -35,6 +35,13 @@ describe('Clan Tag Validation and Normalization', () => {
     it('should return false for empty or whitespace only tags', () => {
       expect(validateClanTag('#')).toBe(false);
       expect(validateClanTag('')).toBe(false);
+    });
+  });
+
+  describe('player tag aliases', () => {
+    it('should normalize and validate player tags identically', () => {
+      expect(normalizePlayerTag('2pgqypq')).toBe('#2PGQYPQ');
+      expect(validatePlayerTag('#2PGQYPQ')).toBe(true);
     });
   });
 });

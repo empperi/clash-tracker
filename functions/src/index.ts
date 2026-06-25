@@ -7,7 +7,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar.js';
 import { makeRecomputePlayerStats, RecomputeSummary } from './use-cases/recomputePlayerStats.js';
-import { Result, validateAcceptancePercent, validateMinWarParticipation, validateEmail, isInvitationExpired, normalizeClanTag, validateClanTag } from '@clash-tracker/core';
+import { Result, validateAcceptancePercent, validateMinWarParticipation, validateEmail, isInvitationExpired, normalizePlayerTag, validatePlayerTag } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
 import { WarRepository } from './repositories/WarRepository.js';
@@ -440,8 +440,8 @@ export const completeRegistration = onRequest(async (req, res) => {
       return;
     }
 
-    const normalizedTag = normalizeClanTag(playerTag);
-    if (!validateClanTag(normalizedTag)) {
+    const normalizedTag = normalizePlayerTag(playerTag);
+    if (!validatePlayerTag(normalizedTag)) {
       res.status(400).send('Invalid player tag');
       return;
     }

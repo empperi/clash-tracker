@@ -45,18 +45,4 @@ export function isInvitationExpired(createdAt: Date, now: Date): boolean {
   return diffMs > 30 * 60 * 1000;
 }
 
-export type RegistrationGuardDecision = 'show-form' | 'redirect-invalid' | 'redirect-expired';
 
-export function decideRegistrationStatus(
-  inviteExists: boolean,
-  createdAt: Date | null,
-  now: Date
-): RegistrationGuardDecision {
-  if (!inviteExists || !createdAt) {
-    return 'redirect-invalid';
-  }
-  if (isInvitationExpired(createdAt, now)) {
-    return 'redirect-expired';
-  }
-  return 'show-form';
-}

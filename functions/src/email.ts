@@ -49,3 +49,48 @@ If you did not request this email, you can safely ignore it.
 
   return { subject, html, text };
 }
+
+export interface InvitationEmail {
+  subject: string;
+  html: string;
+  text: string;
+}
+
+/**
+ * Builds a beautiful admin invitation email containing the activation link.
+ */
+export function buildInvitationEmail(link: string): InvitationEmail {
+  const subject = 'Invitation to join Clash Tracker as an Admin';
+
+  const html = `
+<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6;">
+  <h2 style="color: #1e3a8a;">Join Clash Tracker!</h2>
+  <p>Hello,</p>
+  <p>You have been invited to join Clash Tracker as an administrator to help manage war participation tracking and CWL planning.</p>
+  
+  <p>Click the button below to complete your registration and set up your administrator account. Note that this invitation link is single-use and will expire in 30 minutes.</p>
+  
+  <div style="margin: 24px 0; text-align: center;">
+    <a href="${link}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">Complete Registration</a>
+  </div>
+  
+  <p style="font-size: 14px; color: #6b7280; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+    If you did not expect this invitation, you can safely ignore this email.
+  </p>
+</div>
+  `.trim();
+
+  const text = `
+Join Clash Tracker!
+
+You have been invited to join Clash Tracker as an administrator to help manage war participation tracking and CWL planning.
+
+Click the link below to complete your registration and set up your administrator account. Note that this invitation link is single-use and will expire in 30 minutes.
+
+${link}
+
+If you did not expect this invitation, you can safely ignore this email.
+  `.trim();
+
+  return { subject, html, text };
+}

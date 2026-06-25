@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
-import { validateClanTag, normalizeClanTag } from '@clash-tracker/core';
+import { validatePlayerTag, normalizePlayerTag } from '@clash-tracker/core';
 import { useRegistrationGuard } from '../composables/useRegistrationGuard';
 import BasePanel from '../components/BasePanel.vue';
 import BaseButton from '../components/BaseButton.vue';
@@ -37,8 +37,8 @@ async function handleSubmit() {
     return;
   }
 
-  const normalizedTag = normalizeClanTag(playerTag.value);
-  if (!validateClanTag(normalizedTag)) {
+  const normalizedTag = normalizePlayerTag(playerTag.value);
+  if (!validatePlayerTag(normalizedTag)) {
     errorMessage.value = 'Invalid player tag format. Must start with # and contain valid characters.';
     return;
   }

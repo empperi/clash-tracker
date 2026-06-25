@@ -1,6 +1,6 @@
 import { Mailer } from './auth.js';
 import { HttpClient } from '@clash-tracker/core';
-import { buildSignInEmail } from './email.js';
+import { buildSignInEmail, buildInvitationEmail } from './email.js';
 
 /**
  * Creates a Mailer implementation that delivers emails via the Resend API.
@@ -61,9 +61,7 @@ export function makeResendMailer(deps: {
       await sendEmail({ email, subject, html, text });
     },
     async sendInvitation(email: string, options: { inviteId: string; link: string }): Promise<void> {
-      const subject = 'Invitation to join Clash Tracker as an Admin';
-      const html = `<p>You have been invited to join Clash Tracker as an administrator. Click the link below to complete your registration:</p><p><a href="${options.link}">${options.link}</a></p>`;
-      const text = `You have been invited to join Clash Tracker as an administrator. Click the link below to complete your registration: ${options.link}`;
+      const { subject, html, text } = buildInvitationEmail(options.link);
       await sendEmail({ email, subject, html, text });
     },
   };

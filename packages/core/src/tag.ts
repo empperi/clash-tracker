@@ -20,3 +20,10 @@ export function validateClanTag(tag: string): boolean {
   }
   return /^#[0289PYLQGRJCUV]+$/.test(tag);
 }
+
+/**
+ * Aliases for player tag normalization and validation, as player tags and clan tags
+ * share the exact same character set and normalization rules in Clash of Clans.
+ */
+export const normalizePlayerTag = normalizeClanTag;
+export const validatePlayerTag = validateClanTag;
