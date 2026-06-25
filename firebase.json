@@ -46,6 +46,10 @@
         "function": "getInviteStatus"
       },
       {
+        "source": "/api/completeRegistration",
+        "function": "completeRegistration"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
