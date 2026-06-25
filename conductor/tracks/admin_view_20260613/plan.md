@@ -66,7 +66,7 @@ Goal: self-service activation from the invite link.
 
 Goal: bring it together behind the capability.
 
-- [ ] Task: Tests + implement `AdminView.vue` composing the two sliders + invitations
+- [x] 347f086 Task: Tests + implement `AdminView.vue` composing the two sliders + invitations
   section, visible only when `canManageAccounts`/admin capability is present; unauthenticated
   users never see it.
 - [ ] Verification: manual — admin tunes thresholds (list reacts), invites a user who
