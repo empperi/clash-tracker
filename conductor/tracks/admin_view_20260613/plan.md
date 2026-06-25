@@ -57,7 +57,7 @@ Goal: self-service activation from the invite link.
   create the `accounts` record (role admin), set the custom claim (Track 6 primitive),
   delete the pending record, and establish the session (log the user in). Reject if missing/
   expired.
-- [ ] Task: Tests + implement the registration view UI: redirects per the guard; otherwise a
+- [x] 2cb7d21 Task: Tests + implement the registration view UI: redirects per the guard; otherwise a
   username + player-tag form; on submit calls `completeRegistration` and lands logged-in.
 - [ ] Verification: valid invite → register → logged in as admin; missing/expired → front
   page (and expired pending deleted). [checkpoint]
