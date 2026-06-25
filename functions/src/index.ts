@@ -4,9 +4,10 @@ import { requireRole, getMailer } from './auth.js';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar.js';
 import { makeRecomputePlayerStats, RecomputeSummary } from './use-cases/recomputePlayerStats.js';
-import { Result, validateAcceptancePercent, validateMinWarParticipation, validateEmail, isInvitationExpired } from '@clash-tracker/core';
+import { Result, validateAcceptancePercent, validateMinWarParticipation, validateEmail, isInvitationExpired, normalizeClanTag, validateClanTag } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
 import { WarRepository } from './repositories/WarRepository.js';
@@ -393,6 +394,85 @@ export const getInviteStatus = onRequest(async (req, res) => {
     }
 
     res.status(200).json({ exists: true, expired: false, email: data.email });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).send(msg);
+  }
+});
+
+export const completeRegistration = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
+  try {
+    const { inviteId, username, playerTag } = req.body || {};
+    if (!inviteId || !username || !playerTag) {
+      res.status(400).send('Missing required fields (inviteId, username, playerTag).');
+      return;
+    }
+
+    const inviteDocRef = db.collection('pendingAccounts').doc(inviteId);
+    const inviteDoc = await inviteDocRef.get();
+    if (!inviteDoc.exists) {
+      res.status(400).send('Invitation not found or invalid');
+      return;
+    }
+
+    const inviteData = inviteDoc.data();
+    if (!inviteData) {
+      res.status(400).send('Invitation data is empty');
+      return;
+    }
+
+    const createdAt = inviteData.createdAt.toDate();
+    const now = new Date();
+    if (isInvitationExpired(createdAt, now)) {
+      await inviteDocRef.delete();
+      res.status(400).send('Invitation has expired');
+      return;
+    }
+
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      res.status(400).send('Username cannot be empty');
+      return;
+    }
+
+    const normalizedTag = normalizeClanTag(playerTag);
+    if (!validateClanTag(normalizedTag)) {
+      res.status(400).send('Invalid player tag');
+      return;
+    }
+
+    const email = inviteData.email;
+    const auth = getAuth(app);
+    let uid: string;
+    try {
+      const existing = await auth.getUserByEmail(email);
+      uid = existing.uid;
+      await auth.updateUser(uid, { displayName: trimmedUsername });
+    } catch {
+      const created = await auth.createUser({ email, displayName: trimmedUsername });
+      uid = created.uid;
+    }
+
+    const role = 'admin';
+    await auth.setCustomUserClaims(uid, { role });
+
+    await db.collection('accounts').doc(uid).set({
+      email,
+      username: trimmedUsername,
+      playerTag: normalizedTag,
+      role,
+      createdAt: now,
+    });
+
+    await inviteDocRef.delete();
+
+    const customToken = await auth.createCustomToken(uid);
+    res.status(200).json({ status: 'success', customToken });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     res.status(500).send(msg);

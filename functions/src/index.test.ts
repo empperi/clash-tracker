@@ -76,6 +76,10 @@ describe('Cloud Function handlers delegation', () => {
     (request: Request, response: Response): Promise<void> | void;
     run?: (request: Request, response: Response) => Promise<void> | void;
   };
+  let completeRegistration: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -88,6 +92,7 @@ describe('Cloud Function handlers delegation', () => {
     listPendingInvites = mod.listPendingInvites;
     revokeInvite = mod.revokeInvite;
     getInviteStatus = mod.getInviteStatus;
+    completeRegistration = mod.completeRegistration;
   });
 
   beforeEach(async () => {
@@ -983,6 +988,147 @@ describe('Cloud Function handlers delegation', () => {
 
       const doc = await db.collection('pendingAccounts').doc('valid-id').get();
       expect(doc.exists).toBe(true);
+    });
+  });
+
+  describe('completeRegistration endpoint', () => {
+    let completeRegistrationHandler: (req: Request, res: Response) => Promise<void> | void;
+
+    beforeAll(() => {
+      completeRegistrationHandler =
+        typeof completeRegistration.run === 'function' ? completeRegistration.run : completeRegistration;
+    });
+
+    beforeEach(async () => {
+      const pendingAccounts = await db.collection('pendingAccounts').get();
+      for (const doc of pendingAccounts.docs) {
+        await doc.ref.delete();
+      }
+
+      const emailsToCleanup = ['reg-admin@example.com', 'reg-expired@example.com'];
+      for (const email of emailsToCleanup) {
+        try {
+          const user = await auth.getUserByEmail(email);
+          await auth.deleteUser(user.uid);
+          await db.collection('accounts').doc(user.uid).delete();
+        } catch {
+          // ignore
+        }
+      }
+    });
+
+    it('rejects if method is not POST', async () => {
+      const context = createMockReqRes({ method: 'GET' });
+      await completeRegistrationHandler(context.req, context.res);
+      expect(context.status).toBe(405);
+      expect(context.body).toContain('Method Not Allowed');
+    });
+
+    it('rejects if body parameters are missing', async () => {
+      const context = createMockReqRes({
+        method: 'POST',
+        body: { username: 'AdminBob', playerTag: '#2PGQYPQ' }
+      });
+      await completeRegistrationHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Missing required fields');
+    });
+
+    it('rejects if invitation does not exist', async () => {
+      const context = createMockReqRes({
+        method: 'POST',
+        body: { inviteId: 'non-existent', username: 'AdminBob', playerTag: '#2PGQYPQ' }
+      });
+      await completeRegistrationHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Invitation not found or invalid');
+    });
+
+    it('rejects if invitation is expired and deletes it', async () => {
+      const expiredDate = new Date(Date.now() - 31 * 60 * 1000);
+      await db.collection('pendingAccounts').doc('expired-reg-id').set({
+        email: 'reg-expired@example.com',
+        role: 'admin',
+        createdAt: expiredDate,
+      });
+
+      const context = createMockReqRes({
+        method: 'POST',
+        body: { inviteId: 'expired-reg-id', username: 'AdminBob', playerTag: '#2PGQYPQ' }
+      });
+      await completeRegistrationHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Invitation has expired');
+
+      const doc = await db.collection('pendingAccounts').doc('expired-reg-id').get();
+      expect(doc.exists).toBe(false);
+    });
+
+    it('rejects if username is empty or invalid', async () => {
+      await db.collection('pendingAccounts').doc('valid-reg-id').set({
+        email: 'reg-admin@example.com',
+        role: 'admin',
+        createdAt: new Date(),
+      });
+
+      const context = createMockReqRes({
+        method: 'POST',
+        body: { inviteId: 'valid-reg-id', username: '   ', playerTag: '#2PGQYPQ' }
+      });
+      await completeRegistrationHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Username cannot be empty');
+    });
+
+    it('rejects if player tag is invalid', async () => {
+      await db.collection('pendingAccounts').doc('valid-reg-id').set({
+        email: 'reg-admin@example.com',
+        role: 'admin',
+        createdAt: new Date(),
+      });
+
+      const context = createMockReqRes({
+        method: 'POST',
+        body: { inviteId: 'valid-reg-id', username: 'AdminBob', playerTag: 'invalid-tag' }
+      });
+      await completeRegistrationHandler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Invalid player tag');
+    });
+
+    it('successfully registers admin user, normalized tag, sets claims, deletes invite, and returns customToken', async () => {
+      await db.collection('pendingAccounts').doc('valid-reg-id').set({
+        email: 'reg-admin@example.com',
+        role: 'admin',
+        createdAt: new Date(),
+      });
+
+      const context = createMockReqRes({
+        method: 'POST',
+        body: { inviteId: 'valid-reg-id', username: 'AdminBob', playerTag: '  2pgqypqo  ' }
+      });
+      await completeRegistrationHandler(context.req, context.res);
+
+      expect(context.status).toBe(200);
+      expect(context.body).toHaveProperty('status', 'success');
+      expect(context.body).toHaveProperty('customToken');
+
+      const inviteDoc = await db.collection('pendingAccounts').doc('valid-reg-id').get();
+      expect(inviteDoc.exists).toBe(false);
+
+      const user = await auth.getUserByEmail('reg-admin@example.com');
+      expect(user.displayName).toBe('AdminBob');
+      expect(user.customClaims).toEqual({ role: 'admin' });
+
+      const accountDoc = await db.collection('accounts').doc(user.uid).get();
+      expect(accountDoc.exists).toBe(true);
+      expect(accountDoc.data()).toEqual({
+        email: 'reg-admin@example.com',
+        username: 'AdminBob',
+        playerTag: '#2PGQYPQ0',
+        role: 'admin',
+        createdAt: expect.any(Object),
+      });
     });
   });
 });
