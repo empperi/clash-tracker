@@ -35,8 +35,8 @@ const { thresholds, isLoading: playersLoading, isError } = usePlayers(api);
     <div v-else class="admin-sections">
       <!-- Roster Thresholds Panel -->
       <BasePanel v-if="canEditThresholds" title="Roster Thresholds">
-        <AcceptancePercentSlider v-model="thresholds.acceptancePct" />
-        <MinWarParticipationSlider v-model="thresholds.minWarParticipation" />
+        <AcceptancePercentSlider :model-value="thresholds.acceptancePct" />
+        <MinWarParticipationSlider :model-value="thresholds.minWarParticipation" />
       </BasePanel>
 
       <!-- Invitations Section -->

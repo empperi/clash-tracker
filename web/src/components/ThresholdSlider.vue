@@ -87,7 +87,12 @@ function onInput(e: Event) {
   <div v-if="canEdit" class="ct-slider-item">
     <div class="slider-header">
       <label class="slider-label" :for="`${field}-slider`">{{ label }}</label>
-      <span class="value-display">{{ formatValue(localValue) }}</span>
+      <span class="value-display">
+        <span v-if="saveStatus === 'saving'" class="indicator saving">Saving...</span>
+        <span v-else-if="saveStatus === 'saved'" class="indicator saved">Saved</span>
+        <span v-else-if="saveStatus === 'error'" class="indicator error">Error</span>
+        <span v-else>{{ formatValue(localValue) }}</span>
+      </span>
     </div>
     
     <div class="slider-control">
@@ -101,9 +106,6 @@ function onInput(e: Event) {
         :value="localValue"
         @input="onInput"
       />
-      <span v-if="saveStatus === 'saving'" class="indicator saving">Saving...</span>
-      <span v-else-if="saveStatus === 'saved'" class="indicator saved">Saved</span>
-      <span v-else-if="saveStatus === 'error'" class="indicator error">Error</span>
     </div>
     
     <p class="slider-help">{{ helpText }}</p>
