@@ -62,7 +62,7 @@ Goal: self-service activation from the invite link.
 - [ ] Verification: valid invite → register → logged in as admin; missing/expired → front
   page (and expired pending deleted). [checkpoint]
 
-## Phase 5: Admin view assembly
+## Phase 5: Admin view assembly [checkpoint: a34e4ba]
 
 Goal: bring it together behind the capability.
 
