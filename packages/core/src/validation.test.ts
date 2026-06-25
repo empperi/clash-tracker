@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { validateAcceptancePercent, validateMinWarParticipation, validateEmail } from './validation.js';
+import {
+  validateAcceptancePercent,
+  validateMinWarParticipation,
+  validateEmail,
+} from './validation.js';
 
 describe('validation', () => {
   describe('validateAcceptancePercent', () => {
@@ -50,7 +54,10 @@ describe('validation', () => {
 
   describe('validateEmail', () => {
     it('accepts valid email addresses and normalizes them', () => {
-      expect(validateEmail('test@example.com')).toEqual({ success: true, value: 'test@example.com' });
+      expect(validateEmail('test@example.com')).toEqual({
+        success: true,
+        value: 'test@example.com',
+      });
       expect(validateEmail('TEST.NAME@SOME-DOMAIN.CO.UK')).toEqual({
         success: true,
         value: 'test.name@some-domain.co.uk',

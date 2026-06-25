@@ -44,5 +44,3 @@ export function isInvitationExpired(createdAt: Date, now: Date): boolean {
   const diffMs = now.getTime() - createdAt.getTime();
   return diffMs > 30 * 60 * 1000;
 }
-
-

@@ -7,7 +7,15 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { makeIngestCurrentWar, IngestSummary } from './use-cases/ingestCurrentWar.js';
 import { makeRecomputePlayerStats, RecomputeSummary } from './use-cases/recomputePlayerStats.js';
-import { Result, validateAcceptancePercent, validateMinWarParticipation, validateEmail, isInvitationExpired, normalizePlayerTag, validatePlayerTag } from '@clash-tracker/core';
+import {
+  Result,
+  validateAcceptancePercent,
+  validateMinWarParticipation,
+  validateEmail,
+  isInvitationExpired,
+  normalizePlayerTag,
+  validatePlayerTag,
+} from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
 import { WarRepository } from './repositories/WarRepository.js';
@@ -220,10 +228,10 @@ export const setThreshold = onRequest(async (req, res) => {
         validatedValue = validationResult.value;
       }
 
-      await db.collection('publicSettings').doc('config').set(
-        { [field]: validatedValue },
-        { merge: true }
-      );
+      await db
+        .collection('publicSettings')
+        .doc('config')
+        .set({ [field]: validatedValue }, { merge: true });
 
       res.status(200).json({ status: 'success' });
     } catch (err: unknown) {
@@ -249,7 +257,8 @@ export const inviteAdmin = onRequest(async (req, res) => {
       const validatedEmail = validationResult.value;
 
       // Check if user is already registered in accounts collection
-      const userSnapshot = await db.collection('accounts')
+      const userSnapshot = await db
+        .collection('accounts')
         .where('email', '==', validatedEmail)
         .get();
       if (!userSnapshot.empty) {
@@ -258,7 +267,8 @@ export const inviteAdmin = onRequest(async (req, res) => {
       }
 
       // Check if there is an active invite in pendingAccounts
-      const snapshot = await db.collection('pendingAccounts')
+      const snapshot = await db
+        .collection('pendingAccounts')
         .where('email', '==', validatedEmail)
         .get();
 

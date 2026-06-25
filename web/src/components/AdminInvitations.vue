@@ -12,15 +12,8 @@ const { capabilities } = useSession();
 const canInvite = computed(() => capabilities.value.canInviteAdmins);
 
 const invitationsApi = inject(INVITATIONS_API, EMPTY_INVITATIONS_API);
-const {
-  invitations,
-  isLoading,
-  isError,
-  isInviting,
-  isRevoking,
-  invite,
-  revoke,
-} = useInvitations(invitationsApi);
+const { invitations, isLoading, isError, isInviting, isRevoking, invite, revoke } =
+  useInvitations(invitationsApi);
 
 const emailInput = ref('');
 const validationError = ref('');
@@ -76,11 +69,7 @@ async function onRevoke(id: string) {
               :disabled="isInviting"
               required
             />
-            <BaseButton
-              type="submit"
-              variant="primary"
-              :disabled="isInviting"
-            >
+            <BaseButton type="submit" variant="primary" :disabled="isInviting">
               {{ isInviting ? 'SENDING...' : 'SEND INVITE' }}
             </BaseButton>
           </div>
@@ -97,11 +86,7 @@ async function onRevoke(id: string) {
         <div v-else-if="isError" class="error-state">Failed to load invitations.</div>
         <div v-else-if="invitations.length === 0" class="empty-state">No pending invitations.</div>
         <div v-else class="invites-list">
-          <ListRow
-            v-for="inv in invitations"
-            :key="inv.id"
-            class="invite-row"
-          >
+          <ListRow v-for="inv in invitations" :key="inv.id" class="invite-row">
             <div class="invite-info">
               <span class="invite-email">{{ inv.email }}</span>
               <span v-if="inv.expired" class="badge badge-expired">EXPIRED</span>
@@ -166,7 +151,8 @@ async function onRevoke(id: string) {
   cursor: not-allowed;
 }
 
-.validation-error, .submit-error {
+.validation-error,
+.submit-error {
   font-size: 13px;
   color: #f44336;
   margin: var(--ct-spacing-xs) 0 0 0;
@@ -192,7 +178,9 @@ async function onRevoke(id: string) {
   color: var(--ct-color-gold-text);
 }
 
-.loading-state, .error-state, .empty-state {
+.loading-state,
+.error-state,
+.empty-state {
   font-family: var(--ct-font-body);
   font-size: 14px;
   color: var(--ct-color-text-secondary);

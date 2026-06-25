@@ -118,10 +118,13 @@ describe('Threshold Sliders Integration', () => {
     await flushPromises();
 
     // Check if the API was invoked with the new threshold
-    expect(fetchMock).toHaveBeenCalledWith('/api/setThreshold', expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify({ field: 'acceptancePct', value: 90 }),
-    }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/setThreshold',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ field: 'acceptancePct', value: 90 }),
+      })
+    );
 
     // Wait for the re-fetch queries to complete and flush Vue DOM updates
     await flushPromises();

@@ -60,7 +60,10 @@ export function makeResendMailer(deps: {
       const { subject, html, text } = buildSignInEmail(options.code, options.link);
       await sendEmail({ email, subject, html, text });
     },
-    async sendInvitation(email: string, options: { inviteId: string; link: string }): Promise<void> {
+    async sendInvitation(
+      email: string,
+      options: { inviteId: string; link: string }
+    ): Promise<void> {
       const { subject, html, text } = buildInvitationEmail(options.link);
       await sendEmail({ email, subject, html, text });
     },

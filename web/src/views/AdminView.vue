@@ -72,7 +72,8 @@ const { thresholds, isLoading: playersLoading, isError } = usePlayers(api);
   gap: var(--ct-spacing-md);
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   text-align: center;
   color: var(--ct-color-text-secondary);
   padding: var(--ct-spacing-lg) 0;

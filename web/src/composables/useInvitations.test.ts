@@ -37,7 +37,10 @@ describe('useInvitations', () => {
   });
 
   it('starts loading, then exposes invitations from the injected api', async () => {
-    const list = [sampleInvite('inv-1', 'test1@example.com'), sampleInvite('inv-2', 'test2@example.com')];
+    const list = [
+      sampleInvite('inv-1', 'test1@example.com'),
+      sampleInvite('inv-2', 'test2@example.com'),
+    ];
     const api: InvitationsApi = {
       fetchPendingInvites: vi.fn().mockResolvedValue(list),
       inviteAdmin: vi.fn().mockResolvedValue(undefined),

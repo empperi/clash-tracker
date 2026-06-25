@@ -61,7 +61,9 @@ describe('useRegistrationGuard', () => {
   });
 
   it("redirects to '/' when invitation is expired", async () => {
-    const fetchStatusFn = vi.fn().mockResolvedValue({ exists: true, expired: true, email: 'test@example.com' });
+    const fetchStatusFn = vi
+      .fn()
+      .mockResolvedValue({ exists: true, expired: true, email: 'test@example.com' });
     const { result } = withUseRegistrationGuard('expired-id', fetchStatusFn);
 
     await flushPromises();
@@ -71,8 +73,10 @@ describe('useRegistrationGuard', () => {
     expect(result().status.value).toBe('loading');
   });
 
-  it("shows form and exposes email when invitation is valid", async () => {
-    const fetchStatusFn = vi.fn().mockResolvedValue({ exists: true, expired: false, email: 'admin@example.com' });
+  it('shows form and exposes email when invitation is valid', async () => {
+    const fetchStatusFn = vi
+      .fn()
+      .mockResolvedValue({ exists: true, expired: false, email: 'admin@example.com' });
     const { result } = withUseRegistrationGuard('valid-id', fetchStatusFn);
 
     await flushPromises();

@@ -17,7 +17,7 @@ export function useRegistrationGuard(
 
     try {
       const data = await fetchStatusFn(inviteId);
-      
+
       if (!data.exists || data.expired) {
         router.push('/');
         return;

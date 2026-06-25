@@ -39,7 +39,8 @@ async function handleSubmit() {
 
   const normalizedTag = normalizePlayerTag(playerTag.value);
   if (!validatePlayerTag(normalizedTag)) {
-    errorMessage.value = 'Invalid player tag format. Must start with # and contain valid characters.';
+    errorMessage.value =
+      'Invalid player tag format. Must start with # and contain valid characters.';
     return;
   }
 
@@ -130,11 +131,7 @@ async function handleSubmit() {
             <div v-if="errorMessage" class="error-msg">{{ errorMessage }}</div>
 
             <div class="actions">
-              <BaseButton
-                type="submit"
-                variant="primary"
-                :disabled="submitting"
-              >
+              <BaseButton type="submit" variant="primary" :disabled="submitting">
                 {{ submitting ? 'Saving...' : 'Complete Registration' }}
               </BaseButton>
             </div>

@@ -146,7 +146,12 @@ describe('Cloud Function handlers delegation', () => {
     return sessionCookie;
   }
 
-  function createMockReqRes(reqData: { headers?: Record<string, string>; method?: string; body?: unknown; query?: unknown }) {
+  function createMockReqRes(reqData: {
+    headers?: Record<string, string>;
+    method?: string;
+    body?: unknown;
+    query?: unknown;
+  }) {
     const req = {
       method: reqData.method || 'POST',
       headers: reqData.headers || {},
@@ -359,7 +364,6 @@ describe('Cloud Function handlers delegation', () => {
       await db.collection('accounts').doc(testMemberUid).delete();
     });
 
-
     it('rejects non-POST requests with 405 Method Not Allowed', async () => {
       const handler =
         typeof triggerIngestNow.run === 'function' ? triggerIngestNow.run : triggerIngestNow;
@@ -451,13 +455,29 @@ describe('Cloud Function handlers delegation', () => {
     const testMemberUid = 'test-member-threshold';
 
     beforeAll(async () => {
-      try { await auth.deleteUser(testAdminUid); } catch { /* Ignored */ }
-      try { await auth.deleteUser(testMemberUid); } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch {
+        /* Ignored */
+      }
+      try {
+        await auth.deleteUser(testMemberUid);
+      } catch {
+        /* Ignored */
+      }
     });
 
     afterAll(async () => {
-      try { await auth.deleteUser(testAdminUid); } catch { /* Ignored */ }
-      try { await auth.deleteUser(testMemberUid); } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch {
+        /* Ignored */
+      }
+      try {
+        await auth.deleteUser(testMemberUid);
+      } catch {
+        /* Ignored */
+      }
       await db.collection('accounts').doc(testAdminUid).delete();
       await db.collection('accounts').doc(testMemberUid).delete();
       await db.collection('publicSettings').doc('config').delete();
@@ -467,7 +487,7 @@ describe('Cloud Function handlers delegation', () => {
       const handler = typeof setThreshold.run === 'function' ? setThreshold.run : setThreshold;
       const context = createMockReqRes({
         method: 'GET',
-        headers: { cookie: '__session=admin-cookie' }
+        headers: { cookie: '__session=admin-cookie' },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(405);
@@ -488,7 +508,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { field: 'acceptancePct', value: 80 }
+        body: { field: 'acceptancePct', value: 80 },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(403);
@@ -501,7 +521,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { field: 'invalidField', value: 80 }
+        body: { field: 'invalidField', value: 80 },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -514,7 +534,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { field: 'acceptancePct', value: 150 }
+        body: { field: 'acceptancePct', value: 150 },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -527,7 +547,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { field: 'minWarParticipation', value: -5 }
+        body: { field: 'minWarParticipation', value: -5 },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -540,7 +560,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { field: 'acceptancePct', value: 85 }
+        body: { field: 'acceptancePct', value: 85 },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(200);
@@ -557,7 +577,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { field: 'minWarParticipation', value: 5 }
+        body: { field: 'minWarParticipation', value: 5 },
       });
       await handler(context.req, context.res);
       expect(context.status).toBe(200);
@@ -608,7 +628,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { email: 'test@example.com' }
+        body: { email: 'test@example.com' },
       });
       await inviteAdminHandler(context.req, context.res);
       expect(context.status).toBe(403);
@@ -620,7 +640,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { email: 'invalid-email' }
+        body: { email: 'invalid-email' },
       });
       await inviteAdminHandler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -639,7 +659,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}`, origin: 'http://my-origin.com' },
-        body: { email: 'new-admin@example.com' }
+        body: { email: 'new-admin@example.com' },
       });
       await inviteAdminHandler(context.req, context.res);
 
@@ -673,7 +693,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { email: 'registered@example.com' }
+        body: { email: 'registered@example.com' },
       });
       await inviteAdminHandler(context.req, context.res);
 
@@ -692,7 +712,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { email: 'pending@example.com' }
+        body: { email: 'pending@example.com' },
       });
       await inviteAdminHandler(context.req, context.res);
 
@@ -720,7 +740,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { email: 'expired-pending@example.com' }
+        body: { email: 'expired-pending@example.com' },
       });
       await inviteAdminHandler(context.req, context.res);
 
@@ -747,7 +767,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { email: 'fail-email@example.com' }
+        body: { email: 'fail-email@example.com' },
       });
       await inviteAdminHandler(context.req, context.res);
 
@@ -765,7 +785,8 @@ describe('Cloud Function handlers delegation', () => {
     const testMemberUid = 'member-user-list';
 
     beforeAll(() => {
-      listPendingInvitesHandler = typeof listPendingInvites.run === 'function' ? listPendingInvites.run : listPendingInvites;
+      listPendingInvitesHandler =
+        typeof listPendingInvites.run === 'function' ? listPendingInvites.run : listPendingInvites;
     });
 
     beforeEach(async () => {
@@ -788,7 +809,7 @@ describe('Cloud Function handlers delegation', () => {
       const cookie = await getSessionCookieForUser(testMemberUid, 'member');
       const context = createMockReqRes({
         method: 'GET',
-        headers: { cookie: `__session=${cookie}` }
+        headers: { cookie: `__session=${cookie}` },
       });
       await listPendingInvitesHandler(context.req, context.res);
       expect(context.status).toBe(403);
@@ -815,7 +836,7 @@ describe('Cloud Function handlers delegation', () => {
       const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
       const context = createMockReqRes({
         method: 'GET',
-        headers: { cookie: `__session=${cookie}` }
+        headers: { cookie: `__session=${cookie}` },
       });
       await listPendingInvitesHandler(context.req, context.res);
 
@@ -850,7 +871,8 @@ describe('Cloud Function handlers delegation', () => {
     const testMemberUid = 'member-user-revoke';
 
     beforeAll(() => {
-      revokeInviteHandler = typeof revokeInvite.run === 'function' ? revokeInvite.run : revokeInvite;
+      revokeInviteHandler =
+        typeof revokeInvite.run === 'function' ? revokeInvite.run : revokeInvite;
     });
 
     beforeEach(async () => {
@@ -881,7 +903,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { id: 'some-id' }
+        body: { id: 'some-id' },
       });
       await revokeInviteHandler(context.req, context.res);
       expect(context.status).toBe(403);
@@ -899,7 +921,7 @@ describe('Cloud Function handlers delegation', () => {
       const context = createMockReqRes({
         method: 'POST',
         headers: { cookie: `__session=${cookie}` },
-        body: { id: 'to-revoke-id' }
+        body: { id: 'to-revoke-id' },
       });
       await revokeInviteHandler(context.req, context.res);
 
@@ -915,7 +937,8 @@ describe('Cloud Function handlers delegation', () => {
     let getInviteStatusHandler: (req: Request, res: Response) => Promise<void> | void;
 
     beforeAll(() => {
-      getInviteStatusHandler = typeof getInviteStatus.run === 'function' ? getInviteStatus.run : getInviteStatus;
+      getInviteStatusHandler =
+        typeof getInviteStatus.run === 'function' ? getInviteStatus.run : getInviteStatus;
     });
 
     beforeEach(async () => {
@@ -939,14 +962,14 @@ describe('Cloud Function handlers delegation', () => {
       expect(context.body).toContain('Missing or invalid inviteId');
     });
 
-    it("returns exists: false if invitation does not exist", async () => {
+    it('returns exists: false if invitation does not exist', async () => {
       const context = createMockReqRes({ method: 'GET', query: { inviteId: 'non-existent' } });
       await getInviteStatusHandler(context.req, context.res);
       expect(context.status).toBe(200);
       expect(context.body).toEqual({ exists: false });
     });
 
-    it("returns exists: true, expired: true, email and deletes doc if invitation is expired", async () => {
+    it('returns exists: true, expired: true, email and deletes doc if invitation is expired', async () => {
       const expiredDate = new Date(Date.now() - 31 * 60 * 1000);
       await db.collection('pendingAccounts').doc('expired-id').set({
         email: 'expired-reg@example.com',
@@ -968,7 +991,7 @@ describe('Cloud Function handlers delegation', () => {
       expect(doc.exists).toBe(false);
     });
 
-    it("returns exists: true, expired: false, email if invitation is valid", async () => {
+    it('returns exists: true, expired: false, email if invitation is valid', async () => {
       const validDate = new Date(Date.now() - 15 * 60 * 1000);
       await db.collection('pendingAccounts').doc('valid-id').set({
         email: 'valid-reg@example.com',
@@ -996,7 +1019,9 @@ describe('Cloud Function handlers delegation', () => {
 
     beforeAll(() => {
       completeRegistrationHandler =
-        typeof completeRegistration.run === 'function' ? completeRegistration.run : completeRegistration;
+        typeof completeRegistration.run === 'function'
+          ? completeRegistration.run
+          : completeRegistration;
     });
 
     beforeEach(async () => {
@@ -1027,7 +1052,7 @@ describe('Cloud Function handlers delegation', () => {
     it('rejects if body parameters are missing', async () => {
       const context = createMockReqRes({
         method: 'POST',
-        body: { username: 'AdminBob', playerTag: '#2PGQYPQ' }
+        body: { username: 'AdminBob', playerTag: '#2PGQYPQ' },
       });
       await completeRegistrationHandler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -1037,7 +1062,7 @@ describe('Cloud Function handlers delegation', () => {
     it('rejects if invitation does not exist', async () => {
       const context = createMockReqRes({
         method: 'POST',
-        body: { inviteId: 'non-existent', username: 'AdminBob', playerTag: '#2PGQYPQ' }
+        body: { inviteId: 'non-existent', username: 'AdminBob', playerTag: '#2PGQYPQ' },
       });
       await completeRegistrationHandler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -1054,7 +1079,7 @@ describe('Cloud Function handlers delegation', () => {
 
       const context = createMockReqRes({
         method: 'POST',
-        body: { inviteId: 'expired-reg-id', username: 'AdminBob', playerTag: '#2PGQYPQ' }
+        body: { inviteId: 'expired-reg-id', username: 'AdminBob', playerTag: '#2PGQYPQ' },
       });
       await completeRegistrationHandler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -1073,7 +1098,7 @@ describe('Cloud Function handlers delegation', () => {
 
       const context = createMockReqRes({
         method: 'POST',
-        body: { inviteId: 'valid-reg-id', username: '   ', playerTag: '#2PGQYPQ' }
+        body: { inviteId: 'valid-reg-id', username: '   ', playerTag: '#2PGQYPQ' },
       });
       await completeRegistrationHandler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -1089,7 +1114,7 @@ describe('Cloud Function handlers delegation', () => {
 
       const context = createMockReqRes({
         method: 'POST',
-        body: { inviteId: 'valid-reg-id', username: 'AdminBob', playerTag: 'invalid-tag' }
+        body: { inviteId: 'valid-reg-id', username: 'AdminBob', playerTag: 'invalid-tag' },
       });
       await completeRegistrationHandler(context.req, context.res);
       expect(context.status).toBe(400);
@@ -1105,7 +1130,7 @@ describe('Cloud Function handlers delegation', () => {
 
       const context = createMockReqRes({
         method: 'POST',
-        body: { inviteId: 'valid-reg-id', username: 'AdminBob', playerTag: '  2pgqypqo  ' }
+        body: { inviteId: 'valid-reg-id', username: 'AdminBob', playerTag: '  2pgqypqo  ' },
       });
       await completeRegistrationHandler(context.req, context.res);
 

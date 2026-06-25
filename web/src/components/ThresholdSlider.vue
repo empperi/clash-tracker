@@ -41,7 +41,7 @@ function debouncedSave(val: number) {
   if (saveTimeout) {
     clearTimeout(saveTimeout);
   }
-  
+
   saveTimeout = setTimeout(async () => {
     saveStatus.value = 'saving';
     try {
@@ -94,7 +94,7 @@ function onInput(e: Event) {
         <span v-else>{{ formatValue(localValue) }}</span>
       </span>
     </div>
-    
+
     <div class="slider-control">
       <input
         :id="`${field}-slider`"
@@ -107,7 +107,7 @@ function onInput(e: Event) {
         @input="onInput"
       />
     </div>
-    
+
     <p class="slider-help">{{ helpText }}</p>
   </div>
 </template>
