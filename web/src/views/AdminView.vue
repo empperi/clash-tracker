@@ -1,41 +1,55 @@
 <script setup lang="ts">
+import { computed, inject } from 'vue';
+import { useSession } from '../composables/useSession';
+import { PLAYERS_API, EMPTY_PLAYERS_API } from '../api/players';
+import { usePlayers } from '../composables/usePlayers';
 import BasePanel from '../components/BasePanel.vue';
-import BaseButton from '../components/BaseButton.vue';
+import AcceptancePercentSlider from '../components/AcceptancePercentSlider.vue';
+import MinWarParticipationSlider from '../components/MinWarParticipationSlider.vue';
+import AdminInvitations from '../components/AdminInvitations.vue';
+
+const { capabilities, loading: sessionLoading } = useSession();
+const canInvite = computed(() => capabilities.value.canInviteAdmins);
+const canEditThresholds = computed(() => capabilities.value.canEditThresholds);
+
+// Only admins/owners see this view
+const showAdminContent = computed(() => canInvite.value || canEditThresholds.value);
+
+const api = inject(PLAYERS_API, EMPTY_PLAYERS_API);
+const { thresholds, isLoading: playersLoading, isError } = usePlayers(api);
 </script>
 
 <template>
-  <div class="view-container">
+  <div v-if="!sessionLoading && showAdminContent" class="view-container">
     <h2>Admin Settings</h2>
     <p class="subtitle">
       Set thresholds for reliable rosters, invite administrators, and manage settings.
     </p>
 
-    <BasePanel title="Roster Thresholds">
-      <div class="setting-item">
-        <label class="setting-label">Acceptance Percentage</label>
-        <div class="slider-container">
-          <input type="range" min="0" max="100" value="80" disabled />
-          <span class="value-display">80% (Locked)</span>
-        </div>
-        <p class="setting-help">Minimum attack utilization expected from rostered members.</p>
-      </div>
+    <div v-if="playersLoading" class="loading-state">
+      <p>Loading thresholds...</p>
+    </div>
+    <div v-else-if="isError" class="error-state">
+      <p>Failed to load thresholds from server.</p>
+    </div>
+    <div v-else class="admin-sections">
+      <!-- Roster Thresholds Panel -->
+      <BasePanel v-if="canEditThresholds" title="Roster Thresholds">
+        <AcceptancePercentSlider v-model="thresholds.acceptancePct" />
+        <MinWarParticipationSlider v-model="thresholds.minWarParticipation" />
+      </BasePanel>
 
-      <div class="setting-item">
-        <label class="setting-label">Min War Participation</label>
-        <div class="slider-container">
-          <input type="range" min="0" max="10" value="3" disabled />
-          <span class="value-display">3 Wars (Locked)</span>
-        </div>
-        <p class="setting-help">Number of regular wars a member must participate in to qualify.</p>
-      </div>
+      <!-- Invitations Section -->
+      <AdminInvitations />
+    </div>
+  </div>
+  <div v-else-if="!sessionLoading" class="unauthorized-container">
+    <BasePanel title="Access Denied">
+      <p class="unauthorized-text">You must be an administrator or owner to view this page.</p>
     </BasePanel>
-
-    <BasePanel title="Administrator Invites">
-      <p class="invite-info">Invite other members as admins to help manage the war plans.</p>
-      <div class="invite-actions">
-        <BaseButton variant="secondary">Create Invite Link</BaseButton>
-      </div>
-    </BasePanel>
+  </div>
+  <div v-else class="loading-state">
+    <p>Loading session...</p>
   </div>
 </template>
 
@@ -52,55 +66,33 @@ import BaseButton from '../components/BaseButton.vue';
   margin-bottom: var(--ct-spacing-md);
 }
 
-.setting-item {
-  margin-bottom: var(--ct-spacing-lg);
-}
-
-.setting-item:last-child {
-  margin-bottom: 0;
-}
-
-.setting-label {
-  display: block;
-  font-family: var(--ct-font-display);
-  font-size: 15px;
-  color: var(--ct-color-gold-text);
-  margin-bottom: var(--ct-spacing-xs);
-}
-
-.slider-container {
+.admin-sections {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--ct-spacing-md);
 }
 
-.slider-container input {
-  flex: 1;
-  accent-color: var(--ct-color-gold);
+.loading-state, .error-state {
+  text-align: center;
+  color: var(--ct-color-text-secondary);
+  padding: var(--ct-spacing-lg) 0;
+  font-family: var(--ct-font-body);
 }
 
-.value-display {
-  font-family: var(--ct-font-display);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--ct-color-text-primary);
-  min-width: 80px;
+.error-state {
+  color: #f44336;
 }
 
-.setting-help {
-  font-size: 12px;
-  color: var(--ct-color-text-muted);
-  margin: var(--ct-spacing-xs) 0 0 0;
+.unauthorized-container {
+  padding: var(--ct-spacing-md);
+  max-width: 600px;
+  margin: var(--ct-spacing-xl) auto 0;
 }
 
-.invite-info {
-  font-size: 14px;
-  color: var(--ct-color-text-primary);
-  margin-top: 0;
-  margin-bottom: var(--ct-spacing-md);
-}
-
-.invite-actions {
-  display: flex;
+.unauthorized-text {
+  color: var(--ct-color-text-secondary);
+  font-family: var(--ct-font-body);
+  font-size: 15px;
+  line-height: 1.6;
 }
 </style>
