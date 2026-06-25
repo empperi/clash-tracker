@@ -45,7 +45,7 @@ Goal: invite admins and manage pending invites.
   revoke buttons + expired indicator. Admin-gated.
 - [ ] Verification: invite creates a pending record + email; revoke removes it. [checkpoint]
 
-## Phase 4: Registration view
+## Phase 4: Registration view [checkpoint: cc2523a]
 
 Goal: self-service activation from the invite link.
 
