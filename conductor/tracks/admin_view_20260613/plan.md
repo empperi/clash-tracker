@@ -52,7 +52,7 @@ Goal: self-service activation from the invite link.
 - [x] 0eff0cf Task: Tests + implement the registration route guard logic (pure where possible):
   given an invite id + `now`, decide `redirect` (no pending) / `expired` (delete + redirect)
   / `show-form`. Cover all three.
-- [ ] Task: Emulator tests + implement `completeRegistration({ inviteId, username,
+- [x] 5b475f9 Task: Emulator tests + implement `completeRegistration({ inviteId, username,
   playerTag })`: re-check existence + expiry server-side; validate/normalize the player tag;
   create the `accounts` record (role admin), set the custom claim (Track 6 primitive),
   delete the pending record, and establish the session (log the user in). Reject if missing/
