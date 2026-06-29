@@ -7,6 +7,7 @@ import './index.css';
 import { db } from './firebase';
 import { PLAYERS_API, createPlayersApi } from './api/players';
 import { INVITATIONS_API, createInvitationsApi } from './api/invitations';
+import { OWNER_API, createOwnerApi } from './api/owner';
 import { CAN_VIEW_PAST_PLAYERS, createCapabilities } from './api/session';
 import { useSession } from './composables/useSession';
 
@@ -27,6 +28,7 @@ app.use(router);
 app.use(VueQueryPlugin);
 app.provide(PLAYERS_API, createPlayersApi(db));
 app.provide(INVITATIONS_API, createInvitationsApi());
+app.provide(OWNER_API, createOwnerApi());
 app.provide(CAN_VIEW_PAST_PLAYERS, capabilities.canViewPastPlayers);
 
 app.mount('#app');

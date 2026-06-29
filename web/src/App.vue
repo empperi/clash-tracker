@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/vue-query';
 import { useSwipeNav } from './composables/useSwipeNav';
 import { createEagerLoader } from './composables/eagerLoad';
 import { PLAYERS_API, EMPTY_PLAYERS_API } from './api/players';
+import { useClanConfig } from './composables/useClanConfig';
 import { VIEW_ORDER, componentForView } from './views/registry';
 import AppHeader from './components/AppHeader.vue';
 import AppNav from './components/AppNav.vue';
@@ -13,7 +14,10 @@ const route = useRoute();
 const router = useRouter();
 const viewport = ref<HTMLElement | null>(null);
 
-const eagerLoad = createEagerLoader(useQueryClient(), inject(PLAYERS_API, EMPTY_PLAYERS_API));
+const api = inject(PLAYERS_API, EMPTY_PLAYERS_API);
+const eagerLoad = createEagerLoader(useQueryClient(), api);
+const { config } = useClanConfig(api);
+const clanName = computed(() => config.value.clanName);
 
 const prefersReducedMotion = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -88,7 +92,7 @@ const isFullPageRoute = computed(() =>
 
 <template>
   <div class="app-container">
-    <AppHeader />
+    <AppHeader :clan-name="clanName" />
     <main ref="viewport" class="app-viewport">
       <div v-if="isFullPageRoute" class="login-container">
         <router-view />

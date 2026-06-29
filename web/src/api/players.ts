@@ -29,6 +29,20 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   minWarParticipation: 0,
 };
 
+export interface ClanConfig {
+  readonly clanName: string;
+  readonly clanTag: string;
+  readonly acceptancePct: number;
+  readonly minWarParticipation: number;
+}
+
+export const DEFAULT_CLAN_CONFIG: ClanConfig = {
+  clanName: 'Clash Tracker',
+  clanTag: '',
+  acceptancePct: 0,
+  minWarParticipation: 0,
+};
+
 /**
  * Decodes a `players/{tag}` document (flat shape written by the functions
  * PlayerRepository) into the core `Player`. Pure — unit-tested.
@@ -76,6 +90,7 @@ export interface PlayersApi {
   fetchCurrentPlayers(): Promise<readonly Player[]>;
   fetchThresholds(): Promise<Thresholds>;
   fetchPastPlayers(page?: PastPlayersPage): Promise<readonly Player[]>;
+  fetchClanConfig(): Promise<ClanConfig>;
 }
 
 /** Injection key so views/composables receive the api (provided in main.ts). */
@@ -86,6 +101,7 @@ export const EMPTY_PLAYERS_API: PlayersApi = {
   fetchCurrentPlayers: async () => [],
   fetchThresholds: async () => DEFAULT_THRESHOLDS,
   fetchPastPlayers: async () => [],
+  fetchClanConfig: async () => DEFAULT_CLAN_CONFIG,
 };
 
 /** The real Firestore-backed implementation (client SDK, read-only). */
@@ -98,6 +114,16 @@ export function createPlayersApi(db: Firestore): PlayersApi {
     async fetchThresholds() {
       const snap = await getDoc(doc(db, 'publicSettings', 'config'));
       return thresholdsFromDoc(snap.exists() ? snap.data() : undefined);
+    },
+    async fetchClanConfig() {
+      const snap = await getDoc(doc(db, 'publicSettings', 'config'));
+      const data = snap.exists() ? snap.data() : undefined;
+      return {
+        clanName: String(data?.clanName ?? DEFAULT_CLAN_CONFIG.clanName),
+        clanTag: String(data?.clanTag ?? DEFAULT_CLAN_CONFIG.clanTag),
+        acceptancePct: Number(data?.acceptancePct ?? DEFAULT_CLAN_CONFIG.acceptancePct),
+        minWarParticipation: Number(data?.minWarParticipation ?? DEFAULT_CLAN_CONFIG.minWarParticipation),
+      };
     },
     async fetchPastPlayers(page) {
       const constraints: QueryConstraint[] = [
