@@ -13,7 +13,7 @@ Goal: owner-set, header-visible identity.
 
 - [x] ee72623 Task: Tests + implement pure validators: clan name (non-empty, max length); clan tag
   (reuse Track 2 normalizer/validator).
-- [ ] Task: Emulator tests + implement guarded `setClanName` and `setClanTag` functions
+- [x] 745b5ab Task: Emulator tests + implement guarded `setClanName` and `setClanTag` functions
   (owner-only) writing to `publicSettings/config` / secrets-config. Assert non-owners
   rejected.
 - [ ] Task: Tests + implement the name + clan-tag fields with **explicit Save** buttons and
