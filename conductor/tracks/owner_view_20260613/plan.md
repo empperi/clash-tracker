@@ -11,7 +11,7 @@ Track `owner_view_20260613`. TDD per `conductor/workflow.md`. Reuse Track 2
 
 Goal: owner-set, header-visible identity.
 
-- [ ] Task: Tests + implement pure validators: clan name (non-empty, max length); clan tag
+- [x] ee72623 Task: Tests + implement pure validators: clan name (non-empty, max length); clan tag
   (reuse Track 2 normalizer/validator).
 - [ ] Task: Emulator tests + implement guarded `setClanName` and `setClanTag` functions
   (owner-only) writing to `publicSettings/config` / secrets-config. Assert non-owners
