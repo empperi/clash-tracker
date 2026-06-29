@@ -131,8 +131,6 @@ async function main(): Promise<void> {
     await db.doc(`players/${player.tag}`).set(player, { merge: true });
   }
 
-  const auth = getAuth(app);
-
   // Seed mock admin and owner accounts for login testing
   await db.doc('accounts/mock-admin-uid').set(
     {
@@ -154,44 +152,53 @@ async function main(): Promise<void> {
     { merge: true }
   );
 
-  // Pre-create the users in Firebase Auth Emulator so they show in the UI immediately
-  const mockUsers = [
-    {
-      uid: 'mock-admin-uid',
-      email: 'admin@example.internal',
-      displayName: 'ChiefAdmin',
-    },
-    {
-      uid: 'mock-owner-uid',
-      email: 'owner@example.internal',
-      displayName: 'ChiefOwner',
-    },
-  ];
+  try {
+    const auth = getAuth(app);
 
-  for (const user of mockUsers) {
-    // Delete any conflicting user by UID first
-    try {
-      await auth.deleteUser(user.uid);
-    } catch {
-      // ignore
+    // Pre-create the users in Firebase Auth Emulator so they show in the UI immediately
+    const mockUsers = [
+      {
+        uid: 'mock-admin-uid',
+        email: 'admin@example.internal',
+        displayName: 'ChiefAdmin',
+      },
+      {
+        uid: 'mock-owner-uid',
+        email: 'owner@example.internal',
+        displayName: 'ChiefOwner',
+      },
+    ];
+
+    for (const user of mockUsers) {
+      // Delete any conflicting user by UID first
+      try {
+        await auth.deleteUser(user.uid);
+      } catch {
+        // ignore
+      }
+
+      // Delete any conflicting user by Email next
+      try {
+        const existing = await auth.getUserByEmail(user.email);
+        await auth.deleteUser(existing.uid);
+      } catch {
+        // ignore
+      }
+
+      await auth.createUser(user);
+      // give the seeded account a working role claim (admin for ChiefAdmin, owner for ChiefOwner)
+      await auth.setCustomUserClaims(user.uid, {
+        role: user.uid === 'mock-owner-uid' ? 'owner' : 'admin',
+      });
+      // Verify custom claims are set
+      const updatedUser = await auth.getUser(user.uid);
+      console.log(`Verified custom claims for ${user.displayName}:`, updatedUser.customClaims);
     }
-
-    // Delete any conflicting user by Email next
-    try {
-      const existing = await auth.getUserByEmail(user.email);
-      await auth.deleteUser(existing.uid);
-    } catch {
-      // ignore
-    }
-
-    await auth.createUser(user);
-    // give the seeded account a working role claim (admin for ChiefAdmin, owner for ChiefOwner)
-    await auth.setCustomUserClaims(user.uid, {
-      role: user.uid === 'mock-owner-uid' ? 'owner' : 'admin',
-    });
-    // Verify custom claims are set
-    const updatedUser = await auth.getUser(user.uid);
-    console.log(`Verified custom claims for ${user.displayName}:`, updatedUser.customClaims);
+  } catch (err: unknown) {
+    console.warn(
+      'Skipping Auth Emulator user seeding (Auth emulator may not be running):',
+      err instanceof Error ? err.message : String(err)
+    );
   }
 
   console.log(
