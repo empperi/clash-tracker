@@ -64,7 +64,7 @@ short-lived, single-use, and attempt-capped; non-enumeration is preserved. Adds 
 PWA manifest link-handling so supporting devices can open the link in-app. Dev/emulator keep the
 console mailer (logging code + link). Unblocks reliable login in prod.
 
-### [~] Track 8: Admin view [admin_view_20260613]
+### [x] Track 8: Admin view [admin_view_20260613]
 Instant-save threshold sliders (acceptance %, min war participation), admin invitations with
 a pending list and revocation, and the registration view with a server-enforced 30-minute
 expiry. All writes guarded by `requireRole('admin')`.

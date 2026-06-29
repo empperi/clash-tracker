@@ -43,7 +43,7 @@ Goal: invite admins and manage pending invites.
   `revokeInvite(id)` (delete). Mark/prune expired ones using the predicate.
 - [x] 6fab09b Task: Tests + implement the invite UI (email field + submit) and the pending list with
   revoke buttons + expired indicator. Admin-gated.
-- [ ] Verification: invite creates a pending record + email; revoke removes it. [checkpoint]
+- [X] Verification: invite creates a pending record + email; revoke removes it. [checkpoint]
 
 ## Phase 4: Registration view [checkpoint: cc2523a]
 
@@ -59,7 +59,7 @@ Goal: self-service activation from the invite link.
   expired.
 - [x] 2cb7d21 Task: Tests + implement the registration view UI: redirects per the guard; otherwise a
   username + player-tag form; on submit calls `completeRegistration` and lands logged-in.
-- [ ] Verification: valid invite → register → logged in as admin; missing/expired → front
+- [X] Verification: valid invite → register → logged in as admin; missing/expired → front
   page (and expired pending deleted). [checkpoint]
 
 ## Phase 5: Admin view assembly [checkpoint: a34e4ba]
