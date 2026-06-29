@@ -16,7 +16,7 @@ Goal: owner-set, header-visible identity.
 - [x] 745b5ab Task: Emulator tests + implement guarded `setClanName` and `setClanTag` functions
   (owner-only) writing to `publicSettings/config` / secrets-config. Assert non-owners
   rejected.
-- [ ] Task: Tests + implement the name + clan-tag fields with **explicit Save** buttons and
+- [x] de071cf Task: Tests + implement the name + clan-tag fields with **explicit Save** buttons and
   validation feedback; ensure the header reflects the saved name (reads
   `publicSettings/config`).
 - [ ] Verification: changing name/clan tag updates the header everywhere after save. [checkpoint]
