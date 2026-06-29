@@ -3,8 +3,8 @@ import { expect, test, vi, beforeEach, describe } from 'vitest';
 import { ref } from 'vue';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import OwnerView from './OwnerView.vue';
-import { OWNER_API } from '../api/owner';
-import { PLAYERS_API } from '../api/players';
+import { OWNER_API, type OwnerApi } from '../api/owner';
+import { PLAYERS_API, type PlayersApi } from '../api/players';
 
 // Mock useSession composable
 const mockUseSession = vi.fn();
@@ -19,8 +19,8 @@ vi.mock('../composables/useClanConfig', () => ({
 }));
 
 describe('OwnerView.vue', () => {
-  let mockOwnerApi: any;
-  let mockPlayersApi: any;
+  let mockOwnerApi: OwnerApi;
+  let mockPlayersApi: PlayersApi;
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe('OwnerView.vue', () => {
     mockOwnerApi = {
       setClanName: vi.fn().mockResolvedValue(undefined),
       setClanTag: vi.fn().mockResolvedValue(undefined),
-    };
+    } as unknown as OwnerApi;
     mockPlayersApi = {
       fetchCurrentPlayers: vi.fn().mockResolvedValue([]),
       fetchThresholds: vi.fn().mockResolvedValue({ acceptancePct: 0, minWarParticipation: 0 }),
@@ -39,7 +39,7 @@ describe('OwnerView.vue', () => {
         acceptancePct: 80,
         minWarParticipation: 3,
       }),
-    };
+    } as unknown as PlayersApi;
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   });
 
@@ -48,8 +48,8 @@ describe('OwnerView.vue', () => {
       global: {
         plugins: [[VueQueryPlugin, { queryClient }]],
         provide: {
-          [OWNER_API as any]: mockOwnerApi,
-          [PLAYERS_API as any]: mockPlayersApi,
+          [OWNER_API]: mockOwnerApi,
+          [PLAYERS_API]: mockPlayersApi,
         },
       },
     });

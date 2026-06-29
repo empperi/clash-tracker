@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, inject, watch, computed } from 'vue';
+import { ref, inject, watch } from 'vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import { useSession } from '../composables/useSession';
 import { PLAYERS_API, EMPTY_PLAYERS_API } from '../api/players';
@@ -56,8 +56,8 @@ async function saveClanName() {
     await ownerApi.setClanName(validation.value);
     nameSuccess.value = true;
     await queryClient.invalidateQueries({ queryKey: ['settings', 'config'] });
-  } catch (err: any) {
-    nameError.value = err.message || 'Failed to update clan name';
+  } catch (err: unknown) {
+    nameError.value = err instanceof Error ? err.message : 'Failed to update clan name';
   } finally {
     isSavingName.value = false;
   }
@@ -75,12 +75,14 @@ async function saveClanTag() {
 
   isSavingTag.value = true;
   try {
+    // Note: This is a non-atomic dual-write (updates secrets/coc then publicSettings/config on server).
+    // If the second write fails, it returns a 500 error but the secrets record remains updated.
     await ownerApi.setClanTag(validation.value);
     tagSuccess.value = true;
     clanTagInput.value = validation.value; // display normalized
     await queryClient.invalidateQueries({ queryKey: ['settings', 'config'] });
-  } catch (err: any) {
-    tagError.value = err.message || 'Failed to update clan tag';
+  } catch (err: unknown) {
+    tagError.value = err instanceof Error ? err.message : 'Failed to update clan tag';
   } finally {
     isSavingTag.value = false;
   }
@@ -176,7 +178,7 @@ async function saveClanTag() {
         <BasePanel title="Danger Zone">
           <p class="danger-text">These settings have critical security impacts. Be careful.</p>
           <div class="panel-actions justify-start">
-            <BaseButton variant="danger">Revoke All Admin Sessions</BaseButton>
+            <BaseButton variant="danger" :disabled="true">Revoke All Admin Sessions (Coming Soon)</BaseButton>
           </div>
         </BasePanel>
       </div>
