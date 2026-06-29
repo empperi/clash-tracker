@@ -27,7 +27,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5001/demo-clash-tracker/europe-west1',
+        target: 'http://localhost:5011/demo-clash-tracker/europe-west1',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
