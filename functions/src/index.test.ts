@@ -80,6 +80,14 @@ describe('Cloud Function handlers delegation', () => {
     (request: Request, response: Response): Promise<void> | void;
     run?: (request: Request, response: Response) => Promise<void> | void;
   };
+  let setClanName: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
+  let setClanTag: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -93,6 +101,8 @@ describe('Cloud Function handlers delegation', () => {
     revokeInvite = mod.revokeInvite;
     getInviteStatus = mod.getInviteStatus;
     completeRegistration = mod.completeRegistration;
+    setClanName = mod.setClanName;
+    setClanTag = mod.setClanTag;
   });
 
   beforeEach(async () => {
@@ -1154,6 +1164,164 @@ describe('Cloud Function handlers delegation', () => {
         role: 'admin',
         createdAt: expect.any(Object),
       });
+    });
+  });
+
+  describe('setClanName endpoint', () => {
+    const testOwnerUid = 'owner-user-set-name';
+    const testAdminUid = 'admin-user-set-name';
+
+    beforeAll(async () => {
+      try {
+        await auth.deleteUser(testOwnerUid);
+      } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch { /* Ignored */ }
+    });
+
+    afterAll(async () => {
+      try {
+        await auth.deleteUser(testOwnerUid);
+      } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch { /* Ignored */ }
+      await db.collection('accounts').doc(testOwnerUid).delete();
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('publicSettings').doc('config').delete();
+    });
+
+    it('rejects non-POST requests with 405 Method Not Allowed', async () => {
+      const handler = typeof setClanName.run === 'function' ? setClanName.run : setClanName;
+      const context = createMockReqRes({
+        method: 'GET',
+        headers: { cookie: '__session=owner-cookie' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(405);
+    });
+
+    it('rejects if cookie is missing', async () => {
+      const handler = typeof setClanName.run === 'function' ? setClanName.run : setClanName;
+      const context = createMockReqRes({ headers: {}, method: 'POST' });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(401);
+    });
+
+    it('rejects if role is insufficient (admin)', async () => {
+      const handler = typeof setClanName.run === 'function' ? setClanName.run : setClanName;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: 'New Clan Name' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(403);
+    });
+
+    it('rejects invalid names', async () => {
+      const handler = typeof setClanName.run === 'function' ? setClanName.run : setClanName;
+      const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: '   ' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+    });
+
+    it('successfully updates clan name in publicSettings/config', async () => {
+      const handler = typeof setClanName.run === 'function' ? setClanName.run : setClanName;
+      const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: 'The Great Clan' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      const configDoc = await db.collection('publicSettings').doc('config').get();
+      expect(configDoc.exists).toBe(true);
+      expect(configDoc.data()?.clanName).toBe('The Great Clan');
+    });
+  });
+
+  describe('setClanTag endpoint', () => {
+    const testOwnerUid = 'owner-user-set-tag';
+    const testAdminUid = 'admin-user-set-tag';
+
+    beforeAll(async () => {
+      try {
+        await auth.deleteUser(testOwnerUid);
+      } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch { /* Ignored */ }
+    });
+
+    afterAll(async () => {
+      try {
+        await auth.deleteUser(testOwnerUid);
+      } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch { /* Ignored */ }
+      await db.collection('accounts').doc(testOwnerUid).delete();
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('publicSettings').doc('config').delete();
+      await db.collection('secrets').doc('coc').delete();
+    });
+
+    it('rejects if role is insufficient (admin)', async () => {
+      const handler = typeof setClanTag.run === 'function' ? setClanTag.run : setClanTag;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: '2PGQYPQ' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(403);
+    });
+
+    it('rejects invalid tag values', async () => {
+      const handler = typeof setClanTag.run === 'function' ? setClanTag.run : setClanTag;
+      const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: 'invalid-tag-format' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+    });
+
+    it('successfully updates tag in secrets and config', async () => {
+      const handler = typeof setClanTag.run === 'function' ? setClanTag.run : setClanTag;
+      const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: '  2pgqypq  ' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      // Check public settings config
+      const configDoc = await db.collection('publicSettings').doc('config').get();
+      expect(configDoc.exists).toBe(true);
+      expect(configDoc.data()?.clanTag).toBe('#2PGQYPQ');
+
+      // Check secrets coc
+      const secretsDoc = await db.collection('secrets').doc('coc').get();
+      expect(secretsDoc.exists).toBe(true);
+      expect(secretsDoc.data()?.clanTag).toBe('#2PGQYPQ');
     });
   });
 });

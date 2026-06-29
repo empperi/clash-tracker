@@ -15,6 +15,8 @@ import {
   isInvitationExpired,
   normalizePlayerTag,
   validatePlayerTag,
+  validateClanName,
+  validateConfigClanTag,
 } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
@@ -232,6 +234,69 @@ export const setThreshold = onRequest(async (req, res) => {
         .collection('publicSettings')
         .doc('config')
         .set({ [field]: validatedValue }, { merge: true });
+
+      res.status(200).json({ status: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
+export const setClanName = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('owner')(async (req, res) => {
+    try {
+      const value = req.body?.value;
+      const validationResult = validateClanName(value);
+      if (!validationResult.success) {
+        res.status(400).send(validationResult.error);
+        return;
+      }
+
+      await db
+        .collection('publicSettings')
+        .doc('config')
+        .set({ clanName: validationResult.value }, { merge: true });
+
+      res.status(200).json({ status: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
+export const setClanTag = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('owner')(async (req, res) => {
+    try {
+      const value = req.body?.value;
+      const validationResult = validateConfigClanTag(value);
+      if (!validationResult.success) {
+        res.status(400).send(validationResult.error);
+        return;
+      }
+
+      const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
+      const encryptionKey = parseEncryptionKey(encKeyStr);
+      const secretsRepo = new SecretsRepository(db, encryptionKey);
+      const setResult = await secretsRepo.setClanTag(validationResult.value);
+      if (!setResult.success) {
+        res.status(500).send(setResult.error);
+        return;
+      }
+
+      await db
+        .collection('publicSettings')
+        .doc('config')
+        .set({ clanTag: validationResult.value }, { merge: true });
 
       res.status(200).json({ status: 'success' });
     } catch (err: unknown) {
