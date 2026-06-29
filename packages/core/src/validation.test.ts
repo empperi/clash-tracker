@@ -3,6 +3,8 @@ import {
   validateAcceptancePercent,
   validateMinWarParticipation,
   validateEmail,
+  validateClanName,
+  validateConfigClanTag,
 } from './validation.js';
 
 describe('validation', () => {
@@ -81,6 +83,47 @@ describe('validation', () => {
       expect(validateEmail(null).success).toBe(false);
       expect(validateEmail(undefined).success).toBe(false);
       expect(validateEmail(123).success).toBe(false);
+    });
+  });
+
+  describe('validateClanName', () => {
+    it('accepts valid clan names', () => {
+      expect(validateClanName('Clash Clan')).toEqual({ success: true, value: 'Clash Clan' });
+      expect(validateClanName('  My Clan  ')).toEqual({ success: true, value: 'My Clan' });
+    });
+
+    it('rejects empty or whitespace-only names', () => {
+      expect(validateClanName('').success).toBe(false);
+      expect(validateClanName('   ').success).toBe(false);
+    });
+
+    it('rejects names that are too long', () => {
+      expect(validateClanName('a'.repeat(101)).success).toBe(false);
+    });
+
+    it('rejects non-strings', () => {
+      expect(validateClanName(null).success).toBe(false);
+      expect(validateClanName(undefined).success).toBe(false);
+      expect(validateClanName(123).success).toBe(false);
+    });
+  });
+
+  describe('validateConfigClanTag', () => {
+    it('accepts and normalizes valid clan tags', () => {
+      expect(validateConfigClanTag('#2PGQYPQ')).toEqual({ success: true, value: '#2PGQYPQ' });
+      expect(validateConfigClanTag('2pgqypq')).toEqual({ success: true, value: '#2PGQYPQ' });
+      expect(validateConfigClanTag('  2PGQYPQ  ')).toEqual({ success: true, value: '#2PGQYPQ' });
+    });
+
+    it('rejects invalid clan tags', () => {
+      expect(validateConfigClanTag('').success).toBe(false);
+      expect(validateConfigClanTag('#INVALID').success).toBe(false);
+      expect(validateConfigClanTag('12345').success).toBe(false);
+    });
+
+    it('rejects non-strings', () => {
+      expect(validateConfigClanTag(null).success).toBe(false);
+      expect(validateConfigClanTag(undefined).success).toBe(false);
     });
   });
 });
