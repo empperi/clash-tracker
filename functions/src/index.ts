@@ -36,10 +36,22 @@ setGlobalOptions({ region: 'europe-west1' });
 const app = getApps().length === 0 ? initializeApp() : getApp();
 const db = getFirestore(app);
 
+function getEncryptionKey(): Uint8Array {
+  let encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
+  if (
+    !encKeyStr &&
+    process.env.VITEST !== 'true' &&
+    (process.env.FUNCTIONS_EMULATOR === 'true' || process.env.FIRESTORE_EMULATOR_HOST)
+  ) {
+    // Fallback to a dummy 32-byte base64-encoded key for local development against emulators
+    encKeyStr = 'YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=';
+  }
+  return parseEncryptionKey(encKeyStr);
+}
+
 // Use Case Factory function to inject dependencies
 export function getIngestUseCase() {
-  const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
-  const encryptionKey = parseEncryptionKey(encKeyStr);
+  const encryptionKey = getEncryptionKey();
   const secretsRepo = new SecretsRepository(db, encryptionKey);
   const gateway = new CocApiGateway(nodeHttpClient, secretsRepo);
   const warRepo = new WarRepository(db);
@@ -55,8 +67,7 @@ export function getIngestUseCase() {
 
 // Recompute use case factory. The clan roster comes from the live clan fetch.
 export function getRecomputeUseCase(clanTag: string): RecomputeUseCase {
-  const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
-  const encryptionKey = parseEncryptionKey(encKeyStr);
+  const encryptionKey = getEncryptionKey();
   const secretsRepo = new SecretsRepository(db, encryptionKey);
   const gateway = new CocApiGateway(nodeHttpClient, secretsRepo);
   const warRepo = new WarRepository(db);
@@ -70,14 +81,17 @@ export async function handleScheduledIngest(
   ingestUseCase?: IngestUseCase,
   recomputeUseCase?: RecomputeUseCase
 ): Promise<void> {
-  const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
-  if (!encKeyStr) {
+  const hasKey =
+    !!process.env.CLASH_TOKEN_ENC_KEY ||
+    (process.env.VITEST !== 'true' &&
+      (process.env.FUNCTIONS_EMULATOR === 'true' || process.env.FIRESTORE_EMULATOR_HOST));
+  if (!hasKey) {
     console.error('CLASH_TOKEN_ENC_KEY is not configured.');
     return;
   }
   let encryptionKey: Uint8Array;
   try {
-    encryptionKey = parseEncryptionKey(encKeyStr);
+    encryptionKey = getEncryptionKey();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`Cannot run scheduled ingest: Invalid encryption key. ${msg}`);
@@ -114,14 +128,17 @@ export async function handleTriggerIngestNow(
   recomputeUseCase?: RecomputeUseCase
 ): Promise<{ success: boolean; syncState?: string; error?: string }> {
   console.log('handleTriggerIngestNow: starting execution...');
-  const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
-  if (!encKeyStr) {
+  const hasKey =
+    !!process.env.CLASH_TOKEN_ENC_KEY ||
+    (process.env.VITEST !== 'true' &&
+      (process.env.FUNCTIONS_EMULATOR === 'true' || process.env.FIRESTORE_EMULATOR_HOST));
+  if (!hasKey) {
     console.error('handleTriggerIngestNow failed: CLASH_TOKEN_ENC_KEY is not configured.');
     throw new HttpsError('failed-precondition', 'CLASH_TOKEN_ENC_KEY is not configured.');
   }
   let encryptionKey: Uint8Array;
   try {
-    encryptionKey = parseEncryptionKey(encKeyStr);
+    encryptionKey = getEncryptionKey();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`handleTriggerIngestNow failed: Invalid encryption key: ${msg}`);
@@ -284,8 +301,7 @@ export const setClanTag = onRequest(async (req, res) => {
         return;
       }
 
-      const encKeyStr = process.env.CLASH_TOKEN_ENC_KEY || '';
-      const encryptionKey = parseEncryptionKey(encKeyStr);
+      const encryptionKey = getEncryptionKey();
       const secretsRepo = new SecretsRepository(db, encryptionKey);
       const setResult = await secretsRepo.setClanTag(validationResult.value);
       if (!setResult.success) {
