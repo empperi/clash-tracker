@@ -44,7 +44,7 @@ Goal: list and delete accounts safely.
 - [x] c125b3d Task: Emulator tests + implement guarded `deleteAccount(uid)`: refuse self-deletion,
   delete the account, and call `revokeAccountSessions(uid)` so the user is logged out and
   cannot re-login. Cover the self-delete rejection.
-- [ ] Task: Tests + implement the accounts list UI with delete buttons (own account's delete
+- [x] 835052a Task: Tests + implement the accounts list UI with delete buttons (own account's delete
   disabled), reflecting active/pending status.
 - [ ] Verification: deleting an admin logs them out immediately; self-delete blocked in UI
   and server. [checkpoint]
