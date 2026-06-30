@@ -132,7 +132,7 @@ describe('Cloud Function handlers delegation', () => {
 
   async function getSessionCookieForUser(
     uid: string,
-    role: 'admin' | 'member' | null
+    role: 'owner' | 'admin' | 'member' | null
   ): Promise<string> {
     try {
       await auth.deleteUser(uid);
@@ -1455,25 +1455,13 @@ describe('Cloud Function handlers delegation', () => {
     const pendingInviteId = 'pending-invite-manage-accounts';
 
     beforeAll(async () => {
-      // Create users in Auth and mock documents in Firestore
+      // Clean up existing test accounts
       try { await auth.deleteUser(ownerUid); } catch { /* Ignored */ }
       try { await auth.deleteUser(adminUid); } catch { /* Ignored */ }
       try { await auth.deleteUser(otherAdminUid); } catch { /* Ignored */ }
 
-      await auth.createUser({ uid: ownerUid, email: 'owner-mgr@example.com' });
-      await auth.createUser({ uid: adminUid, email: 'admin-mgr@example.com' });
+      // otherAdminUid is not logged in via getSessionCookieForUser, so we manually create it in Auth & Firestore
       await auth.createUser({ uid: otherAdminUid, email: 'other-mgr@example.com' });
-
-      await db.collection('accounts').doc(ownerUid).set({
-        email: 'owner-mgr@example.com',
-        username: 'Owner Mgr',
-        role: 'owner',
-      });
-      await db.collection('accounts').doc(adminUid).set({
-        email: 'admin-mgr@example.com',
-        username: 'Admin Mgr',
-        role: 'admin',
-      });
       await db.collection('accounts').doc(otherAdminUid).set({
         email: 'other-mgr@example.com',
         username: 'Other Mgr',

@@ -29,6 +29,7 @@ storage-debug.log*
 
 # Emulator data dumps (opt-in exports go in a tracked seed dir instead)
 .emulator-data/
+firebase-export-*/
 
 # Secrets & local env — NEVER commit
 .env
