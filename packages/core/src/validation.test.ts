@@ -5,6 +5,7 @@ import {
   validateEmail,
   validateClanName,
   validateConfigClanTag,
+  validateApiToken,
 } from './validation.js';
 
 describe('validation', () => {
@@ -124,6 +125,28 @@ describe('validation', () => {
     it('rejects non-strings', () => {
       expect(validateConfigClanTag(null).success).toBe(false);
       expect(validateConfigClanTag(undefined).success).toBe(false);
+    });
+  });
+
+  describe('validateApiToken', () => {
+    it('accepts non-empty strings of valid length', () => {
+      const validToken = 'a'.repeat(50);
+      expect(validateApiToken(validToken)).toEqual({ success: true, value: validToken });
+    });
+
+    it('rejects empty or whitespace-only strings', () => {
+      expect(validateApiToken('').success).toBe(false);
+      expect(validateApiToken('   ').success).toBe(false);
+    });
+
+    it('rejects strings that are too short', () => {
+      expect(validateApiToken('short-token').success).toBe(false);
+    });
+
+    it('rejects non-strings', () => {
+      expect(validateApiToken(null).success).toBe(false);
+      expect(validateApiToken(undefined).success).toBe(false);
+      expect(validateApiToken(12345).success).toBe(false);
     });
   });
 });

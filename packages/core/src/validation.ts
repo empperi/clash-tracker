@@ -78,3 +78,20 @@ export function validateConfigClanTag(val: unknown): Result<string, string> {
   }
   return ok(normalized);
 }
+
+/**
+ * Validates that the input is a valid Clash of Clans API token (non-empty, minimum length).
+ */
+export function validateApiToken(val: unknown): Result<string, string> {
+  if (typeof val !== 'string') {
+    return err('API token must be a string');
+  }
+  const trimmed = val.trim();
+  if (trimmed.length === 0) {
+    return err('API token cannot be empty');
+  }
+  if (trimmed.length < 20) {
+    return err('API token is too short');
+  }
+  return ok(trimmed);
+}
