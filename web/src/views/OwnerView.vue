@@ -5,11 +5,12 @@ import { useSession } from '../composables/useSession';
 import { PLAYERS_API, EMPTY_PLAYERS_API } from '../api/players';
 import { OWNER_API, EMPTY_OWNER_API } from '../api/owner';
 import { useClanConfig } from '../composables/useClanConfig';
-import { validateClanName, validateConfigClanTag, validateApiToken } from '@clash-tracker/core';
+import { validateClanName, validateConfigClanTag, validateApiToken, canDeleteAccount } from '@clash-tracker/core';
 import BasePanel from '../components/BasePanel.vue';
 import BaseButton from '../components/BaseButton.vue';
+import type { OwnerAccount } from '../api/owner';
 
-const { loading: sessionLoading, capabilities } = useSession();
+const { loading: sessionLoading, capabilities, user } = useSession();
 
 const playersApi = inject(PLAYERS_API, EMPTY_PLAYERS_API);
 const ownerApi = inject(OWNER_API, EMPTY_OWNER_API);
@@ -96,6 +97,13 @@ const isSavingApiToken = ref(false);
 const hasApiToken = ref(false);
 const isLoadingTokenStatus = ref(false);
 
+// Accounts Management State
+const accountsList = ref<readonly OwnerAccount[]>([]);
+const isLoadingAccounts = ref(false);
+const accountsError = ref('');
+const isDeletingUid = ref<string | null>(null);
+const deleteError = ref('');
+
 async function fetchTokenStatus() {
   if (!capabilities.value.isOwner) return;
   isLoadingTokenStatus.value = true;
@@ -108,12 +116,26 @@ async function fetchTokenStatus() {
   }
 }
 
-// Fetch status when capabilities or session changes
+async function fetchAccounts() {
+  if (!capabilities.value.isOwner) return;
+  isLoadingAccounts.value = true;
+  accountsError.value = '';
+  try {
+    accountsList.value = await ownerApi.listAccounts();
+  } catch (err: unknown) {
+    accountsError.value = err instanceof Error ? err.message : 'Failed to load accounts';
+  } finally {
+    isLoadingAccounts.value = false;
+  }
+}
+
+// Fetch data when capabilities or session changes
 watch(
   () => capabilities.value.isOwner,
   (isOwner) => {
     if (isOwner) {
       fetchTokenStatus();
+      fetchAccounts();
     }
   },
   { immediate: true }
@@ -139,6 +161,25 @@ async function saveApiToken() {
     apiTokenError.value = err instanceof Error ? err.message : 'Failed to update API token';
   } finally {
     isSavingApiToken.value = false;
+  }
+}
+
+async function handleDeleteAccount(uid: string) {
+  if (isDeletingUid.value) return;
+
+  if (!window.confirm('Are you sure you want to delete this account? They will be logged out and deleted immediately.')) {
+    return;
+  }
+
+  isDeletingUid.value = uid;
+  deleteError.value = '';
+  try {
+    await ownerApi.deleteAccount(uid);
+    await fetchAccounts(); // Refresh accounts list
+  } catch (err: unknown) {
+    deleteError.value = err instanceof Error ? err.message : 'Failed to delete account';
+  } finally {
+    isDeletingUid.value = null;
   }
 }
 </script>
@@ -266,6 +307,61 @@ async function saveApiToken() {
               <p v-if="apiTokenError" class="validation-message token-error">{{ apiTokenError }}</p>
               <p v-if="apiTokenSuccess" class="validation-message token-success">API token saved successfully!</p>
             </div>
+          </div>
+        </BasePanel>
+
+        <BasePanel title="Account Management">
+          <p class="section-description">
+            View active administrator/owner accounts and pending invitations. You can delete any account except your own.
+          </p>
+
+          <div v-if="isLoadingAccounts" class="accounts-loading">
+            <span class="spinner small"></span>
+            <p>Loading accounts...</p>
+          </div>
+          <div v-else-if="accountsError" class="accounts-error">
+            <p>{{ accountsError }}</p>
+          </div>
+          <div v-else class="accounts-table-container">
+            <div v-if="deleteError" class="validation-message delete-error">{{ deleteError }}</div>
+            
+            <table class="accounts-table">
+              <thead>
+                <tr>
+                  <th>Account</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="account in accountsList" :key="account.uid" class="account-row">
+                  <td>
+                    <div class="account-info">
+                      <span class="account-username">{{ account.username || '—' }}</span>
+                      <span class="account-email">{{ account.email }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="role-badge" :class="account.role">{{ account.role }}</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" :class="account.status">{{ account.status }}</span>
+                  </td>
+                  <td>
+                    <BaseButton
+                      variant="danger"
+                      size="sm"
+                      class="delete-account-btn"
+                      :disabled="!canDeleteAccount(account.uid, user?.uid || '') || isDeletingUid === account.uid"
+                      @click="handleDeleteAccount(account.uid)"
+                    >
+                      {{ isDeletingUid === account.uid ? 'Deleting...' : 'Delete' }}
+                    </BaseButton>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </BasePanel>
 
@@ -458,6 +554,99 @@ async function saveApiToken() {
 
 .denied-icon {
   font-size: 48px;
+  margin-bottom: var(--ct-spacing-sm);
+}
+
+.accounts-loading, .accounts-error {
+  text-align: center;
+  color: var(--ct-color-text-secondary);
+  padding: var(--ct-spacing-lg) 0;
+  font-family: var(--ct-font-body);
+}
+
+.accounts-table-container {
+  overflow-x: auto;
+  margin-top: var(--ct-spacing-md);
+}
+
+.accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--ct-font-body);
+  font-size: 14px;
+}
+
+.accounts-table th {
+  color: var(--ct-color-text-secondary);
+  font-weight: 600;
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  border-bottom: 2px solid var(--ct-color-border);
+}
+
+.accounts-table td {
+  padding: var(--ct-spacing-sm) var(--ct-spacing-md);
+  border-bottom: 1px solid var(--ct-color-border);
+  vertical-align: middle;
+}
+
+.account-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-username {
+  color: var(--ct-color-text-primary);
+  font-weight: 500;
+}
+
+.account-email {
+  color: var(--ct-color-text-secondary);
+  font-size: 12px;
+}
+
+.role-badge, .status-badge {
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--ct-radius-sm);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.role-badge.owner {
+  background-color: color-mix(in srgb, var(--ct-color-gold) 15%, transparent);
+  color: var(--ct-color-gold);
+  border: 1px solid color-mix(in srgb, var(--ct-color-gold) 30%, transparent);
+}
+
+.role-badge.admin {
+  background-color: color-mix(in srgb, var(--ct-color-blue, #2196f3) 15%, transparent);
+  color: var(--ct-color-blue, #2196f3);
+  border: 1px solid color-mix(in srgb, var(--ct-color-blue, #2196f3) 30%, transparent);
+}
+
+.status-badge.active {
+  background-color: color-mix(in srgb, var(--ct-color-green) 15%, transparent);
+  color: var(--ct-color-green);
+  border: 1px solid color-mix(in srgb, var(--ct-color-green) 30%, transparent);
+}
+
+.status-badge.pending {
+  background-color: color-mix(in srgb, var(--ct-color-gold) 15%, transparent);
+  color: var(--ct-color-gold);
+  border: 1px solid color-mix(in srgb, var(--ct-color-gold) 30%, transparent);
+}
+
+.delete-error {
+  color: var(--ct-color-red);
+  margin-bottom: var(--ct-spacing-sm);
+  font-family: var(--ct-font-body);
+}
+
+.spinner.small {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
   margin-bottom: var(--ct-spacing-sm);
 }
 

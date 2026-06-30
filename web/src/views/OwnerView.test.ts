@@ -30,6 +30,8 @@ describe('OwnerView.vue', () => {
       setClanTag: vi.fn().mockResolvedValue(undefined),
       setApiToken: vi.fn().mockResolvedValue(undefined),
       getApiTokenStatus: vi.fn().mockResolvedValue(false),
+      listAccounts: vi.fn().mockResolvedValue([]),
+      deleteAccount: vi.fn().mockResolvedValue(undefined),
     } as unknown as OwnerApi;
     mockPlayersApi = {
       fetchCurrentPlayers: vi.fn().mockResolvedValue([]),
@@ -293,5 +295,97 @@ describe('OwnerView.vue', () => {
     await flushPromises();
     expect(wrapper.find('.token-status-badge.is-set').exists()).toBe(true);
     expect(wrapper.find('.token-status-badge.is-set').text()).toContain('Active (Set)');
+  });
+
+  test('lists and displays accounts, disabling delete for logged-in user', async () => {
+    mockUseSession.mockReturnValue({
+      loading: ref(false),
+      capabilities: ref({ isOwner: true }),
+      user: ref({ uid: 'my-owner-uid' }),
+    });
+    mockUseClanConfig.mockReturnValue({
+      config: ref({
+        clanName: 'Clash Clan',
+        clanTag: '#2PGQYPQ',
+        acceptancePct: 80,
+        minWarParticipation: 3,
+      }),
+      isLoading: ref(false),
+      isError: ref(false),
+    });
+
+    const mockAccounts = [
+      { uid: 'my-owner-uid', email: 'owner@example.com', role: 'owner', status: 'active', username: 'The Owner' },
+      { uid: 'other-admin-uid', email: 'admin@example.com', role: 'admin', status: 'active', username: 'The Admin' },
+      { uid: 'pending-invite-uid', email: 'pending@example.com', role: 'admin', status: 'pending' },
+    ];
+    mockOwnerApi.listAccounts = vi.fn().mockResolvedValue(mockAccounts);
+
+    const wrapper = mountView();
+    await flushPromises();
+
+    // Verify listAccounts was called
+    expect(mockOwnerApi.listAccounts).toHaveBeenCalled();
+
+    // Verify details are rendered
+    expect(wrapper.text()).toContain('The Owner');
+    expect(wrapper.text()).toContain('owner@example.com');
+    expect(wrapper.text()).toContain('The Admin');
+    expect(wrapper.text()).toContain('admin@example.com');
+    expect(wrapper.text()).toContain('pending@example.com');
+
+    // Verify delete buttons
+    const deleteButtons = wrapper.findAll('.delete-account-btn');
+    expect(deleteButtons.length).toBe(3);
+
+    // Button 0 (Owner) should be disabled
+    expect(deleteButtons[0].attributes('disabled')).toBeDefined();
+
+    // Button 1 (Admin) should be enabled
+    expect(deleteButtons[1].attributes('disabled')).toBeUndefined();
+
+    // Button 2 (Pending) should be enabled
+    expect(deleteButtons[2].attributes('disabled')).toBeUndefined();
+  });
+
+  test('calls deleteAccount and refreshes the list on delete click', async () => {
+    mockUseSession.mockReturnValue({
+      loading: ref(false),
+      capabilities: ref({ isOwner: true }),
+      user: ref({ uid: 'my-owner-uid' }),
+    });
+    mockUseClanConfig.mockReturnValue({
+      config: ref({
+        clanName: 'Clash Clan',
+        clanTag: '#2PGQYPQ',
+      }),
+      isLoading: ref(false),
+      isError: ref(false),
+    });
+
+    const mockAccounts = [
+      { uid: 'my-owner-uid', email: 'owner@example.com', role: 'owner', status: 'active' },
+      { uid: 'other-admin-uid', email: 'admin@example.com', role: 'admin', status: 'active' },
+    ];
+    mockOwnerApi.listAccounts = vi.fn().mockResolvedValue(mockAccounts);
+    mockOwnerApi.deleteAccount = vi.fn().mockResolvedValue(undefined);
+
+    // Mock window.confirm
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    const wrapper = mountView();
+    await flushPromises();
+
+    const deleteButtons = wrapper.findAll('.delete-account-btn');
+    // Click on Button 1 (other admin)
+    await deleteButtons[1].trigger('click');
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(mockOwnerApi.deleteAccount).toHaveBeenCalledWith('other-admin-uid');
+
+    // Check that listAccounts was called again to refresh
+    expect(mockOwnerApi.listAccounts).toHaveBeenCalledTimes(2);
+
+    confirmSpy.mockRestore();
   });
 });
