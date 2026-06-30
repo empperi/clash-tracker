@@ -75,7 +75,7 @@ failure. Closed membership: only emails matching an existing account/invitation 
 (others are denied neutrally). Converges on the Track 6 session-cookie + role-claim model;
 reuses the Track 8 invitation/account model for the allowlist.
 
-### [~] Track 10: Owner view [owner_view_20260613]
+### [x] Track 10: Owner view [owner_view_20260613]
 Owner-only config: clan name, write-only encrypted CoC API token, clan tag, and admin/owner
 account management (delete anyone but yourself, with immediate session revocation). Guarded
 by `requireRole('owner')`.
