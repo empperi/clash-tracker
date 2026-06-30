@@ -1,6 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest, HttpsError } from 'firebase-functions/v2/https';
-import { requireRole, getMailer } from './auth.js';
+import { requireRole, getMailer, revokeAccountSessions } from './auth.js';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -18,6 +18,7 @@ import {
   validateClanName,
   validateConfigClanTag,
   validateApiToken,
+  canDeleteAccount,
 } from '@clash-tracker/core';
 import { CocApiGateway } from './gateway/CocApiGateway.js';
 import { SecretsRepository } from './repositories/SecretsRepository.js';
@@ -616,6 +617,112 @@ export const completeRegistration = onRequest(async (req, res) => {
     const msg = err instanceof Error ? err.message : String(err);
     res.status(500).send(msg);
   }
+});
+
+export const listAccounts = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('owner')(async (req, res) => {
+    try {
+      // 1. Fetch active accounts
+      const activeSnapshot = await db.collection('accounts').get();
+      const activeList = activeSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          uid: doc.id,
+          email: data.email || '',
+          role: data.role || 'admin',
+          status: 'active' as const,
+          username: data.username || undefined,
+        };
+      });
+
+      // 2. Fetch pending accounts
+      const pendingSnapshot = await db.collection('pendingAccounts').get();
+      const now = new Date();
+      const pendingList = [];
+      for (const doc of pendingSnapshot.docs) {
+        const data = doc.data();
+        const createdAt = data.createdAt.toDate();
+        const expired = isInvitationExpired(createdAt, now);
+
+        if (expired) {
+          await doc.ref.delete();
+          continue; // Skip expired ones from the returned list
+        }
+
+        pendingList.push({
+          uid: doc.id,
+          email: data.email || '',
+          role: data.role || 'admin',
+          status: 'pending' as const,
+        });
+      }
+
+      const combined = [...activeList, ...pendingList];
+      res.status(200).json(combined);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
+});
+
+export const deleteAccount = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+  await requireRole('owner')(async (req, res) => {
+    try {
+      const targetUid = req.body?.uid;
+      if (!targetUid || typeof targetUid !== 'string') {
+        res.status(400).send('Missing target account uid.');
+        return;
+      }
+
+      const callerUid = req.auth?.uid;
+      if (!canDeleteAccount(targetUid, callerUid || '')) {
+        res.status(400).send('Self-deletion is refused.');
+        return;
+      }
+
+      // Check active accounts
+      const activeDocRef = db.collection('accounts').doc(targetUid);
+      const activeDoc = await activeDocRef.get();
+      if (activeDoc.exists) {
+        await activeDocRef.delete();
+        try {
+          await getAuth().deleteUser(targetUid);
+        } catch (err) {
+          console.warn(`Failed to delete Auth user ${targetUid}:`, err);
+        }
+        try {
+          await revokeAccountSessions(targetUid);
+        } catch (err) {
+          console.warn(`Failed to revoke sessions for ${targetUid}:`, err);
+        }
+        res.status(200).json({ status: 'success' });
+        return;
+      }
+
+      // Check pending accounts
+      const pendingDocRef = db.collection('pendingAccounts').doc(targetUid);
+      const pendingDoc = await pendingDocRef.get();
+      if (pendingDoc.exists) {
+        await pendingDocRef.delete();
+        res.status(200).json({ status: 'success' });
+        return;
+      }
+
+      res.status(404).send('Account not found.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      res.status(500).send(msg);
+    }
+  })(req, res);
 });
 
 export { sessionLogin, sessionLogout, findAccountForLogin, verifyLoginOtp } from './auth.js';

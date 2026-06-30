@@ -3,7 +3,7 @@ import { Result, ok } from '@clash-tracker/core';
 import { IngestSummary } from './use-cases/ingestCurrentWar';
 import { RecomputeSummary } from './use-cases/recomputePlayerStats';
 import { initializeApp, getApps, getApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { setAccountRole, setMailerForTesting } from './auth.js';
 import { SecretsRepository } from './repositories/SecretsRepository';
@@ -96,6 +96,14 @@ describe('Cloud Function handlers delegation', () => {
     (request: Request, response: Response): Promise<void> | void;
     run?: (request: Request, response: Response) => Promise<void> | void;
   };
+  let listAccounts: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
+  let deleteAccount: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -113,6 +121,8 @@ describe('Cloud Function handlers delegation', () => {
     setClanTag = mod.setClanTag;
     setApiToken = mod.setApiToken;
     getApiTokenStatus = mod.getApiTokenStatus;
+    listAccounts = mod.listAccounts;
+    deleteAccount = mod.deleteAccount;
   });
 
   beforeEach(async () => {
@@ -1435,6 +1445,177 @@ describe('Cloud Function handlers delegation', () => {
       const decryptedRes = await secretsRepo.getDecryptedToken();
       expect(decryptedRes.success).toBe(true);
       expect(decryptedRes.value).toBe(plainToken);
+    });
+  });
+
+  describe('listAccounts and deleteAccount endpoints', () => {
+    const ownerUid = 'test-owner-manage-accounts';
+    const adminUid = 'test-admin-manage-accounts';
+    const otherAdminUid = 'test-other-admin-manage-accounts';
+    const pendingInviteId = 'pending-invite-manage-accounts';
+
+    beforeAll(async () => {
+      // Create users in Auth and mock documents in Firestore
+      try { await auth.deleteUser(ownerUid); } catch { /* Ignored */ }
+      try { await auth.deleteUser(adminUid); } catch { /* Ignored */ }
+      try { await auth.deleteUser(otherAdminUid); } catch { /* Ignored */ }
+
+      await auth.createUser({ uid: ownerUid, email: 'owner-mgr@example.com' });
+      await auth.createUser({ uid: adminUid, email: 'admin-mgr@example.com' });
+      await auth.createUser({ uid: otherAdminUid, email: 'other-mgr@example.com' });
+
+      await db.collection('accounts').doc(ownerUid).set({
+        email: 'owner-mgr@example.com',
+        username: 'Owner Mgr',
+        role: 'owner',
+      });
+      await db.collection('accounts').doc(adminUid).set({
+        email: 'admin-mgr@example.com',
+        username: 'Admin Mgr',
+        role: 'admin',
+      });
+      await db.collection('accounts').doc(otherAdminUid).set({
+        email: 'other-mgr@example.com',
+        username: 'Other Mgr',
+        role: 'admin',
+      });
+
+      // Create a pending invitation
+      await db.collection('pendingAccounts').doc(pendingInviteId).set({
+        email: 'pending-mgr@example.com',
+        role: 'admin',
+        createdAt: Timestamp.fromDate(new Date()),
+      });
+    });
+
+    afterAll(async () => {
+      try { await auth.deleteUser(ownerUid); } catch { /* Ignored */ }
+      try { await auth.deleteUser(adminUid); } catch { /* Ignored */ }
+      try { await auth.deleteUser(otherAdminUid); } catch { /* Ignored */ }
+
+      await db.collection('accounts').doc(ownerUid).delete();
+      await db.collection('accounts').doc(adminUid).delete();
+      await db.collection('accounts').doc(otherAdminUid).delete();
+      await db.collection('pendingAccounts').doc(pendingInviteId).delete();
+    });
+
+    it('rejects listAccounts if role is insufficient (admin)', async () => {
+      const handler = typeof listAccounts.run === 'function' ? listAccounts.run : listAccounts;
+      const cookie = await getSessionCookieForUser(adminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(403);
+    });
+
+    it('successfully lists active and pending accounts for owners', async () => {
+      const handler = typeof listAccounts.run === 'function' ? listAccounts.run : listAccounts;
+      const cookie = await getSessionCookieForUser(ownerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+
+      const list = context.body as {
+        uid: string;
+        email: string;
+        role: string;
+        status: 'active' | 'pending';
+        username?: string;
+      }[];
+      expect(list.length).toBeGreaterThanOrEqual(3);
+
+      const ownerAccount = list.find((a) => a.uid === ownerUid);
+      expect(ownerAccount).toEqual({
+        uid: ownerUid,
+        email: `${ownerUid}@example.com`,
+        role: 'owner',
+        status: 'active',
+        username: `${ownerUid}_user`,
+      });
+
+      const adminAccount = list.find((a) => a.uid === adminUid);
+      expect(adminAccount).toEqual({
+        uid: adminUid,
+        email: `${adminUid}@example.com`,
+        role: 'admin',
+        status: 'active',
+        username: `${adminUid}_user`,
+      });
+
+      const pendingAccount = list.find((a) => a.uid === pendingInviteId);
+      expect(pendingAccount).toEqual({
+        uid: pendingInviteId,
+        email: 'pending-mgr@example.com',
+        role: 'admin',
+        status: 'pending',
+      });
+    });
+
+    it('rejects deleteAccount if role is insufficient (admin)', async () => {
+      const handler = typeof deleteAccount.run === 'function' ? deleteAccount.run : deleteAccount;
+      const cookie = await getSessionCookieForUser(adminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { uid: otherAdminUid },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(403);
+    });
+
+    it('refuses self-deletion for the logged-in owner', async () => {
+      const handler = typeof deleteAccount.run === 'function' ? deleteAccount.run : deleteAccount;
+      const cookie = await getSessionCookieForUser(ownerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { uid: ownerUid }, // target is self
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+      expect(context.body).toContain('Self-deletion is refused.');
+    });
+
+    it('successfully deletes a pending invitation', async () => {
+      const handler = typeof deleteAccount.run === 'function' ? deleteAccount.run : deleteAccount;
+      const cookie = await getSessionCookieForUser(ownerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { uid: pendingInviteId },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      // Document should not exist in pendingAccounts
+      const pendingDoc = await db.collection('pendingAccounts').doc(pendingInviteId).get();
+      expect(pendingDoc.exists).toBe(false);
+    });
+
+    it('successfully deletes an active administrator and revokes sessions', async () => {
+      const handler = typeof deleteAccount.run === 'function' ? deleteAccount.run : deleteAccount;
+      const cookie = await getSessionCookieForUser(ownerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { uid: otherAdminUid },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(200);
+      expect(context.body).toEqual({ status: 'success' });
+
+      // Document should not exist in accounts
+      const activeDoc = await db.collection('accounts').doc(otherAdminUid).get();
+      expect(activeDoc.exists).toBe(false);
+
+      // User should be deleted from Auth
+      await expect(auth.getUser(otherAdminUid)).rejects.toThrow();
     });
   });
 });
