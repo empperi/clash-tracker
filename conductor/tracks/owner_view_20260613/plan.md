@@ -25,10 +25,10 @@ Goal: owner-set, header-visible identity.
 
 Goal: securely set/replace the token.
 
-- [ ] Task: Emulator tests + implement a guarded `setApiToken(token)` function storing it
+- [x] e0a953d Task: Emulator tests + implement a guarded `setApiToken(token)` function storing it
   encrypted via `SecretsRepository`. Assert: stored value is ciphertext (≠ plaintext), the
   function returns no token, and nothing logs the token.
-- [ ] Task: Tests + implement the token field + Save: write-only input, a "token is set"
+- [x] d1d5348 Task: Tests + implement the token field + Save: write-only input, a "token is set"
   indicator (boolean from a guarded status function — never the value), success feedback.
 - [ ] Verification: set a token; confirm encryption at rest and that the UI never receives
   it; the gateway (Track 2) can then authenticate. [checkpoint]
