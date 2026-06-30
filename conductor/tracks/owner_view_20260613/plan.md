@@ -37,11 +37,11 @@ Goal: securely set/replace the token.
 
 Goal: list and delete accounts safely.
 
-- [ ] Task: Emulator tests + implement a guarded `listAccounts()` returning active +
+- [x] c125b3d Task: Emulator tests + implement a guarded `listAccounts()` returning active +
   pending accounts (no secrets) for owners only.
 - [x] 2f70cb9 Task: Tests + implement pure `canDeleteAccount(targetUid, currentOwnerUid)` →
   false when target == self. 
-- [ ] Task: Emulator tests + implement guarded `deleteAccount(uid)`: refuse self-deletion,
+- [x] c125b3d Task: Emulator tests + implement guarded `deleteAccount(uid)`: refuse self-deletion,
   delete the account, and call `revokeAccountSessions(uid)` so the user is logged out and
   cannot re-login. Cover the self-delete rejection.
 - [ ] Task: Tests + implement the accounts list UI with delete buttons (own account's delete
