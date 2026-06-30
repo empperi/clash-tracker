@@ -98,10 +98,13 @@ async function saveClanTag() {
     </div>
 
     <!-- Access Denied -->
-    <div v-else-if="!capabilities.isOwner" class="denied-state">
-      <div class="denied-icon">🛡️</div>
-      <h3>Access Denied</h3>
-      <p>You must be the owner to view this page.</p>
+    <div v-else-if="!capabilities.isOwner" class="unauthorized-container">
+      <BasePanel title="Access Denied">
+        <div class="denied-content">
+          <div class="denied-icon">🛡️</div>
+          <p class="unauthorized-text">You must be the owner to view this page.</p>
+        </div>
+      </BasePanel>
     </div>
 
     <div v-else>
@@ -286,7 +289,7 @@ async function saveClanTag() {
   justify-content: flex-start;
 }
 
-.loading-state, .denied-state, .error-state {
+.loading-state, .error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -298,6 +301,28 @@ async function saveClanTag() {
   border-radius: var(--ct-radius-md);
   box-shadow: var(--ct-shadow-md);
   margin-top: var(--ct-spacing-lg);
+}
+
+.unauthorized-container {
+  padding: var(--ct-spacing-md);
+  max-width: 600px;
+  margin: var(--ct-spacing-xl) auto 0;
+}
+
+.denied-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ct-spacing-md) 0;
+  text-align: center;
+}
+
+.unauthorized-text {
+  color: var(--ct-color-text-secondary);
+  font-family: var(--ct-font-body);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .denied-icon {

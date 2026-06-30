@@ -45,7 +45,10 @@ const { thresholds, isLoading: playersLoading, isError } = usePlayers(api);
   </div>
   <div v-else-if="!sessionLoading" class="unauthorized-container">
     <BasePanel title="Access Denied">
-      <p class="unauthorized-text">You must be an administrator or owner to view this page.</p>
+      <div class="denied-content">
+        <div class="denied-icon">🛡️</div>
+        <p class="unauthorized-text">You must be an administrator or owner to view this page.</p>
+      </div>
     </BasePanel>
   </div>
   <div v-else class="loading-state">
@@ -95,5 +98,19 @@ const { thresholds, isLoading: playersLoading, isError } = usePlayers(api);
   font-family: var(--ct-font-body);
   font-size: 15px;
   line-height: 1.6;
+}
+
+.denied-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ct-spacing-md) 0;
+  text-align: center;
+}
+
+.denied-icon {
+  font-size: 48px;
+  margin-bottom: var(--ct-spacing-sm);
 }
 </style>
