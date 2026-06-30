@@ -46,7 +46,7 @@ Goal: list and delete accounts safely.
   cannot re-login. Cover the self-delete rejection.
 - [x] 835052a Task: Tests + implement the accounts list UI with delete buttons (own account's delete
   disabled), reflecting active/pending status.
-- [ ] Verification: deleting an admin logs them out immediately; self-delete blocked in UI
+- [x] Verification: deleting an admin logs them out immediately; self-delete blocked in UI
   and server. [checkpoint]
 
 ## Phase 4: Owner view assembly
