@@ -53,7 +53,7 @@ Goal: list and delete accounts safely.
 
 Goal: compose behind the owner capability.
 
-- [ ] Task: Tests + implement `OwnerView.vue` composing identity, token, clan tag, and
+- [x] 835052a Task: Tests + implement `OwnerView.vue` composing identity, token, clan tag, and
   account management, visible only when `isOwner`. Non-owners (incl. plain admins) never see
   it.
 - [ ] Verification: manual — full owner flow: brand the app, rotate the token, manage
