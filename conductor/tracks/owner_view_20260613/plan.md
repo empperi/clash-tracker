@@ -7,7 +7,7 @@ Track `owner_view_20260613`. TDD per `conductor/workflow.md`. Reuse Track 2
 > Implementer note: the token is write-only — never return it to the client or log it. The
 > owner must never be able to delete themselves.
 
-## Phase 1: Clan identity (name + clan tag)
+## Phase 1: Clan identity (name + clan tag) [checkpoint: 7608a74]
 
 Goal: owner-set, header-visible identity.
 
@@ -19,7 +19,7 @@ Goal: owner-set, header-visible identity.
 - [x] de071cf Task: Tests + implement the name + clan-tag fields with **explicit Save** buttons and
   validation feedback; ensure the header reflects the saved name (reads
   `publicSettings/config`).
-- [ ] Verification: changing name/clan tag updates the header everywhere after save. [checkpoint]
+- [x] Verification: changing name/clan tag updates the header everywhere after save. [checkpoint]
 
 ## Phase 2: CoC API token (write-only)
 
