@@ -21,7 +21,7 @@ Goal: owner-set, header-visible identity.
   `publicSettings/config`).
 - [x] Verification: changing name/clan tag updates the header everywhere after save. [checkpoint]
 
-## Phase 2: CoC API token (write-only)
+## Phase 2: CoC API token (write-only) [checkpoint: d1d5348]
 
 Goal: securely set/replace the token.
 
@@ -30,7 +30,7 @@ Goal: securely set/replace the token.
   function returns no token, and nothing logs the token.
 - [x] d1d5348 Task: Tests + implement the token field + Save: write-only input, a "token is set"
   indicator (boolean from a guarded status function — never the value), success feedback.
-- [ ] Verification: set a token; confirm encryption at rest and that the UI never receives
+- [x] Verification: set a token; confirm encryption at rest and that the UI never receives
   it; the gateway (Track 2) can then authenticate. [checkpoint]
 
 ## Phase 3: Account management
