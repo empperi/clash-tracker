@@ -56,7 +56,7 @@ Goal: compose behind the owner capability.
 - [x] 835052a Task: Tests + implement `OwnerView.vue` composing identity, token, clan tag, and
   account management, visible only when `isOwner`. Non-owners (incl. plain admins) never see
   it.
-- [ ] Verification: manual — full owner flow: brand the app, rotate the token, manage
+- [x] Verification: manual — full owner flow: brand the app, rotate the token, manage
   accounts. [checkpoint]
 
 ## Done when
