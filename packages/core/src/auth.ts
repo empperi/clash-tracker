@@ -44,3 +44,14 @@ export function isInvitationExpired(createdAt: Date, now: Date): boolean {
   const diffMs = now.getTime() - createdAt.getTime();
   return diffMs > 30 * 60 * 1000;
 }
+
+/**
+ * Determines if a target account can be deleted by the current owner.
+ * Returns false if the target is the current owner themselves (self-deletion is forbidden).
+ */
+export function canDeleteAccount(targetUid: string, currentOwnerUid: string): boolean {
+  if (!targetUid || !currentOwnerUid) {
+    return false;
+  }
+  return targetUid !== currentOwnerUid;
+}

@@ -5,6 +5,7 @@ import {
   isOtpExpired,
   hasExceededOtpAttempts,
   isInvitationExpired,
+  canDeleteAccount,
 } from './auth';
 
 describe('rolesToCapabilities', () => {
@@ -135,5 +136,21 @@ describe('isInvitationExpired', () => {
     const createdAt = new Date('2026-06-21T16:00:00Z');
     const now = new Date('2026-06-21T17:00:00Z');
     expect(isInvitationExpired(createdAt, now)).toBe(true);
+  });
+});
+
+describe('canDeleteAccount', () => {
+  it('returns true when targetUid is different from currentOwnerUid', () => {
+    expect(canDeleteAccount('target-uid', 'owner-uid')).toBe(true);
+  });
+
+  it('returns false when targetUid is identical to currentOwnerUid', () => {
+    expect(canDeleteAccount('same-uid', 'same-uid')).toBe(false);
+  });
+
+  it('returns false when targetUid or currentOwnerUid is empty/falsy', () => {
+    expect(canDeleteAccount('', 'owner-uid')).toBe(false);
+    expect(canDeleteAccount('target-uid', '')).toBe(false);
+    expect(canDeleteAccount('', '')).toBe(false);
   });
 });
