@@ -1392,7 +1392,7 @@ describe('Cloud Function handlers delegation', () => {
       // 1. Initial status should be false
       {
         const context = createMockReqRes({
-          method: 'GET',
+          method: 'POST',
           headers: { cookie: `__session=${cookie}` },
         });
         await getHandler(context.req, context.res);
@@ -1416,7 +1416,7 @@ describe('Cloud Function handlers delegation', () => {
       // 3. Status should now be true
       {
         const context = createMockReqRes({
-          method: 'GET',
+          method: 'POST',
           headers: { cookie: `__session=${cookie}` },
         });
         await getHandler(context.req, context.res);

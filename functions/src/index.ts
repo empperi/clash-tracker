@@ -354,7 +354,7 @@ export const setApiToken = onRequest(async (req, res) => {
 });
 
 export const getApiTokenStatus = onRequest(async (req, res) => {
-  if (req.method !== 'GET' && req.method !== 'POST') {
+  if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
   }

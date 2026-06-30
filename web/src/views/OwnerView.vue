@@ -238,6 +238,7 @@ async function saveApiToken() {
           </p>
           <div class="config-form">
             <div class="form-group">
+              <label for="apiToken" class="form-label">CoC API Token</label>
               <div class="token-status-indicator">
                 <span>Status:</span>
                 <span v-if="isLoadingTokenStatus" class="token-loading-text">Checking status...</span>
@@ -379,15 +380,15 @@ async function saveApiToken() {
 }
 
 .token-status-badge.is-set {
-  background-color: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background-color: color-mix(in srgb, var(--ct-color-green) 15%, transparent);
+  color: var(--ct-color-green);
+  border: 1px solid color-mix(in srgb, var(--ct-color-green) 30%, transparent);
 }
 
 .token-status-badge.is-empty {
-  background-color: rgba(244, 67, 54, 0.15);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background-color: color-mix(in srgb, var(--ct-color-red) 15%, transparent);
+  color: var(--ct-color-red);
+  border: 1px solid color-mix(in srgb, var(--ct-color-red) 30%, transparent);
 }
 
 .token-loading-text {
