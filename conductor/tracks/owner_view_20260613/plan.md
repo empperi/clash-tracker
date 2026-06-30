@@ -39,7 +39,7 @@ Goal: list and delete accounts safely.
 
 - [ ] Task: Emulator tests + implement a guarded `listAccounts()` returning active +
   pending accounts (no secrets) for owners only.
-- [ ] Task: Tests + implement pure `canDeleteAccount(targetUid, currentOwnerUid)` →
+- [x] 2f70cb9 Task: Tests + implement pure `canDeleteAccount(targetUid, currentOwnerUid)` →
   false when target == self. 
 - [ ] Task: Emulator tests + implement guarded `deleteAccount(uid)`: refuse self-deletion,
   delete the account, and call `revokeAccountSessions(uid)` so the user is logged out and
