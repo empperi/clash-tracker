@@ -28,6 +28,8 @@ describe('OwnerView.vue', () => {
     mockOwnerApi = {
       setClanName: vi.fn().mockResolvedValue(undefined),
       setClanTag: vi.fn().mockResolvedValue(undefined),
+      setApiToken: vi.fn().mockResolvedValue(undefined),
+      getApiTokenStatus: vi.fn().mockResolvedValue(false),
     } as unknown as OwnerApi;
     mockPlayersApi = {
       fetchCurrentPlayers: vi.fn().mockResolvedValue([]),
@@ -215,5 +217,81 @@ describe('OwnerView.vue', () => {
     expect(mockOwnerApi.setClanTag).toHaveBeenCalledWith('#2PGQYPQ');
     await flushPromises();
     expect(wrapper.find('.tag-success').text()).toContain('Tag saved successfully');
+  });
+
+  test('validates and updates CoC API token on save', async () => {
+    mockUseSession.mockReturnValue({
+      loading: ref(false),
+      capabilities: ref({ isOwner: true }),
+    });
+    mockUseClanConfig.mockReturnValue({
+      config: ref({
+        clanName: 'Clash Clan',
+        clanTag: '#2PGQYPQ',
+        acceptancePct: 80,
+        minWarParticipation: 3,
+      }),
+      isLoading: ref(false),
+      isError: ref(false),
+    });
+
+    const wrapper = mountView();
+    await flushPromises();
+
+    const tokenInput = wrapper.find('#apiToken');
+
+    // Test empty validation
+    await tokenInput.setValue('');
+    await wrapper.find('.save-token-btn').trigger('click');
+    expect(wrapper.find('.token-error').text()).toContain('cannot be empty');
+    expect(mockOwnerApi.setApiToken).not.toHaveBeenCalled();
+
+    // Test too short validation
+    await tokenInput.setValue('too-short');
+    await wrapper.find('.save-token-btn').trigger('click');
+    expect(wrapper.find('.token-error').text()).toContain('too short');
+    expect(mockOwnerApi.setApiToken).not.toHaveBeenCalled();
+
+    // Test valid submission
+    const validToken = 'a'.repeat(50);
+    await tokenInput.setValue(validToken);
+    await wrapper.find('.save-token-btn').trigger('click');
+
+    expect(mockOwnerApi.setApiToken).toHaveBeenCalledWith(validToken);
+    await flushPromises();
+    expect(wrapper.find('.token-success').text()).toContain('saved successfully');
+    // Plaintext token input should be cleared for security
+    expect((tokenInput.element as HTMLInputElement).value).toBe('');
+  });
+
+  test('renders API token configured/not-configured status correctly', async () => {
+    mockUseSession.mockReturnValue({
+      loading: ref(false),
+      capabilities: ref({ isOwner: true }),
+    });
+    mockUseClanConfig.mockReturnValue({
+      config: ref({
+        clanName: 'Clash Clan',
+        clanTag: '#2PGQYPQ',
+        acceptancePct: 80,
+        minWarParticipation: 3,
+      }),
+      isLoading: ref(false),
+      isError: ref(false),
+    });
+
+    // 1. Initially false / not configured
+    mockOwnerApi.getApiTokenStatus = vi.fn().mockResolvedValue(false);
+    let wrapper = mountView();
+    await flushPromises();
+    expect(wrapper.find('.token-status-badge.is-empty').exists()).toBe(true);
+    expect(wrapper.find('.token-status-badge.is-empty').text()).toContain('Not configured');
+
+    // 2. Configured
+    mockOwnerApi.getApiTokenStatus = vi.fn().mockResolvedValue(true);
+    wrapper = mountView();
+    await flushPromises();
+    expect(wrapper.find('.token-status-badge.is-set').exists()).toBe(true);
+    expect(wrapper.find('.token-status-badge.is-set').text()).toContain('Active (Set)');
   });
 });
