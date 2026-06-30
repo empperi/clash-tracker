@@ -5,7 +5,12 @@ import { useSession } from '../composables/useSession';
 import { PLAYERS_API, EMPTY_PLAYERS_API } from '../api/players';
 import { OWNER_API, EMPTY_OWNER_API } from '../api/owner';
 import { useClanConfig } from '../composables/useClanConfig';
-import { validateClanName, validateConfigClanTag, validateApiToken, canDeleteAccount } from '@clash-tracker/core';
+import {
+  validateClanName,
+  validateConfigClanTag,
+  validateApiToken,
+  canDeleteAccount,
+} from '@clash-tracker/core';
 import BasePanel from '../components/BasePanel.vue';
 import BaseButton from '../components/BaseButton.vue';
 import type { OwnerAccount } from '../api/owner';
@@ -167,7 +172,11 @@ async function saveApiToken() {
 async function handleDeleteAccount(uid: string) {
   if (isDeletingUid.value) return;
 
-  if (!window.confirm('Are you sure you want to delete this account? They will be logged out and deleted immediately.')) {
+  if (
+    !window.confirm(
+      'Are you sure you want to delete this account? They will be logged out and deleted immediately.'
+    )
+  ) {
     return;
   }
 
@@ -244,7 +253,9 @@ async function handleDeleteAccount(uid: string) {
                 </BaseButton>
               </div>
               <p v-if="nameError" class="validation-message name-error">{{ nameError }}</p>
-              <p v-if="nameSuccess" class="validation-message name-success">Name saved successfully!</p>
+              <p v-if="nameSuccess" class="validation-message name-success">
+                Name saved successfully!
+              </p>
             </div>
 
             <!-- Clan Tag Field -->
@@ -268,21 +279,26 @@ async function handleDeleteAccount(uid: string) {
                 </BaseButton>
               </div>
               <p v-if="tagError" class="validation-message tag-error">{{ tagError }}</p>
-              <p v-if="tagSuccess" class="validation-message tag-success">Tag saved successfully!</p>
+              <p v-if="tagSuccess" class="validation-message tag-success">
+                Tag saved successfully!
+              </p>
             </div>
           </div>
         </BasePanel>
 
         <BasePanel title="CoC API Token">
           <p class="section-description">
-            Set or rotate your Clash of Clans API token. This token is stored encrypted at rest and is never sent back to the browser.
+            Set or rotate your Clash of Clans API token. This token is stored encrypted at rest and
+            is never sent back to the browser.
           </p>
           <div class="config-form">
             <div class="form-group">
               <label for="apiToken" class="form-label">CoC API Token</label>
               <div class="token-status-indicator">
                 <span>Status:</span>
-                <span v-if="isLoadingTokenStatus" class="token-loading-text">Checking status...</span>
+                <span v-if="isLoadingTokenStatus" class="token-loading-text"
+                  >Checking status...</span
+                >
                 <span v-else-if="hasApiToken" class="token-status-badge is-set">Active (Set)</span>
                 <span v-else class="token-status-badge is-empty">Not configured</span>
               </div>
@@ -305,14 +321,17 @@ async function handleDeleteAccount(uid: string) {
                 </BaseButton>
               </div>
               <p v-if="apiTokenError" class="validation-message token-error">{{ apiTokenError }}</p>
-              <p v-if="apiTokenSuccess" class="validation-message token-success">API token saved successfully!</p>
+              <p v-if="apiTokenSuccess" class="validation-message token-success">
+                API token saved successfully!
+              </p>
             </div>
           </div>
         </BasePanel>
 
         <BasePanel title="Account Management">
           <p class="section-description">
-            View active administrator/owner accounts and pending invitations. You can delete any account except your own.
+            View active administrator/owner accounts and pending invitations. You can delete any
+            account except your own.
           </p>
 
           <div v-if="isLoadingAccounts" class="accounts-loading">
@@ -324,7 +343,7 @@ async function handleDeleteAccount(uid: string) {
           </div>
           <div v-else class="accounts-table-container">
             <div v-if="deleteError" class="validation-message delete-error">{{ deleteError }}</div>
-            
+
             <table class="accounts-table">
               <thead>
                 <tr>
@@ -353,7 +372,10 @@ async function handleDeleteAccount(uid: string) {
                       variant="danger"
                       size="sm"
                       class="delete-account-btn"
-                      :disabled="!canDeleteAccount(account.uid, user?.uid || '') || isDeletingUid === account.uid"
+                      :disabled="
+                        !canDeleteAccount(account.uid, user?.uid || '') ||
+                        isDeletingUid === account.uid
+                      "
                       @click="handleDeleteAccount(account.uid)"
                     >
                       {{ isDeletingUid === account.uid ? 'Deleting...' : 'Delete' }}
@@ -368,7 +390,9 @@ async function handleDeleteAccount(uid: string) {
         <BasePanel title="Danger Zone">
           <p class="danger-text">These settings have critical security impacts. Be careful.</p>
           <div class="panel-actions justify-start">
-            <BaseButton variant="danger" :disabled="true">Revoke All Admin Sessions (Coming Soon)</BaseButton>
+            <BaseButton variant="danger" :disabled="true"
+              >Revoke All Admin Sessions (Coming Soon)</BaseButton
+            >
           </div>
         </BasePanel>
       </div>
@@ -451,11 +475,15 @@ async function handleDeleteAccount(uid: string) {
   font-family: var(--ct-font-body);
 }
 
-.name-error, .tag-error, .token-error {
+.name-error,
+.tag-error,
+.token-error {
   color: var(--ct-color-red);
 }
 
-.name-success, .tag-success, .token-success {
+.name-success,
+.tag-success,
+.token-success {
   color: var(--ct-color-green);
 }
 
@@ -516,7 +544,8 @@ async function handleDeleteAccount(uid: string) {
   justify-content: flex-start;
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -557,7 +586,8 @@ async function handleDeleteAccount(uid: string) {
   margin-bottom: var(--ct-spacing-sm);
 }
 
-.accounts-loading, .accounts-error {
+.accounts-loading,
+.accounts-error {
   text-align: center;
   color: var(--ct-color-text-secondary);
   padding: var(--ct-spacing-lg) 0;
@@ -605,7 +635,8 @@ async function handleDeleteAccount(uid: string) {
   font-size: 12px;
 }
 
-.role-badge, .status-badge {
+.role-badge,
+.status-badge {
   font-weight: 600;
   padding: 2px 6px;
   border-radius: var(--ct-radius-sm);
@@ -661,6 +692,8 @@ async function handleDeleteAccount(uid: string) {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

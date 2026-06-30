@@ -65,7 +65,12 @@ describe('OwnerView.vue', () => {
       capabilities: ref({ isOwner: false }),
     });
     mockUseClanConfig.mockReturnValue({
-      config: ref({ clanName: 'Clash Clan', clanTag: '#2PGQYPQ', acceptancePct: 80, minWarParticipation: 3 }),
+      config: ref({
+        clanName: 'Clash Clan',
+        clanTag: '#2PGQYPQ',
+        acceptancePct: 80,
+        minWarParticipation: 3,
+      }),
       isLoading: ref(false),
       isError: ref(false),
     });
@@ -81,7 +86,12 @@ describe('OwnerView.vue', () => {
       capabilities: ref({ isOwner: false }),
     });
     mockUseClanConfig.mockReturnValue({
-      config: ref({ clanName: 'Clash Clan', clanTag: '#2PGQYPQ', acceptancePct: 80, minWarParticipation: 3 }),
+      config: ref({
+        clanName: 'Clash Clan',
+        clanTag: '#2PGQYPQ',
+        acceptancePct: 80,
+        minWarParticipation: 3,
+      }),
       isLoading: ref(false),
       isError: ref(false),
     });
@@ -169,7 +179,7 @@ describe('OwnerView.vue', () => {
     await flushPromises();
 
     const nameInput = wrapper.find('#clanName');
-    
+
     // Test empty validation
     await nameInput.setValue('');
     await wrapper.find('.save-name-btn').trigger('click');
@@ -179,7 +189,7 @@ describe('OwnerView.vue', () => {
     // Test valid submission
     await nameInput.setValue('New Clan Name');
     await wrapper.find('.save-name-btn').trigger('click');
-    
+
     expect(mockOwnerApi.setClanName).toHaveBeenCalledWith('New Clan Name');
     await flushPromises();
     expect(wrapper.find('.name-success').text()).toContain('Name saved successfully');
@@ -315,8 +325,20 @@ describe('OwnerView.vue', () => {
     });
 
     const mockAccounts = [
-      { uid: 'my-owner-uid', email: 'owner@example.com', role: 'owner', status: 'active', username: 'The Owner' },
-      { uid: 'other-admin-uid', email: 'admin@example.com', role: 'admin', status: 'active', username: 'The Admin' },
+      {
+        uid: 'my-owner-uid',
+        email: 'owner@example.com',
+        role: 'owner',
+        status: 'active',
+        username: 'The Owner',
+      },
+      {
+        uid: 'other-admin-uid',
+        email: 'admin@example.com',
+        role: 'admin',
+        status: 'active',
+        username: 'The Admin',
+      },
       { uid: 'pending-invite-uid', email: 'pending@example.com', role: 'admin', status: 'pending' },
     ];
     mockOwnerApi.listAccounts = vi.fn().mockResolvedValue(mockAccounts);

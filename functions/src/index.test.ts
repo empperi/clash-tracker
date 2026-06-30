@@ -1194,19 +1194,27 @@ describe('Cloud Function handlers delegation', () => {
     beforeAll(async () => {
       try {
         await auth.deleteUser(testOwnerUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       try {
         await auth.deleteUser(testAdminUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
     });
 
     afterAll(async () => {
       try {
         await auth.deleteUser(testOwnerUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       try {
         await auth.deleteUser(testAdminUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       await db.collection('accounts').doc(testOwnerUid).delete();
       await db.collection('accounts').doc(testAdminUid).delete();
       await db.collection('publicSettings').doc('config').delete();
@@ -1278,19 +1286,27 @@ describe('Cloud Function handlers delegation', () => {
     beforeAll(async () => {
       try {
         await auth.deleteUser(testOwnerUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       try {
         await auth.deleteUser(testAdminUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
     });
 
     afterAll(async () => {
       try {
         await auth.deleteUser(testOwnerUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       try {
         await auth.deleteUser(testAdminUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       await db.collection('accounts').doc(testOwnerUid).delete();
       await db.collection('accounts').doc(testAdminUid).delete();
       await db.collection('publicSettings').doc('config').delete();
@@ -1352,19 +1368,27 @@ describe('Cloud Function handlers delegation', () => {
     beforeAll(async () => {
       try {
         await auth.deleteUser(testOwnerUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       try {
         await auth.deleteUser(testAdminUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
     });
 
     afterAll(async () => {
       try {
         await auth.deleteUser(testOwnerUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       try {
         await auth.deleteUser(testAdminUid);
-      } catch { /* Ignored */ }
+      } catch {
+        /* Ignored */
+      }
       await db.collection('accounts').doc(testOwnerUid).delete();
       await db.collection('accounts').doc(testAdminUid).delete();
       await db.collection('secrets').doc('coc').delete();
@@ -1396,7 +1420,8 @@ describe('Cloud Function handlers delegation', () => {
 
     it('successfully stores encrypted API token and getApiTokenStatus returns status correctly', async () => {
       const setHandler = typeof setApiToken.run === 'function' ? setApiToken.run : setApiToken;
-      const getHandler = typeof getApiTokenStatus.run === 'function' ? getApiTokenStatus.run : getApiTokenStatus;
+      const getHandler =
+        typeof getApiTokenStatus.run === 'function' ? getApiTokenStatus.run : getApiTokenStatus;
       const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
 
       // 1. Initial status should be false
@@ -1456,9 +1481,21 @@ describe('Cloud Function handlers delegation', () => {
 
     beforeAll(async () => {
       // Clean up existing test accounts
-      try { await auth.deleteUser(ownerUid); } catch { /* Ignored */ }
-      try { await auth.deleteUser(adminUid); } catch { /* Ignored */ }
-      try { await auth.deleteUser(otherAdminUid); } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(ownerUid);
+      } catch {
+        /* Ignored */
+      }
+      try {
+        await auth.deleteUser(adminUid);
+      } catch {
+        /* Ignored */
+      }
+      try {
+        await auth.deleteUser(otherAdminUid);
+      } catch {
+        /* Ignored */
+      }
 
       // otherAdminUid is not logged in via getSessionCookieForUser, so we manually create it in Auth & Firestore
       await auth.createUser({ uid: otherAdminUid, email: 'other-mgr@example.com' });
@@ -1469,17 +1506,32 @@ describe('Cloud Function handlers delegation', () => {
       });
 
       // Create a pending invitation
-      await db.collection('pendingAccounts').doc(pendingInviteId).set({
-        email: 'pending-mgr@example.com',
-        role: 'admin',
-        createdAt: Timestamp.fromDate(new Date()),
-      });
+      await db
+        .collection('pendingAccounts')
+        .doc(pendingInviteId)
+        .set({
+          email: 'pending-mgr@example.com',
+          role: 'admin',
+          createdAt: Timestamp.fromDate(new Date()),
+        });
     });
 
     afterAll(async () => {
-      try { await auth.deleteUser(ownerUid); } catch { /* Ignored */ }
-      try { await auth.deleteUser(adminUid); } catch { /* Ignored */ }
-      try { await auth.deleteUser(otherAdminUid); } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(ownerUid);
+      } catch {
+        /* Ignored */
+      }
+      try {
+        await auth.deleteUser(adminUid);
+      } catch {
+        /* Ignored */
+      }
+      try {
+        await auth.deleteUser(otherAdminUid);
+      } catch {
+        /* Ignored */
+      }
 
       await db.collection('accounts').doc(ownerUid).delete();
       await db.collection('accounts').doc(adminUid).delete();

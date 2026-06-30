@@ -456,9 +456,10 @@ export const listPendingInvites = onRequest(async (req, res) => {
       for (const doc of snapshot.docs) {
         const data = doc.data();
         const rawCreatedAt = data.createdAt;
-        const createdAt = (rawCreatedAt && typeof rawCreatedAt.toDate === 'function')
-          ? rawCreatedAt.toDate()
-          : new Date();
+        const createdAt =
+          rawCreatedAt && typeof rawCreatedAt.toDate === 'function'
+            ? rawCreatedAt.toDate()
+            : new Date();
         const expired = isInvitationExpired(createdAt, now);
 
         if (expired) {
@@ -649,9 +650,10 @@ export const listAccounts = onRequest(async (req, res) => {
       for (const doc of pendingSnapshot.docs) {
         const data = doc.data();
         const rawCreatedAt = data.createdAt;
-        const createdAt = (rawCreatedAt && typeof rawCreatedAt.toDate === 'function')
-          ? rawCreatedAt.toDate()
-          : new Date();
+        const createdAt =
+          rawCreatedAt && typeof rawCreatedAt.toDate === 'function'
+            ? rawCreatedAt.toDate()
+            : new Date();
         const expired = isInvitationExpired(createdAt, now);
 
         if (expired) {

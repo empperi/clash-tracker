@@ -122,7 +122,9 @@ export function createPlayersApi(db: Firestore): PlayersApi {
         clanName: String(data?.clanName ?? DEFAULT_CLAN_CONFIG.clanName),
         clanTag: String(data?.clanTag ?? DEFAULT_CLAN_CONFIG.clanTag),
         acceptancePct: Number(data?.acceptancePct ?? DEFAULT_CLAN_CONFIG.acceptancePct),
-        minWarParticipation: Number(data?.minWarParticipation ?? DEFAULT_CLAN_CONFIG.minWarParticipation),
+        minWarParticipation: Number(
+          data?.minWarParticipation ?? DEFAULT_CLAN_CONFIG.minWarParticipation
+        ),
       };
     },
     async fetchPastPlayers(page) {
