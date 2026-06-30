@@ -88,6 +88,14 @@ describe('Cloud Function handlers delegation', () => {
     (request: Request, response: Response): Promise<void> | void;
     run?: (request: Request, response: Response) => Promise<void> | void;
   };
+  let setApiToken: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
+  let getApiTokenStatus: {
+    (request: Request, response: Response): Promise<void> | void;
+    run?: (request: Request, response: Response) => Promise<void> | void;
+  };
   let mod: typeof import('./index');
 
   beforeAll(async () => {
@@ -103,6 +111,8 @@ describe('Cloud Function handlers delegation', () => {
     completeRegistration = mod.completeRegistration;
     setClanName = mod.setClanName;
     setClanTag = mod.setClanTag;
+    setApiToken = mod.setApiToken;
+    getApiTokenStatus = mod.getApiTokenStatus;
   });
 
   beforeEach(async () => {
@@ -1322,6 +1332,109 @@ describe('Cloud Function handlers delegation', () => {
       const secretsDoc = await db.collection('secrets').doc('coc').get();
       expect(secretsDoc.exists).toBe(true);
       expect(secretsDoc.data()?.clanTag).toBe('#2PGQYPQ');
+    });
+  });
+
+  describe('setApiToken and getApiTokenStatus endpoints', () => {
+    const testOwnerUid = 'owner-user-set-token';
+    const testAdminUid = 'admin-user-set-token';
+
+    beforeAll(async () => {
+      try {
+        await auth.deleteUser(testOwnerUid);
+      } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch { /* Ignored */ }
+    });
+
+    afterAll(async () => {
+      try {
+        await auth.deleteUser(testOwnerUid);
+      } catch { /* Ignored */ }
+      try {
+        await auth.deleteUser(testAdminUid);
+      } catch { /* Ignored */ }
+      await db.collection('accounts').doc(testOwnerUid).delete();
+      await db.collection('accounts').doc(testAdminUid).delete();
+      await db.collection('secrets').doc('coc').delete();
+    });
+
+    it('rejects setApiToken if role is insufficient (admin)', async () => {
+      const handler = typeof setApiToken.run === 'function' ? setApiToken.run : setApiToken;
+      const cookie = await getSessionCookieForUser(testAdminUid, 'admin');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: 'a'.repeat(50) },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(403);
+    });
+
+    it('rejects setApiToken with invalid tokens', async () => {
+      const handler = typeof setApiToken.run === 'function' ? setApiToken.run : setApiToken;
+      const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
+      const context = createMockReqRes({
+        method: 'POST',
+        headers: { cookie: `__session=${cookie}` },
+        body: { value: 'short-tok' },
+      });
+      await handler(context.req, context.res);
+      expect(context.status).toBe(400);
+    });
+
+    it('successfully stores encrypted API token and getApiTokenStatus returns status correctly', async () => {
+      const setHandler = typeof setApiToken.run === 'function' ? setApiToken.run : setApiToken;
+      const getHandler = typeof getApiTokenStatus.run === 'function' ? getApiTokenStatus.run : getApiTokenStatus;
+      const cookie = await getSessionCookieForUser(testOwnerUid, 'owner');
+
+      // 1. Initial status should be false
+      {
+        const context = createMockReqRes({
+          method: 'GET',
+          headers: { cookie: `__session=${cookie}` },
+        });
+        await getHandler(context.req, context.res);
+        expect(context.status).toBe(200);
+        expect(context.body).toEqual({ hasToken: false });
+      }
+
+      // 2. Set token
+      const plainToken = 'valid-coc-api-token-value-of-proper-length-here';
+      {
+        const context = createMockReqRes({
+          method: 'POST',
+          headers: { cookie: `__session=${cookie}` },
+          body: { value: plainToken },
+        });
+        await setHandler(context.req, context.res);
+        expect(context.status).toBe(200);
+        expect(context.body).toEqual({ status: 'success' });
+      }
+
+      // 3. Status should now be true
+      {
+        const context = createMockReqRes({
+          method: 'GET',
+          headers: { cookie: `__session=${cookie}` },
+        });
+        await getHandler(context.req, context.res);
+        expect(context.status).toBe(200);
+        expect(context.body).toEqual({ hasToken: true });
+      }
+
+      // 4. Verify encryption at rest (ciphertext != plaintext) and secrets content
+      const secretsDoc = await db.collection('secrets').doc('coc').get();
+      expect(secretsDoc.exists).toBe(true);
+      const data = secretsDoc.data();
+      expect(data?.encryptedToken).toBeDefined();
+      expect(data?.encryptedToken).not.toBe(plainToken);
+
+      // Verify decryptable via SecretsRepository
+      const decryptedRes = await secretsRepo.getDecryptedToken();
+      expect(decryptedRes.success).toBe(true);
+      expect(decryptedRes.value).toBe(plainToken);
     });
   });
 });
