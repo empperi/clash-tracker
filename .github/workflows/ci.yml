@@ -161,4 +161,13 @@ jobs:
         run: npm run deploy --workspace @clash-tracker/functions -- --project militia-clash-tracker
 
       - name: Deploy Hosting & Rules to Firebase
-        run: npx firebase deploy --only hosting,firestore --project militia-clash-tracker
+        run: |
+          set +e
+          OUT=$(npx firebase deploy --only hosting,firestore --project militia-clash-tracker 2>&1)
+          CODE=$?
+          echo "$OUT"
+          if [ $CODE -ne 0 ] && echo "$OUT" | grep -q "is the current active version"; then
+            echo "No content change detected — already live. Skipping."
+            exit 0
+          fi
+          exit $CODE
