@@ -50,6 +50,34 @@
         "function": "completeRegistration"
       },
       {
+        "source": "/api/setClanName",
+        "function": "setClanName"
+      },
+      {
+        "source": "/api/setClanTag",
+        "function": "setClanTag"
+      },
+      {
+        "source": "/api/setApiToken",
+        "function": "setApiToken"
+      },
+      {
+        "source": "/api/getApiTokenStatus",
+        "function": "getApiTokenStatus"
+      },
+      {
+        "source": "/api/listAccounts",
+        "function": "listAccounts"
+      },
+      {
+        "source": "/api/deleteAccount",
+        "function": "deleteAccount"
+      },
+      {
+        "source": "/api/triggerIngestNow",
+        "function": "triggerIngestNow"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
