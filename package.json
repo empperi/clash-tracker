@@ -24,17 +24,17 @@
     "emulators:seed": "firebase emulators:start --project demo-clash-tracker --import=./.seed --export-on-exit=./.seed"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.5.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-vue": "^10.9.2",
-    "firebase-tools": "^15.22.4",
-    "prettier": "^3.8.4",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.0",
-    "vue-tsc": "^3.3.5"
+    "@eslint/js": "10.0.1",
+    "eslint": "10.5.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-vue": "10.9.2",
+    "firebase-tools": "15.21.0",
+    "prettier": "3.8.4",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.61.0",
+    "vue-tsc": "3.3.5"
   },
   "dependencies": {
-    "playwright": "^1.60.0"
+    "playwright": "1.60.0"
   }
 }
